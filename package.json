@@ -1,0 +1,8 @@
+{
+  "name": "ab-utils",
+  "version": "0.0.0",
+  "description": "A common set of utility functions shared by our AppBuilder services",
+  "main": "ab-utils.js",
+  "author": "Johnny Hausman",
+  "license": "MIT"
+}
