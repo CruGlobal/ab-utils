@@ -4,5 +4,8 @@
   "description": "A common set of utility functions shared by our AppBuilder services",
   "main": "ab-utils.js",
   "author": "Johnny Hausman",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "lodash": "^4.17.11"
+  }
 }

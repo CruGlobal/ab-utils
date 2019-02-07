@@ -3,5 +3,5 @@
 //
 var config = require('./utils/config.js');
 module.exports = {
-	config
+  config
 }
