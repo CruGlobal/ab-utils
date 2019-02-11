@@ -7,11 +7,19 @@ var _ = require("lodash");
 module.exports = baseFile => {
 
   // baseConfig should be included as part of the project
-  var baseConfig = require(path.join(
-    process.cwd(),
-    "config",
-    baseFile + ".js"
-  ));
+  var baseConfig = {};
+  try {
+    baseFile = baseFile || "";
+    if (baseFile != "") {
+      baseConfig = require(path.join(
+        process.cwd(),
+        "config",
+        baseFile + ".js"
+      ));
+    }
+  } catch(e) {
+    baseConfig = {};
+  }
 
   var localConfig;
   try {
