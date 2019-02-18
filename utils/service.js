@@ -24,7 +24,12 @@ class ABService extends EventEmitter {
     process.on('SIGINT', () => {
       console.info('SIGINT signal received.');
       this.shutdown();
-    })
+    });
+
+    process.on('SIGTERM', () => {
+      console.info('SIGTERM signal received.');
+      this.shutdown();
+    });
 
     //  perform my startup actions.
     this.startup();
