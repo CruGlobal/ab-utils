@@ -36,12 +36,22 @@ class ABService extends EventEmitter {
   }
 
   /**
+   * ready
+   * Send a 'ready' signal on this process. Useful for service managers 
+   * (like pm2) to know the process is ready.
+   */
+  ready() {
+    process.send('ready');
+  }
+
+  /**
    * run
    * the operation of the Service.  It will be run after the .startup()
    * routine is completed.
    */
   run() {
     // a sub class should put all it's operational code here.
+    this.ready();
   }
 
   /**
