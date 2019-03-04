@@ -41,7 +41,9 @@ class ABService extends EventEmitter {
    * (like pm2) to know the process is ready.
    */
   ready() {
-    process.send('ready');
+    if(process.send) {
+      process.send('ready');
+    }
   }
 
   /**
