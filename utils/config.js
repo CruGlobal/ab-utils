@@ -4,38 +4,36 @@
 // local.js file, and return those values.
 var path = require("path");
 var _ = require("lodash");
-module.exports = baseFile => {
-
-  // baseConfig should be included as part of the project
-  var baseConfig = {};
-  try {
-    baseFile = baseFile || "";
-    if (baseFile != "") {
-      baseConfig = require(path.join(
-        process.cwd(),
-        "config",
-        baseFile + ".js"
-      ));
+module.exports = (baseFile) => {
+    // baseConfig should be included as part of the project
+    var baseConfig = {};
+    try {
+        baseFile = baseFile || "";
+        if (baseFile != "") {
+            baseConfig = require(path.join(
+                process.cwd(),
+                "config",
+                baseFile + ".js"
+            ));
+        }
+    } catch (e) {
+        baseConfig = {};
     }
-  } catch(e) {
-    baseConfig = {};
-  }
 
-  var localConfig;
-  try {
-  	// try to locate a config/local.js as well.
-    localConfig = require(path.join(process.cwd(), "config", "local.js"));
-    if (localConfig[baseFile]) {
+    var localConfig;
+    try {
+        // try to locate a config/local.js as well.
+        localConfig = require(path.join(process.cwd(), "config", "local.js"));
+        if (localConfig[baseFile]) {
+            // config/local.js values should override the baseConfig values
+            var local = localConfig[baseFile];
+            _.defaultsDeep(local, baseConfig);
 
-    	// config/local.js values should override the baseConfig values
-      var local = localConfig[baseFile];
-      _.defaultsDeep(local, baseConfig);
-
-      baseConfig = local;
+            baseConfig = local;
+        }
+    } catch (e) {
+        console.log("!!!!", e);
     }
-  } catch (e) {
-    console.log("!!!!", e);
-  }
 
-  return baseConfig;
+    return baseConfig;
 };
