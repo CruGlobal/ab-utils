@@ -36,19 +36,15 @@ module.exports = class Model {
         var tenantID = this.AB.tenantID();
         if (tenantID != "??") {
             var connSettings = this.AB.configDB();
-            if (
-                connSettings &&
-                connSettings.site &&
-                connSettings.site.database
-            ) {
+            if (connSettings && connSettings.database) {
                 var tDB = this.dbConn.escapeId(
-                    `${connSettings.site.database}-${tenantID}`
+                    `${connSettings.database}-${tenantID}`
                 );
                 tableName = `${tDB}.${tableName}`;
             } else {
                 tableName = null;
                 var msg =
-                    "!! Unable to decode site.database from our connection settings.";
+                    "!! Unable to decode database from our connection settings.";
                 this.AB.log(msg, this.AB.configDB());
                 var error = new Error(msg);
                 error.code = "E_CONFIG_ERROR";
@@ -86,7 +82,7 @@ module.exports = class Model {
             // 1) generate proper table name
             // if we are told of a tenantID, then our tableName should be in
             // format: [tenantDB].[table_name]
-            var tableName = this.tableName();
+            var tableName = this.tableName(reject);
             if (!tableName) {
                 return;
             }
@@ -115,7 +111,7 @@ module.exports = class Model {
             // 1) generate proper table name
             // if we are told of a tenantID, then our tableName should be in
             // format: [tenantDB].[table_name]
-            var tableName = this.tableName();
+            var tableName = this.tableName(reject);
             if (!tableName) {
                 return;
             }
