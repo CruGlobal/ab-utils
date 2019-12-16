@@ -5,29 +5,31 @@
 const Mysql = require("mysql"); // our  {DB Connection}
 var DB = null;
 
-module.exports = function(AB) {
+module.exports = function(AB, shouldCreate = true) {
     if (!DB) {
-        DB = Mysql.createConnection(AB.configDB());
-        DB.on("error", (err) => {
-            AB.log("DB.on(error):", err);
+        if (shouldCreate) {
+            DB = Mysql.createConnection(AB.configDB());
+            DB.on("error", (err) => {
+                AB.log("DB.on(error):", err);
 
-            // {
-            //   Error: "read ECONNRESET at TCP.onStreamRead (internal/stream_base_commons.js:162:27)",
-            //   errno: 'ECONNRESET',
-            //   code: 'ECONNRESET',
-            //   syscall: 'read',
-            //   fatal: true
-            // }
-            DB.end();
-            DB = null; // reset our connection.
-        });
-        DB.connect(function(err) {
-            if (err) {
-                AB.log("error connecting: " + err);
-                return;
-            }
-            AB.log("connected as  id " + DB.threadId);
-        });
+                // {
+                //   Error: "read ECONNRESET at TCP.onStreamRead (internal/stream_base_commons.js:162:27)",
+                //   errno: 'ECONNRESET',
+                //   code: 'ECONNRESET',
+                //   syscall: 'read',
+                //   fatal: true
+                // }
+                DB.end();
+                DB = null; // reset our connection.
+            });
+            DB.connect(function(err) {
+                if (err) {
+                    AB.log("error connecting: " + err, AB.configDB());
+                    return;
+                }
+                AB.log("connected as  id " + DB.threadId);
+            });
+        }
     }
     return DB;
 };

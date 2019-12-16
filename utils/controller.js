@@ -32,33 +32,39 @@ class ABServiceController extends EventEmitter {
         // into this.handlers
         this.handlers = [];
         var pathHandlers = path.join(process.cwd(), "handlers");
-        var files = fs.readdirSync(pathHandlers);
-        files.forEach((fileName) => {
-            try {
-                var handler = require(path.join(pathHandlers, fileName));
-                if (handler.key && handler.fn) {
-                    // this looks like a handler:
-                    this.handlers.push(handler);
+        if (fs.existsSync(pathHandlers)) {
+            var files = fs.readdirSync(pathHandlers);
+            files.forEach((fileName) => {
+                try {
+                    var handler = require(path.join(pathHandlers, fileName));
+                    if (handler.key && handler.fn) {
+                        // this looks like a handler:
+                        this.handlers.push(handler);
+                    }
+                } catch (e) {
+                    console.log("::", e);
                 }
-            } catch (e) {
-                console.log("::", e);
-            }
-        });
+            });
+        }
 
         // scan our /models directory and load our model definitions
         // into this.models
         this.models = {};
+        this.haveModels = false;
         var pathModels = path.join(process.cwd(), "models");
-        var modelDefinitions = fs.readdirSync(pathModels);
-        modelDefinitions.forEach((fileName) => {
-            try {
-                var model = require(path.join(pathHandlers, fileName));
-                var parsed = path.parse(fileName);
-                this.models[parsed.name] = model;
-            } catch (e) {
-                console.log("::", e);
-            }
-        });
+        if (fs.existsSync(pathModels)) {
+            var modelDefinitions = fs.readdirSync(pathModels);
+            modelDefinitions.forEach((fileName) => {
+                try {
+                    var model = require(path.join(pathModels, fileName));
+                    var parsed = path.parse(fileName);
+                    this.models[parsed.name] = model;
+                    this.haveModels = true;
+                } catch (e) {
+                    console.log("::", e);
+                }
+            });
+        }
 
         // setup our process listeners:
         process.on("SIGINT", () => {
@@ -190,7 +196,10 @@ class ABServiceController extends EventEmitter {
 
         // make sure we close down our db connection.
         var AB = ABRequest({}, this);
-        AB.dbConnection().end();
+        var conn = AB.dbConnection(false);
+        if (conn) {
+            conn.end();
+        }
     }
 
     /**
@@ -208,10 +217,12 @@ class ABServiceController extends EventEmitter {
             this.serviceResponder.on(handler.key, handler._cFN);
         });
 
-        // now request a db connection just to get things
+        // if we have models defined request a db connection just to get things
         // initially connected.
-        var AB = ABRequest({}, this);
-        AB.dbConnection();
+        if (this.haveModels) {
+            var AB = ABRequest({}, this);
+            AB.dbConnection();
+        }
     }
 }
 
