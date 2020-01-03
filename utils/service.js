@@ -7,73 +7,71 @@
 var EventEmitter = require("events").EventEmitter;
 
 class ABService extends EventEmitter {
-    constructor(options) {
-        super();
+   constructor(options) {
+      super();
 
-        options = options || {};
+      options = options || {};
 
-        this.name = options.name || "ABService";
+      this.name = options.name || "ABService";
 
-        this.on("ready", () => {
-            this.run();
-        });
+      this.on("ready", () => {
+         this.run();
+      });
 
-        // setup our process listeners:
-        process.on("SIGINT", () => {
-            console.info("SIGINT signal received.");
-            this.shutdown();
-        });
+      // setup our process listeners:
+      process.on("SIGINT", () => {
+         console.info("SIGINT signal received.");
+         this.shutdown();
+      });
 
-        process.on("SIGTERM", () => {
-            console.info("SIGTERM signal received.");
-            this.shutdown();
-        });
+      process.on("SIGTERM", () => {
+         console.info("SIGTERM signal received.");
+         this.shutdown();
+      });
 
-        //  perform my startup actions.
-        this.startup();
-    }
+      //  perform my startup actions.
+      this.startup();
+   }
 
-    /**
-     * ready
-     * Send a 'ready' signal on this process. Useful for service managers
-     * (like pm2) to know the process is ready.
-     */
-    ready() {
-        if (process.send) {
-            process.send("ready");
-        }
-    }
+   /**
+    * ready
+    * Send a 'ready' signal on this process. Useful for service managers
+    * (like pm2) to know the process is ready.
+    */
+   ready() {
+      if (process.send) {
+         process.send("ready");
+      }
+   }
 
-    /**
-     * run
-     * the operation of the Service.  It will be run after the .startup()
-     * routine is completed.
-     */
-    run() {
-        // a sub class should put all it's operational code here.
-        this.ready();
-    }
+   /**
+    * run
+    * the operation of the Service.  It will be run after the .startup()
+    * routine is completed.
+    */
+   run() {
+      // a sub class should put all it's operational code here.
+      this.ready();
+   }
 
-    /**
-     * shutdown
-     * the process a service should perform to gracefully shutdown.
-     */
-    shutdown() {
-        console.info(
-            `service ${this.name} has not defined a shutdown() routine.`
-        );
-        process.exit(0);
-    }
+   /**
+    * shutdown
+    * the process a service should perform to gracefully shutdown.
+    */
+   shutdown() {
+      console.info(
+         `service ${this.name} has not defined a shutdown() routine.`
+      );
+      process.exit(0);
+   }
 
-    /**
-     * startup
-     * the process a service should perform to startup.
-     */
-    startup() {
-        console.info(
-            `service ${this.name} has not defined a startup() routine.`
-        );
-        this.emit("ready");
-    }
+   /**
+    * startup
+    * the process a service should perform to startup.
+    */
+   startup() {
+      console.info(`service ${this.name} has not defined a startup() routine.`);
+      this.emit("ready");
+   }
 }
 module.exports = ABService;

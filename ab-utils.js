@@ -9,10 +9,10 @@ const service = require("./utils/service.js");
 const { uuid } = require("uuidv4");
 
 module.exports = {
-    config,
-    controller,
-    reqAB,
-    request,
-    service,
-    uuid
+   config,
+   controller,
+   reqAB,
+   request,
+   service,
+   uuid
 };
