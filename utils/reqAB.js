@@ -3,6 +3,12 @@
  * prepare a default set of data/utilities for our api request.
  */
 const shortid = require("shortid");
+const cote = require("cote");
+
+var domainRequesters = {
+   /* domainKey : coteRequester */
+};
+
 module.exports = function(req, res) {
    return {
       jobID: shortid.generate(),
@@ -57,6 +63,18 @@ module.exports = function(req, res) {
             error.code = 422; // RFC 7231 now proposes 400 as better code.
             return error;
          }
+      },
+      serviceRequest: function(key, data, cb) {
+         var params = this.toParam(key, data);
+         var domain = key.split(".")[0];
+         if (!domainRequesters[domain]) {
+            this.log(`... creating clientRequester(${domain})`);
+            domainRequesters[domain] = new cote.Requester({
+               name: `ab > requester > ${domain}`,
+               key: domain
+            });
+         }
+         domainRequesters[domain].send(params, cb);
       },
       __req: req,
       __res: res,

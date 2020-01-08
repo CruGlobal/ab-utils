@@ -23,7 +23,10 @@ class ABServiceController extends EventEmitter {
       this._beforeShutdown = [];
       this._afterShutdown = [];
 
-      this.serviceResponder = new cote.Responder({ name: this.key });
+      this.serviceResponder = new cote.Responder({
+         name: this.key,
+         key: this.key
+      });
 
       this.config = config(this.key);
       this.connections = config("datastores");
@@ -212,7 +215,21 @@ class ABServiceController extends EventEmitter {
          handler._cFN = (req, cb) => {
             var abReq = ABRequest(req.param, this);
 
-            handler.fn(abReq, cb);
+            handler.fn(abReq, (err, data) => {
+               // do our own conditioning of the err data:
+               var cbErr = null;
+               if (err) {
+                  cbErr = err;
+                  if (err instanceof Error) {
+                     cbErr = {
+                        code: err.code,
+                        message: err.toString(),
+                        stack: err.stack
+                     };
+                  }
+               }
+               cb(cbErr, data);
+            });
          };
          this.serviceResponder.on(handler.key, handler._cFN);
       });
