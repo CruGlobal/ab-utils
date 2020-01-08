@@ -82,7 +82,7 @@ class ABRequest {
    model(name) {
       if (this.controller.models[name]) {
          var db = this.dbConnection();
-         return new Model(this.controller.models[name], db);
+         return new Model(this.controller.models[name], db, this);
       } else {
          return null;
       }

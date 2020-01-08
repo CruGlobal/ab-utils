@@ -210,7 +210,7 @@ class ABServiceController extends EventEmitter {
       // initialize each service handler
       this.handlers.forEach((handler) => {
          handler._cFN = (req, cb) => {
-            var abReq = ABRequest(req, this);
+            var abReq = ABRequest(req.param, this);
 
             handler.fn(abReq, cb);
          };

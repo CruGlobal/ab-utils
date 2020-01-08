@@ -10,31 +10,39 @@ module.exports = class Model {
 
       this.AB = AB;
 
-      this.parseConfig(this.config);
+      // defaults:
+      this.config.attributes = this.config.attributes || {};
+
+      if (typeof this.config.site_only == "undefined") {
+         this.config.site_only = false;
+      }
+
+      this.parseAttributes(this.config.attributes);
    }
 
-   parseConfig(config) {
-      for (var c in config) {
-         if (typeof config[c] == "string") {
-            var type = config[c];
+   parseAttributes(attributes) {
+      for (var c in attributes) {
+         if (typeof attributes[c] == "string") {
+            var type = attributes[c];
             // TODO: default settings based upon type:
             // switch (type) { case "string": ... }
-            config[c] = { type: type };
+            attributes[c] = { type: type };
          }
       }
 
-      if (typeof config.createdAt == "undefined") {
-         config.createdAt = { type: "datetime" };
+      if (typeof attributes.createdAt == "undefined") {
+         attributes.createdAt = { type: "datetime" };
       }
 
-      if (typeof config.updatedAt == "undefined") {
-         config.updatedAt = { type: "datetime" };
+      if (typeof attributes.updatedAt == "undefined") {
+         attributes.updatedAt = { type: "datetime" };
       }
    }
+
    tableName(reject) {
       var tableName = this.dbConn.escapeId(this.config.table_name);
-      var tenantID = this.AB.tenantID();
-      if (tenantID != "??") {
+      var tenantID = this.AB.tenantID;
+      if (tenantID != "??" && !this.config.site_only) {
          var connSettings = this.AB.configDB();
          if (connSettings && connSettings.database) {
             var tDB = this.dbConn.escapeId(
@@ -53,6 +61,7 @@ module.exports = class Model {
       }
       return tableName;
    }
+
    usefulValues(values, includeCreatedAt, includeUpdatedAt) {
       var usefulValues = {};
       for (var v in values) {
