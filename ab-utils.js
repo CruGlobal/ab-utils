@@ -5,6 +5,7 @@ const config = require("./utils/config.js");
 const controller = require("./utils/controller.js");
 const reqAB = require("./utils/reqAB.js");
 const request = require("./utils/request.js");
+const resAB = require("./utils/resAB.js");
 const service = require("./utils/service.js");
 const { uuid } = require("uuidv4");
 
@@ -13,6 +14,7 @@ module.exports = {
    controller,
    reqAB,
    request,
+   resAB,
    service,
    uuid
 };
