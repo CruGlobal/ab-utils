@@ -2,10 +2,11 @@
  * reqAB
  * prepare a default set of data/utilities for our api request.
  */
+const _ = require("lodash");
 
 module.exports = class Model {
    constructor(config, dbConn, AB) {
-      this.config = config;
+      this.config = _.cloneDeep(config);
       this.dbConn = dbConn;
 
       this.AB = AB;
@@ -20,7 +21,41 @@ module.exports = class Model {
       this.parseAttributes(this.config.attributes);
    }
 
+   attributes(fn) {
+      if (!fn)
+         fn = function() {
+            return true;
+         };
+      var allAttributes = Object.keys(this.config.attributes).map((k) => {
+         return this.config.attributes[k];
+      });
+      return allAttributes.filter(fn);
+   }
+
    parseAttributes(attributes) {
+      if (attributes.createdAt == "false") attributes.createdAt = false;
+      if (attributes.updatedAt == "false") attributes.updatedAt = false;
+
+      if (typeof attributes.createdAt == "undefined" || attributes.createdAt) {
+         attributes.createdAt = {
+            type: "datetime",
+            column_name: "createdAt",
+            attr_name: "createdAt"
+         };
+      } else {
+         delete attributes.createdAt;
+      }
+
+      if (typeof attributes.updatedAt == "undefined" || attributes.updatedAt) {
+         attributes.updatedAt = {
+            type: "datetime",
+            column_name: "updatedAt",
+            attr_name: "updatedAt"
+         };
+      } else {
+         delete attributes.updatedAt;
+      }
+
       for (var c in attributes) {
          if (typeof attributes[c] == "string") {
             var type = attributes[c];
@@ -28,21 +63,20 @@ module.exports = class Model {
             // switch (type) { case "string": ... }
             attributes[c] = { type: type };
          }
-      }
 
-      if (typeof attributes.createdAt == "undefined") {
-         attributes.createdAt = { type: "datetime" };
-      }
+         if (!attributes[c]["column_name"]) {
+            attributes[c]["column_name"] = c;
+         }
 
-      if (typeof attributes.updatedAt == "undefined") {
-         attributes.updatedAt = { type: "datetime" };
+         // hard code the attribute name
+         attributes[c]["attr_name"] = c;
       }
    }
 
    tableName(reject) {
       var tableName = this.dbConn.escapeId(this.config.table_name);
-      var tenantID = this.AB.tenantID;
-      if (tenantID != "??" && !this.config.site_only) {
+      var tenantID = this.AB.tenantID();
+      if (tenantID && !this.config.site_only) {
          var connSettings = this.AB.configDB();
          if (connSettings && connSettings.database) {
             var tDB = this.dbConn.escapeId(
@@ -73,12 +107,14 @@ module.exports = class Model {
 
       // TODO: check to see if createdAt and updatedAt are disabled
       var now = new Date();
-      if (includeCreatedAt && this.config.createdAt) {
+      if (includeCreatedAt && this.config.attributes.createdAt) {
          usefulValues.createdAt = now;
       }
-      if (includeUpdatedAt && this.config.updatedAt) {
+      if (includeUpdatedAt && this.config.attributes.updatedAt) {
          usefulValues.updatedAt = now;
       }
+
+      return usefulValues;
    }
    usefulCreateValues(values) {
       return this.usefulValues(values, true, true);
@@ -86,6 +122,55 @@ module.exports = class Model {
    usefulUpdateValues(values) {
       return this.usefulValues(values, false, true);
    }
+
+   normalizeResponse(results) {
+      var sendSingle = false;
+      if (!Array.isArray(results)) {
+         sendSingle = true;
+         results = [results];
+      }
+
+      var finalResults = [];
+
+      var allFields = this.attributes();
+
+      // type:"json" => JSON.parse();
+      var jsonFields = this.attributes((a) => {
+         return a.type == "json";
+      });
+
+      results.forEach((r) => {
+         // convert JSON types to objects
+         jsonFields.forEach((f) => {
+            var value = r[f.column_name];
+            if (!value) return;
+            if (typeof value == "string") {
+               try {
+                  r[f.column_name] = JSON.parse(value);
+               } catch (e) {
+                  console.log(`error JSON.parse() [${value}]`);
+               }
+            }
+         });
+
+         // copy into new entry with property names
+         var entry = {};
+         allFields.forEach((f) => {
+            if (typeof r[f.column_name] != "undefined") {
+               entry[f.attr_name] = r[f.column_name];
+            }
+         });
+
+         finalResults.push(entry);
+      });
+
+      if (sendSingle) {
+         finalResults = finalResults[0];
+      }
+
+      return finalResults;
+   }
+
    create(values) {
       return new Promise((resolve, reject) => {
          // 1) generate proper table name
@@ -163,8 +248,16 @@ module.exports = class Model {
                reject(error);
                return;
             }
-            // TODO: should return the updated entry
-            resolve(results);
+
+            Promise.resolve()
+               .then(() => {
+                  // update field values
+                  return this.normalizeResponse(results);
+               })
+               .then((final) => {
+                  // TODO: should return the updated entry
+                  resolve(final);
+               });
          });
       });
    }

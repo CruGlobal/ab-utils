@@ -13,7 +13,7 @@ module.exports = function(req, res) {
    return {
       jobID: shortid.generate(),
       tenantID: "??",
-      tenantSet: () => {
+      tenantSet: function() {
          return this.tenantID != "??";
       },
       log: function(...allArgs) {
@@ -21,7 +21,7 @@ module.exports = function(req, res) {
          allArgs.forEach((a) => {
             args.push(JSON.stringify(a));
          });
-         console.log(`${this.jobID}::${args.join(" ")}`);
+         this.__console.log(`${this.jobID}::${args.join(" ")}`);
       },
       toParam: function(key, data) {
          data = data || {};
@@ -69,15 +69,18 @@ module.exports = function(req, res) {
          var domain = key.split(".")[0];
          if (!domainRequesters[domain]) {
             this.log(`... creating clientRequester(${domain})`);
-            domainRequesters[domain] = new cote.Requester({
+            domainRequesters[domain] = new this.__Requester({
                name: `ab > requester > ${domain}`,
                key: domain
             });
          }
          domainRequesters[domain].send(params, cb);
       },
+      // expose these for Unit Testing  & mocking:
       __req: req,
       __res: res,
+      __console: console,
+      __Requester: cote.Requester,
       __validationErrors: []
    };
 };

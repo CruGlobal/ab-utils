@@ -13,7 +13,7 @@ class ABRequest {
    constructor(req, controller) {
       // console.log("ABRequest():", req);
       this.jobID = req.jobID || "??";
-      this.tenantID = req.tenantID || "??";
+      this._tenantID = req.tenantID || "??";
       this.data = req.data || req.param;
       this.controller = controller;
    }
@@ -30,7 +30,7 @@ class ABRequest {
     */
    configDB() {
       var defs = this.controller.connections;
-      if (this.tenantID != "??") {
+      if (this._tenantID != "??") {
          if (defs.appbuilder) {
             return defs.appbuilder;
          } else {
@@ -105,7 +105,10 @@ class ABRequest {
     * @return {string}
     */
    tenantID() {
-      return this.tenantID;
+      if (this._tenantID == "??") {
+         return null;
+      }
+      return this._tenantID;
    }
 }
 
