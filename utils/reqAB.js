@@ -13,6 +13,7 @@ module.exports = function(req, res) {
    return {
       jobID: shortid.generate(),
       tenantID: "??",
+      user: null,
       tenantSet: function() {
          return this.tenantID != "??";
       },
