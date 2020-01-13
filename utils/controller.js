@@ -215,6 +215,65 @@ class ABServiceController extends EventEmitter {
          handler._cFN = (req, cb) => {
             var abReq = ABRequest(req.param, this);
 
+            // perform basic error checking here:
+            var config = abReq.config();
+
+            // if config not set, we have not be initialized properly.
+            if (!config) {
+               abReq.log("WARN: handler not setup properly.");
+               var err = new Error("Missing config");
+               cb({
+                  message: "Missing config",
+                  code: "EMISSINGCONFIG",
+                  req: req,
+                  stack: err.stack
+               });
+               return;
+            }
+
+            // check if we are enabled
+            if (!config.enable) {
+               // we shouldn't be getting notification.email messages
+               abReq.log("WARN: job received, but config.enable is false.");
+               var err = new Error("service is disabled.");
+               cb({
+                  message: "Service is disabled.",
+                  code: "EDISABLED",
+                  req: req,
+                  stack: err.stack
+               });
+               return;
+            }
+
+            // check for input validations:
+            if (handler.inputValidation) {
+               var errors = [];
+
+               for (var i in handler.inputValidation) {
+                  var value = abReq.param(i);
+
+                  var info = handler.inputValidation[i];
+                  if (info.required && !value) {
+                     errors.push({
+                        code: "EMISSINGPARAM",
+                        param: i,
+                        message: `${i} is required`
+                     });
+                  }
+               }
+
+               if (errors.length > 0) {
+                  cb({
+                     message: "Invalid Inputs",
+                     code: "EINVALIDINPUTS",
+                     req: req,
+                     errors: errors
+                  });
+                  return;
+               }
+            }
+
+            // so far so good, now pass on to handler:
             handler.fn(abReq, (err, data) => {
                // do our own conditioning of the err data:
                var cbErr = null;
