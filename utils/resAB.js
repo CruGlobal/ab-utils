@@ -6,6 +6,9 @@
 module.exports = function(req, res) {
    return {
       error: function(err, code) {
+         // we don't send .stack data back to clients.
+         delete err.stack;
+
          var packet = {
             status: "error",
             data: err
@@ -75,11 +78,10 @@ module.exports = function(req, res) {
             // Sails v0.11 no longer has res.header on socket connections
             if (res.header) res.header("Content-type", "application/json");
             // res.send(cJSON.stringify(packet).replace('"false"', 'false').replace('"true"', 'true'), code);
-            res.send(
+            res.status(code).send(
                JSON.stringify(packet)
                   .replace('"false"', "false")
-                  .replace('"true"', "true"),
-               code
+                  .replace('"true"', "true")
             );
          } else {
             res.write(

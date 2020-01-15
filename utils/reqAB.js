@@ -31,6 +31,7 @@ module.exports = function(req, res) {
             param: {
                jobID: this.jobID,
                tenantID: this.tenantID,
+               user: this.user,
                data
             }
          };
