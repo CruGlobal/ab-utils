@@ -173,107 +173,20 @@ module.exports = class Model {
 
    create(values) {
       return new Promise((resolve, reject) => {
-         // 1) generate proper table name
-         // if we are told of a tenantID, then our tableName should be in
-         // format: [tenantDB].[table_name]
-         var tableName = this.tableName(reject);
-         if (!tableName) {
-            return;
-         }
-
-         var usefulValues = this.usefulCreateValues(values);
-
-         this.dbConn.query(`INSERT INTO ${tableName} SET ?`, usefulValues, (
-            error /* ,results, fields*/
-         ) => {
-            // error will be an Error if one occurred during the query
-            // results will contain the results of the query
-            // fields will contain information about the returned results fields (if any)
-
-            if (error) {
-               // TODO: identify specific errors and handle them if we can.
-               reject(error);
-               return;
-            }
-            // TODO: should return the updated entry
-            resolve();
-         });
-      });
-   }
-   destroy(cond) {
-      return new Promise((resolve, reject) => {
-         // 1) generate proper table name
-         // if we are told of a tenantID, then our tableName should be in
-         // format: [tenantDB].[table_name]
-         var tableName = this.tableName(reject);
-         if (!tableName) {
-            return;
-         }
-
-         this.dbConn.query(`DELETE FROM ${tableName} WHERE ?`, cond, (
-            error /* ,results, fields*/
-         ) => {
-            // error will be an Error if one occurred during the query
-            // results will contain the results of the query
-            // fields will contain information about the returned results fields (if any)
-
-            if (error) {
-               // TODO: identify specific errors and handle them if we can.
-               reject(error);
-               return;
-            }
-            // TODO: should return the updated entry
-            resolve();
-         });
-      });
-   }
-   find(cond) {
-      return new Promise((resolve, reject) => {
-         var tableName = this.tableName(reject);
-         if (!tableName) {
-            return;
-         }
-
-         var query = `SELECT * FROM ${tableName} `;
-         if (cond) {
-            query += "WHERE ?";
-         }
-         this.dbConn.query(query, cond, (error, results /*, fields*/) => {
-            // error will be an Error if one occurred during the query
-            // results will contain the results of the query
-            // fields will contain information about the returned results fields (if any)
-
-            if (error) {
-               // TODO: identify specific errors and handle them if we can.
-               reject(error);
+         try {
+            // 1) generate proper table name
+            // if we are told of a tenantID, then our tableName should be in
+            // format: [tenantDB].[table_name]
+            var tableName = this.tableName(reject);
+            if (!tableName) {
                return;
             }
 
-            Promise.resolve()
-               .then(() => {
-                  // update field values
-                  return this.normalizeResponse(results);
-               })
-               .then((final) => {
-                  // TODO: should return the updated entry
-                  resolve(final);
-               });
-         });
-      });
-   }
-   update(cond, values) {
-      return new Promise((resolve, reject) => {
-         var tableName = this.tableName(reject);
-         if (!tableName) {
-            return;
-         }
+            var usefulValues = this.usefulCreateValues(values);
 
-         var usefulValues = this.usefulUpdateValues(values);
-
-         this.dbConn.query(
-            `UPDATE ${tableName} SET ? WHERE ?`,
-            [usefulValues, cond],
-            (error /* ,results, fields*/) => {
+            this.dbConn.query(`INSERT INTO ${tableName} SET ?`, usefulValues, (
+               error /* ,results, fields*/
+            ) => {
                // error will be an Error if one occurred during the query
                // results will contain the results of the query
                // fields will contain information about the returned results fields (if any)
@@ -285,8 +198,111 @@ module.exports = class Model {
                }
                // TODO: should return the updated entry
                resolve();
+            });
+         } catch (e) {
+            reject(e);
+         }
+      });
+   }
+   destroy(cond) {
+      return new Promise((resolve, reject) => {
+         try {
+            // 1) generate proper table name
+            // if we are told of a tenantID, then our tableName should be in
+            // format: [tenantDB].[table_name]
+            var tableName = this.tableName(reject);
+            if (!tableName) {
+               return;
             }
-         );
+
+            this.dbConn.query(`DELETE FROM ${tableName} WHERE ?`, cond, (
+               error /* ,results, fields*/
+            ) => {
+               // error will be an Error if one occurred during the query
+               // results will contain the results of the query
+               // fields will contain information about the returned results fields (if any)
+
+               if (error) {
+                  // TODO: identify specific errors and handle them if we can.
+                  reject(error);
+                  return;
+               }
+               // TODO: should return the updated entry
+               resolve();
+            });
+         } catch (e) {
+            reject(e);
+         }
+      });
+   }
+   find(cond) {
+      return new Promise((resolve, reject) => {
+         try {
+            var tableName = this.tableName(reject);
+            if (!tableName) {
+               return;
+            }
+
+            var query = `SELECT * FROM ${tableName} `;
+            if (cond) {
+               query += "WHERE ?";
+            }
+            this.dbConn.query(query, cond, (error, results /*, fields*/) => {
+               // error will be an Error if one occurred during the query
+               // results will contain the results of the query
+               // fields will contain information about the returned results fields (if any)
+
+               if (error) {
+                  // TODO: identify specific errors and handle them if we can.
+                  reject(error);
+                  return;
+               }
+
+               Promise.resolve()
+                  .then(() => {
+                     // update field values
+                     return this.normalizeResponse(results);
+                  })
+                  .then((final) => {
+                     // TODO: should return the updated entry
+                     resolve(final);
+                  });
+            });
+         } catch (e) {
+            reject(e);
+         }
+      });
+   }
+   update(cond, values) {
+      return new Promise((resolve, reject) => {
+         try {
+            var tableName = this.tableName(reject);
+            if (!tableName) {
+               return;
+            }
+
+            var usefulValues = this.usefulUpdateValues(values);
+
+            this.dbConn.query(
+               `UPDATE ${tableName} SET ? WHERE ?`,
+               [usefulValues, cond],
+               (error /* ,results, fields*/) => {
+                  // error will be an Error if one occurred during the query
+                  // results will contain the results of the query
+                  // fields will contain information about the returned results fields (if any)
+
+                  if (error) {
+                     // TODO: identify specific errors and handle them if we can.
+                     reject(error);
+                     return;
+                  }
+                  // TODO: should return the updated entry
+                  resolve();
+               }
+            );
+         } catch (e) {
+            reject(e);
+         }
       });
    }
 };
