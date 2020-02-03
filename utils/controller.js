@@ -50,24 +50,33 @@ class ABServiceController extends EventEmitter {
          });
       }
 
-      // scan our /models directory and load our model definitions
-      // into this.models
+      // scan our [ /models, /models/shared ] directories and load our model
+      // definitions into this.models
+      var ignoreFiles = [".DS_Store", ".gitkeep"];
       this.models = {};
       this.haveModels = false;
-      var pathModels = path.join(process.cwd(), "models");
-      if (fs.existsSync(pathModels)) {
-         var modelDefinitions = fs.readdirSync(pathModels);
-         modelDefinitions.forEach((fileName) => {
-            try {
-               var model = require(path.join(pathModels, fileName));
-               var parsed = path.parse(fileName);
-               this.models[parsed.name] = model;
-               this.haveModels = true;
-            } catch (e) {
-               console.log("::", e);
-            }
-         });
-      }
+      var includeModels = (pathModels) => {
+         if (fs.existsSync(pathModels)) {
+            var modelDefinitions = fs.readdirSync(pathModels);
+            modelDefinitions.forEach((fileName) => {
+               if (ignoreFiles.indexOf(fileName) == -1) {
+                  try {
+                     var model = require(path.join(pathModels, fileName));
+                     var parsed = path.parse(fileName);
+                     this.models[parsed.name] = model;
+                     this.haveModels = true;
+                  } catch (e) {
+                     console.log(
+                        `Error loading model[${pathModels}][${fileName}]:`
+                     );
+                     console.log("::", e);
+                  }
+               }
+            });
+         }
+      };
+      includeModels(path.join(process.cwd(), "models"));
+      includeModels(path.join(__dirname, "..", "shared", "models"));
 
       // setup our process listeners:
       process.on("SIGINT", () => {
@@ -235,12 +244,12 @@ class ABServiceController extends EventEmitter {
             if (!config.enable) {
                // we shouldn't be getting notification.email messages
                abReq.log("WARN: job received, but config.enable is false.");
-               var err = new Error("service is disabled.");
+               var err2 = new Error("service is disabled.");
                cb({
                   message: "Service is disabled.",
                   code: "EDISABLED",
                   req: req,
-                  stack: err.stack
+                  stack: err2.stack
                });
                return;
             }

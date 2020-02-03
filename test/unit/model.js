@@ -150,7 +150,7 @@ describe("model: usefulValues", function() {
    it("only listed values :", function() {
       var config = defaultConfig.base;
       var Test = new Model(config, DBConn, AB);
-      var values = Test.usefulValues({ string: "keep", striiing: "dontkeep" });
+      var values = Test._usefulValues({ string: "keep", striiing: "dontkeep" });
       expect(values).to.exist;
       expect(values).to.be.an("object");
       expect(values).to.have.all.keys("string");
@@ -163,7 +163,7 @@ describe("model: usefulValues", function() {
    it("include createdAt or updatedAt when specified :", function() {
       var config = defaultConfig.base;
       var Test = new Model(config, DBConn, AB);
-      var values = Test.usefulValues(
+      var values = Test._usefulValues(
          { string: "keep", striiing: "dontkeep" },
          true,
          false
@@ -173,7 +173,7 @@ describe("model: usefulValues", function() {
       expect(values).to.have.all.keys("string", "createdAt");
       expect(values).to.not.have.all.keys("striiing", "updatedAt");
 
-      var values2 = Test.usefulValues(
+      var values2 = Test._usefulValues(
          { string: "keep", striiing: "dontkeep" },
          false,
          true
@@ -224,7 +224,7 @@ describe("model: .normalizeResonse() ", function() {
    it("return an array if passed an array :", function() {
       var config = defaultConfig.base;
       var Test = new Model(config, DBConn, AB);
-      var values = Test.normalizeResponse([
+      var values = Test._normalizeResponse([
          { string: "keep", json: `{ "converted":true }` }
       ]);
       expect(values).to.exist;
@@ -238,7 +238,7 @@ describe("model: .normalizeResonse() ", function() {
    it("return an array if passed an array :", function() {
       var config = defaultConfig.base;
       var Test = new Model(config, DBConn, AB);
-      var values = Test.normalizeResponse({
+      var values = Test._normalizeResponse({
          string: "keep",
          json: `{ "converted":true }`
       });
@@ -252,7 +252,7 @@ describe("model: .normalizeResonse() ", function() {
    it("convert json string -> data :", function() {
       var config = defaultConfig.base;
       var Test = new Model(config, DBConn, AB);
-      var values = Test.normalizeResponse({
+      var values = Test._normalizeResponse({
          string: "keep",
          json: `{ "converted":true }`
       });
@@ -261,7 +261,7 @@ describe("model: .normalizeResonse() ", function() {
       expect(typeof values.json).to.not.equal("string");
       expect(values.json).to.have.all.keys("converted");
 
-      values = Test.normalizeResponse({
+      values = Test._normalizeResponse({
          string: "keep",
          json: { converted: true }
       });
@@ -280,6 +280,7 @@ describe("model: .create() ", function() {
       ProvidedTenantedDBTable(
          "create",
          {
+            uuid: "abc",
             string: "string",
             striiing: "doneKeep",
             json: "{converted:true}"
@@ -296,6 +297,7 @@ describe("model: .create() ", function() {
       ProvidedSiteOnlyTable(
          "create",
          {
+            uuid: "abc",
             string: "string",
             striiing: "doneKeep",
             json: "{converted:true}"
@@ -329,22 +331,34 @@ describe("model: .create() ", function() {
       AB._tenantID = "tenant";
 
       DBConn.query = (sql, values, cb) => {
-         expect(values).to.have.all.keys(
+         if (values.id) {
+            debugger;
+         }
+         expect(values).to.have.keys(
+            "uuid",
             "string",
             "json",
             "createdAt",
             "updatedAt"
          );
          expect(values).to.not.have.all.keys("striiing");
-         cb();
+         cb(null, { insertId: 1 });
       };
 
       var Test = new Model(config, DBConn, AB);
-      Test.create({
+      var createValues = {
+         uuid: "abc",
          string: "string",
          striiing: "doneKeep",
          json: "{converted:true}"
-      })
+      };
+
+      // NOTE: .create() now does an additional .find() to return a full entry
+      // as it's result.  Here we mock .find() to return expected values:
+      Test.find = () => {
+         return Promise.resolve(createValues);
+      };
+      Test.create(createValues)
          .then(done)
          .catch(done);
    });
@@ -371,6 +385,13 @@ describe("model: .destroy() ", function() {
    //// TODO: prevent unknown attributes in condition ??
 
    /*
+    * Model.destroy() requires a condition
+    */
+   it("requires a condition.", function(done) {
+      ReturnsError("destroy", null, done);
+   });
+
+   /*
     * Model.destroy() returns error
     */
    it("returns error :", function(done) {
@@ -387,17 +408,31 @@ describe("model: .find() ", function() {
    });
 
    /*
-    * Model.destroy() site only table
+    * Model.find() site only table
     */
    it("provide site only table :", function(done) {
       ProvidedSiteOnlyTable("find", { string: "me" }, [], done);
    });
 
    /*
-    * Model.destroy() returns error
+    * Model.find() returns error
     */
    it("returns error :", function(done) {
       ReturnsError("find", { string: "me" }, done);
+   });
+
+   /*
+    * Model.find() requires a condition
+    */
+   it("requires a condition.", function(done) {
+      ReturnsError("find", null, done);
+   });
+
+   /*
+    * Model.find() with an empty condition obj finds all
+    */
+   it("with an empty condition obj finds all", function(done) {
+      ReturnAllIfEmptyCond("find", {}, done);
    });
 });
 
@@ -450,6 +485,13 @@ describe("model: .update() ", function() {
    });
 
    /*
+    * Model.update() requires a condition
+    */
+   it("requires a condition.", function(done) {
+      ReturnsError("update", null, done);
+   });
+
+   /*
     * Model.update() prevent unknown attributes in values
     */
    it("prevent unknown attributes in values :", function(done) {
@@ -458,7 +500,12 @@ describe("model: .update() ", function() {
       AB._tenantID = "tenant";
 
       DBConn.query = (sql, params, cb) => {
-         var values = params[0];
+         var values;
+         if (Array.isArray(params)) {
+            values = params[0];
+         } else {
+            values = params;
+         }
          expect(values).to.have.all.keys("string", "json", "updatedAt");
          expect(values).to.not.have.all.keys("striiing");
          cb();
@@ -488,7 +535,7 @@ function ProvidedTenantedDBTable(command, params, response, done) {
 
    DBConn.query = (sql, values, cb) => {
       expect(sql).to.exist;
-      expect(values).to.exist;
+      // expect(values).to.exist;
       expect(cb).to.exist;
 
       expect(sql).to.contain("testDB-tenant");
@@ -514,7 +561,7 @@ function ProvidedSiteOnlyTable(command, params, response, done) {
 
    DBConn.query = (sql, values, cb) => {
       expect(sql).to.exist;
-      expect(values).to.exist;
+      // expect(values).to.exist;
       expect(cb).to.exist;
 
       expect(sql).to.not.contain("testDB-tenant");
@@ -553,6 +600,29 @@ function ReturnsError(command, params, done) {
       })
       .catch((error) => {
          expect(error).to.exist;
+         done();
+      });
+}
+
+function ReturnAllIfEmptyCond(command, params, done) {
+   var config = _.cloneDeep(defaultConfig.base);
+   AB._dbConfig = { database: "testDB" };
+   AB._tenantID = "tenant";
+
+   DBConn.query = (sql, values, cb) => {
+      expect(sql).to.not.include("WHERE");
+      expect(values).to.equal(null);
+      cb();
+   };
+
+   var Test = new Model(config, DBConn, AB);
+   Test[command](params)
+      .then(() => {
+         done();
+      })
+      .catch(() => {
+         // shouldn't have gotten here:
+         expect(true).to.be.false;
          done();
       });
 }

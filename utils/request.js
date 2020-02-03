@@ -14,8 +14,13 @@ class ABRequest {
       // console.log("ABRequest():", req);
       this.jobID = req.jobID || "??";
       this._tenantID = req.tenantID || "??";
+      this._user = req.user || null;
       this.data = req.data || req.param;
       this.controller = controller;
+
+      // To allow unit test mocking:
+      this._DBConn = DBConn;
+      this._Model = Model;
    }
 
    config() {
@@ -55,7 +60,7 @@ class ABRequest {
     * @return {Mysql.conn || null}
     */
    dbConnection(create = true) {
-      return DBConn(this, create);
+      return this._DBConn(this, create);
    }
 
    /**
@@ -82,7 +87,9 @@ class ABRequest {
    model(name) {
       if (this.controller.models[name]) {
          var db = this.dbConnection();
-         return new Model(this.controller.models[name], db, this);
+         var newModel = new this._Model(this.controller.models[name], db, this);
+         newModel._key = name;
+         return newModel;
       } else {
          return null;
       }
