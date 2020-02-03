@@ -859,6 +859,24 @@ module.exports = class Model {
       });
    }
 
+   _queryConditions(query, cond) {
+      var values = null;
+      if (cond) {
+         values = [];
+         var params = [];
+         Object.keys(cond).forEach((key) => {
+            values.push(cond[key]);
+            if (Array.isArray(cond[key])) {
+               params.push(`${key} IN ( ? )`);
+            } else {
+               params.push(`${key} = ?`);
+            }
+         });
+         query += `WHERE ${params.join(" AND ")}`;
+      }
+      return { query, values };
+   }
+
    /*
     * find()
     * return a set of values for this Model.
@@ -886,15 +904,16 @@ module.exports = class Model {
                      cond = null;
                   }
                   var query = `SELECT * FROM ${tableName} `;
-                  if (cond) {
-                     query += "WHERE ?";
-                  }
+
+                  var queryOptions = this._queryConditions(query, cond);
                   this.AB.log(
-                     `.find(): ${query}, [${
-                        cond ? JSON.stringify(cond) : null
+                     `.find(): ${queryOptions.query}, [${
+                        queryOptions.values
+                           ? JSON.stringify(queryOptions.values)
+                           : null
                      }]`
                   );
-                  this.dbConn.query(query, cond, (
+                  this.dbConn.query(queryOptions.query, queryOptions.values, (
                      error,
                      results /*, fields*/
                   ) => {

@@ -25,6 +25,9 @@ module.exports = {
       // },
       // {string} : processInstance.uuid of the instance that created this request
 
+      definition: "string",
+      // {string} : the process.uuid of the parent process.
+
       ui: "string",
       options: "string",
 
