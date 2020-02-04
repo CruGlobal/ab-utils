@@ -35,6 +35,12 @@ module.exports = {
       // {string} : should match one of the options.id values defined above
       //   this is where we store the Form response
 
+      responder: {
+         model: "User"
+      },
+
+      // which user was the one who responded to this Form?
+
       //
       // A UserForm can be related to Users in 2 ways:
       // Role: Anyone with a certain Role can respond,
