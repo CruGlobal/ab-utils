@@ -867,7 +867,13 @@ module.exports = class Model {
          Object.keys(cond).forEach((key) => {
             values.push(cond[key]);
             if (Array.isArray(cond[key])) {
-               params.push(`${key} IN ( ? )`);
+               if (cond[key].length > 0) {
+                  params.push(`${key} IN ( ? )`);
+               } else {
+                  // if an empty array then we falsify this condition:
+                  values.pop(); // remove pushed value above
+                  params.push(` 1 = 0 `);
+               }
             } else {
                params.push(`${key} = ?`);
             }

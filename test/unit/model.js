@@ -331,9 +331,6 @@ describe("model: .create() ", function() {
       AB._tenantID = "tenant";
 
       DBConn.query = (sql, values, cb) => {
-         if (values.id) {
-            debugger;
-         }
          expect(values).to.have.keys(
             "uuid",
             "string",
