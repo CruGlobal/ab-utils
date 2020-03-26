@@ -39,7 +39,10 @@ module.exports = class Model {
 
       this.beforeCreate = config.beforeCreate || passThrough;
       this.afterCreate = config.afterCreate || passThrough;
+      this.beforeUpdate = config.beforeUpdate || passThrough;
+      this.afterUpdate = config.afterUpdate || passThrough;
    }
+
    /*
     * attributes()
     * allows you to search for attributes that pass a given filter.
@@ -509,7 +512,7 @@ module.exports = class Model {
     * @return {Promise}
     */
    resolveManyOne(cond, field, connInfo) {
-      return new Promise((resolve /* , reject */) => {
+      return new Promise((resolve, reject) => {
          var foundUUIDs = [];
 
          // otherModel.find({uuid:cond.field})
@@ -519,22 +522,25 @@ module.exports = class Model {
          var otherCond = {};
          otherCond[otherModel.pk] = cond[field];
 
-         otherModel.find(otherCond).then((list) => {
-            list.forEach((row) => {
-               // .then(pull our UUID from each entry's connection field);
-               // in a many:one
-               // this attribute.via  is the value in the returned row
-               // that contains our uuid:
-               foundUUIDs.push(row[connInfo.attribute.via]);
-            });
+         otherModel
+            .find(otherCond)
+            .then((list) => {
+               list.forEach((row) => {
+                  // .then(pull our UUID from each entry's connection field);
+                  // in a many:one
+                  // this attribute.via  is the value in the returned row
+                  // that contains our uuid:
+                  foundUUIDs.push(row[connInfo.attribute.via]);
+               });
 
-            // replace with cond.uuid = listUUIDs
-            cond.uuid = cond.uuid || []; // just in case there already are .uuid
-            cond.uuid = _.uniq(_.concat(cond.uuid, foundUUIDs));
+               // replace with cond.uuid = listUUIDs
+               cond.uuid = cond.uuid || []; // just in case there already are .uuid
+               cond.uuid = _.uniq(_.concat(cond.uuid, foundUUIDs));
 
-            delete cond[field];
-            resolve();
-         });
+               delete cond[field];
+               resolve();
+            })
+            .catch(reject);
       });
    }
 
@@ -548,7 +554,7 @@ module.exports = class Model {
     * @return {Promise}
     */
    resolveManyMany(cond, field, connInfo) {
-      return new Promise((resolve /*, reject */) => {
+      return new Promise((resolve, reject) => {
          // cond.field => otherModel.uuid
 
          var fieldName = connInfo.otherModel._key;
@@ -571,7 +577,8 @@ module.exports = class Model {
 
                delete cond[field];
                resolve();
-            });
+            })
+            .catch(reject);
       });
    }
 
@@ -716,84 +723,11 @@ module.exports = class Model {
                   (done) => {
                      // update any connected records that should have our pk stored in them
                      // update any join tables
-
-                     // get the connections that have population data passed in:
-                     var valFields = Object.keys(values);
-                     var connections = this.fieldsConnection().filter((f) => {
-                        return valFields.indexOf(f.attr_name) != -1;
-                     });
-
-                     // for each connection value provided:
-                     async.each(
-                        connections,
-                        (field, cb) => {
-                           // determine the type of conneciton
-                           var connInfo = this._connectionInfo(field.attr_name);
-                           switch (connInfo.type) {
-                              case "many:1":
-                                 // find the other model, and then update that entry to have our pk
-                                 var otherModel = connInfo.otherModel;
-
-                                 // we look up that entry by:  otherModel.pk == value[field]
-                                 var cond = {};
-                                 cond[otherModel.pk] = values[field.attr_name];
-
-                                 // what we store in that entry: otherModel[connection.via] = our.pk
-                                 var value = {};
-                                 value[connInfo.attribute.via] =
-                                    returnValue[this.pk];
-
-                                 // now perform the update
-                                 otherModel
-                                    .update(cond, value)
-                                    .then(() => {
-                                       // make sure our return values reflect this connection:
-                                       returnValue[field.attr_name] =
-                                          values[field.attr_name];
-                                       cb();
-                                    })
-                                    .catch(cb);
-                                 break;
-
-                              case "many:many":
-                                 // figure out our join table, and create another link between us and them
-
-                                 var allValues = values[field.attr_name];
-                                 if (!Array.isArray(allValues)) {
-                                    allValues = [allValues];
-                                 }
-
-                                 async.each(
-                                    allValues,
-                                    (value, linkCB) => {
-                                       this._linkManyMany(
-                                          connInfo,
-                                          returnValue[this.pk],
-                                          value
-                                       )
-                                          .then(() => {
-                                             linkCB();
-                                          })
-                                          .catch(linkCB);
-                                    },
-                                    (linkErr) => {
-                                       // make sure our returned data includes these link ids
-                                       returnValue[field.attr_name] =
-                                          values[field.attr_name];
-                                       cb(linkErr);
-                                    }
-                                 );
-                                 break;
-
-                              default:
-                                 cb();
-                                 break;
-                           }
-                        },
-                        (err) => {
-                           done(err);
-                        }
-                     );
+                     this._updateConnections(values, returnValue)
+                        .then(() => {
+                           done();
+                        })
+                        .catch(done);
                   },
 
                   (done) => {
@@ -812,6 +746,91 @@ module.exports = class Model {
          } catch (e) {
             reject(e);
          }
+      });
+   }
+
+   _updateConnections(values, returnValue) {
+      return new Promise((resolve, reject) => {
+         // get the connections that have population data passed in:
+         var valFields = Object.keys(values);
+         var connections = this.fieldsConnection().filter((f) => {
+            return valFields.indexOf(f.attr_name) != -1;
+         });
+
+         // for each connection value provided:
+         async.each(
+            connections,
+            (field, cb) => {
+               // determine the type of conneciton
+               var connInfo = this._connectionInfo(field.attr_name);
+               switch (connInfo.type) {
+                  case "many:1":
+                     // find the other model, and then update that entry to have our pk
+                     var otherModel = connInfo.otherModel;
+
+                     // we look up that entry by:  otherModel.pk == value[field]
+                     var cond = {};
+                     cond[otherModel.pk] = values[field.attr_name];
+
+                     // what we store in that entry: otherModel[connection.via] = our.pk
+                     var value = {};
+                     value[connInfo.attribute.via] = returnValue[this.pk];
+
+                     // now perform the update
+                     otherModel
+                        .update(cond, value)
+                        .then(() => {
+                           // make sure our return values reflect this connection:
+                           returnValue[field.attr_name] =
+                              values[field.attr_name];
+                           cb();
+                        })
+                        .catch(cb);
+                     break;
+
+                  case "many:many":
+                     // figure out our join table, and create another link between us and them
+
+                     var allValues = values[field.attr_name];
+                     if (!Array.isArray(allValues)) {
+                        allValues = [allValues];
+                     }
+
+                     async.each(
+                        allValues,
+                        (value, linkCB) => {
+                           this._linkManyMany(
+                              connInfo,
+                              returnValue[this.pk],
+                              value
+                           )
+                              .then(() => {
+                                 linkCB();
+                              })
+                              .catch(linkCB);
+                        },
+                        (linkErr) => {
+                           // make sure our returned data includes these link ids
+                           returnValue[field.attr_name] =
+                              values[field.attr_name];
+                           cb(linkErr);
+                        }
+                     );
+                     break;
+
+                  default:
+                     cb();
+                     break;
+               }
+            },
+            (err) => {
+               if (err) {
+                  reject(err);
+                  return;
+               }
+               resolve();
+            }
+         );
       });
    }
 
@@ -883,6 +902,36 @@ module.exports = class Model {
       return { query, values };
    }
 
+   _queryIt(query, values, cb, numRetries = 0, prev = null) {
+      if (numRetries > 3) {
+         cb(prev.error, prev.results, prev.fields);
+         return;
+      }
+
+      this.dbConn.query(query, values, (error, results, fields) => {
+         // error will be an Error if one occurred during the query
+         // results will contain the results of the query
+         // fields will contain information about the returned results fields (if any)
+
+         if (error) {
+            if (
+               error.toString().indexOf("PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR") >
+               -1
+            ) {
+               console.log(error);
+               console.log("trying again");
+               this._queryIt(query, values, cb, numRetries + 1, {
+                  error,
+                  results,
+                  fields
+               });
+               return;
+            }
+         }
+         cb(error, results, fields);
+      });
+   }
+
    /*
     * find()
     * return a set of values for this Model.
@@ -919,14 +968,11 @@ module.exports = class Model {
                            : null
                      }]`
                   );
-                  this.dbConn.query(queryOptions.query, queryOptions.values, (
-                     error,
-                     results /*, fields*/
-                  ) => {
-                     // error will be an Error if one occurred during the query
-                     // results will contain the results of the query
-                     // fields will contain information about the returned results fields (if any)
 
+                  this._queryIt(queryOptions.query, queryOptions.values, (
+                     error,
+                     results /*, fields */
+                  ) => {
                      if (error) {
                         // TODO: identify specific errors and handle them if we can.
                         reject(error);
@@ -978,23 +1024,99 @@ module.exports = class Model {
                return;
             }
 
-            var usefulValues = this.usefulUpdateValues(values);
+            var returnValue = null;
 
-            this.dbConn.query(
-               `UPDATE ${tableName} SET ? WHERE ?`,
-               [usefulValues, cond],
-               (error /* ,results, fields*/) => {
-                  // error will be an Error if one occurred during the query
-                  // results will contain the results of the query
-                  // fields will contain information about the returned results fields (if any)
+            async.series(
+               [
+                  (done) => {
+                     // 1) process beforeCreate() lifecycle
+                     this.beforeUpdate(values, done);
+                  },
 
-                  if (error) {
+                  (done) => {
+                     // 2) update the base record(s):
+                     var usefulValues = this.usefulUpdateValues(values);
+
+                     var query = `UPDATE ${tableName} SET ? `;
+                     var queryOptions = this._queryConditions(query, cond);
+
+                     // be sure to put our usefulValues at the front:
+                     queryOptions.values.unshift(usefulValues);
+
+                     this.dbConn.query(
+                        queryOptions.query,
+                        queryOptions.values,
+                        (error /* ,results, fields*/) => {
+                           // error will be an Error if one occurred during the query
+                           // results will contain the results of the query
+                           // fields will contain information about the returned results fields (if any)
+
+                           if (error) {
+                              // TODO: identify specific errors and handle them if we can.
+                              done(error);
+                              return;
+                           }
+                           // TODO: should return the updated entry
+                           done();
+                        }
+                     );
+                  },
+
+                  (done) => {
+                     // pull the updated records:
+
+                     this.find(cond)
+                        .then((list) => {
+                           returnValue = list;
+                           done();
+                        })
+                        .catch(done);
+                  },
+
+                  (done) => {
+                     if (!returnValue || returnValue.length == 0) {
+                        done();
+                        return;
+                     }
+
+                     // update the related values
+                     // NOTE: the cond may have resulted in numerous rows being
+                     // updated.  In that case, we need to make sure each one is
+                     // properly connected to the given connection values.
+                     async.each(
+                        returnValue,
+                        (item, cb) => {
+                           this._updateConnections(values, item)
+                              .then(() => {
+                                 cb();
+                              })
+                              .catch(cb);
+                        },
+                        (err) => {
+                           done(err);
+                        }
+                     );
+                  },
+
+                  (done) => {
+                     async.each(
+                        returnValue,
+                        (item, cb) => {
+                           this.afterUpdate(item, cb);
+                        },
+                        (err) => {
+                           done(err);
+                        }
+                     );
+                  }
+               ],
+               (err) => {
+                  if (err) {
                      // TODO: identify specific errors and handle them if we can.
-                     reject(error);
+                     reject(err);
                      return;
                   }
-                  // TODO: should return the updated entry
-                  resolve();
+                  resolve(returnValue);
                }
             );
          } catch (e) {
