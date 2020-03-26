@@ -8,7 +8,9 @@ var DB = null;
 module.exports = function(AB, shouldCreate = true) {
    if (!DB) {
       if (shouldCreate) {
-         DB = Mysql.createConnection(AB.configDB());
+         var config = AB.configDB();
+         config.connectionLimit = 10;
+         DB = Mysql.createPool(config);
          DB.on("error", (err) => {
             AB.log("DB.on(error):", err);
 
@@ -22,13 +24,13 @@ module.exports = function(AB, shouldCreate = true) {
             DB.end();
             DB = null; // reset our connection.
          });
-         DB.connect(function(err) {
-            if (err) {
-               AB.log("error connecting: " + err, AB.configDB());
-               return;
-            }
-            AB.log("connected as  id " + DB.threadId);
-         });
+         // DB.connect(function(err) {
+         //    if (err) {
+         //       AB.log("error connecting: " + err, AB.configDB());
+         //       return;
+         //    }
+         //    AB.log("connected as  id " + DB.threadId);
+         // });
       }
    }
    return DB;

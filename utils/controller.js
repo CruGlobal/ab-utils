@@ -208,7 +208,7 @@ class ABServiceController extends EventEmitter {
 
       // make sure we close down our db connection.
       var AB = ABRequest({}, this);
-      var conn = AB.dbConnection(false);
+      var conn = AB.dbConnection(AB, false);
       if (conn) {
          conn.end();
       }
