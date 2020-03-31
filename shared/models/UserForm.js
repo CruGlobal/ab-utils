@@ -28,8 +28,11 @@ module.exports = {
       definition: "string",
       // {string} : the process.uuid of the parent process.
 
-      ui: "string",
-      options: "string",
+      ui: "json",
+      // {json} : the Form.io ui data to be presented as the Form for the user
+      //    to interact with.
+
+      options: "string", // Depreciated: info is now in the .ui definition.
 
       response: "string",
       // {string} : should match one of the options.id values defined above

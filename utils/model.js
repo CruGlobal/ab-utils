@@ -213,6 +213,21 @@ module.exports = class Model {
          }
       });
 
+      // convert any json fields into json strings to be stored
+      var jsonFields = this.fieldsJson();
+      jsonFields.forEach((f) => {
+         var val = values[f.column_name];
+         if (val && typeof val != "string") {
+            try {
+               values[f.column_name] = JSON.stringify(val);
+            } catch (e) {
+               this.AB.log(`error JSON.stringify() [${val}]`);
+               this.AB.log(e);
+               values[f.column_name] = `${val}`;
+            }
+         }
+      });
+
       for (var v in values) {
          // make sure this field is one of our own:
          // and not a connection where we don't store the value
@@ -295,7 +310,8 @@ module.exports = class Model {
                   try {
                      r[f.column_name] = JSON.parse(value);
                   } catch (e) {
-                     console.log(`error JSON.parse() [${value}]`);
+                     this.AB.log(`error JSON.parse() [${value}]`);
+                     this.AB.log(e);
                   }
                }
             });
