@@ -32,7 +32,8 @@ module.exports = {
       // {json} : the Form.io ui data to be presented as the Form for the user
       //    to interact with.
 
-      options: "string", // Depreciated: info is now in the .ui definition.
+      data: "json", 
+      // {json} : the associated data that goes with the Form.io ui
 
       response: "string",
       // {string} : should match one of the options.id values defined above
