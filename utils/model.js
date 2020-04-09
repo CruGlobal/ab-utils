@@ -767,8 +767,12 @@ module.exports = class Model {
 
    _updateConnections(values, returnValue) {
       return new Promise((resolve, reject) => {
+         // get the value fields that have potentially valid connection data
+         var valFields = Object.keys(values).filter((key) => {
+            return values[key];
+         });
+
          // get the connections that have population data passed in:
-         var valFields = Object.keys(values);
          var connections = this.fieldsConnection().filter((f) => {
             return valFields.indexOf(f.attr_name) != -1;
          });
@@ -786,52 +790,67 @@ module.exports = class Model {
 
                      // we look up that entry by:  otherModel.pk == value[field]
                      var cond = {};
-                     cond[otherModel.pk] = values[field.attr_name];
+                     var otherUUID = values[field.attr_name];
+                     if (!otherUUID) {
+                        // if we don't have a proper value for the other uuid, then skip:
+                        cb();
+                     } else {
+                        cond[otherModel.pk] = otherUUID;
 
-                     // what we store in that entry: otherModel[connection.via] = our.pk
-                     var value = {};
-                     value[connInfo.attribute.via] = returnValue[this.pk];
+                        // what we store in that entry: otherModel[connection.via] = our.pk
+                        var value = {};
+                        value[connInfo.attribute.via] = returnValue[this.pk];
 
-                     // now perform the update
-                     otherModel
-                        .update(cond, value)
-                        .then(() => {
-                           // make sure our return values reflect this connection:
-                           returnValue[field.attr_name] =
-                              values[field.attr_name];
-                           cb();
-                        })
-                        .catch(cb);
+                        // now perform the update
+                        otherModel
+                           .update(cond, value)
+                           .then(() => {
+                              // make sure our return values reflect this connection:
+                              returnValue[field.attr_name] =
+                                 values[field.attr_name];
+                              cb();
+                           })
+                           .catch(cb);
+                     }
+
                      break;
 
                   case "many:many":
                      // figure out our join table, and create another link between us and them
 
                      var allValues = values[field.attr_name];
-                     if (!Array.isArray(allValues)) {
-                        allValues = [allValues];
-                     }
-
-                     async.each(
-                        allValues,
-                        (value, linkCB) => {
-                           this._linkManyMany(
-                              connInfo,
-                              returnValue[this.pk],
-                              value
-                           )
-                              .then(() => {
-                                 linkCB();
-                              })
-                              .catch(linkCB);
-                        },
-                        (linkErr) => {
-                           // make sure our returned data includes these link ids
-                           returnValue[field.attr_name] =
-                              values[field.attr_name];
-                           cb(linkErr);
+                     if (!allValues) {
+                        // if our connection value was null, or undefined, then don't bother
+                        // we can't make the connection.
+                        cb();
+                     } else {
+                        // this is many:many, so make sure we have an [] of values here:
+                        if (!Array.isArray(allValues)) {
+                           allValues = [allValues];
                         }
-                     );
+
+                        // link to each value
+                        async.each(
+                           allValues,
+                           (value, linkCB) => {
+                              this._linkManyMany(
+                                 connInfo,
+                                 returnValue[this.pk],
+                                 value
+                              )
+                                 .then(() => {
+                                    linkCB();
+                                 })
+                                 .catch(linkCB);
+                           },
+                           (linkErr) => {
+                              // make sure our returned data includes these link ids
+                              returnValue[field.attr_name] =
+                                 values[field.attr_name];
+                              cb(linkErr);
+                           }
+                        );
+                     }
                      break;
 
                   default:
