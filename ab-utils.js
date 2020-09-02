@@ -7,7 +7,8 @@ const reqAB = require("./utils/reqAB.js");
 const request = require("./utils/request.js");
 const resAB = require("./utils/resAB.js");
 const service = require("./utils/service.js");
-const { uuid } = require("uuidv4");
+// const { uuid } = require("uuidv4");
+const { v4: uuid } = require("uuid");
 
 module.exports = {
    config,
@@ -16,5 +17,5 @@ module.exports = {
    request,
    resAB,
    service,
-   uuid
+   uuid,
 };
