@@ -4,7 +4,7 @@
  */
 const shortid = require("shortid");
 const cote = require("cote");
-const Joi = null;
+var Joi = null;
 const NODE_MAJOR_VERSION = process.versions.node.split(".")[0];
 if (NODE_MAJOR_VERSION >= 12) {
    Joi = require("joi");
