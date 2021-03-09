@@ -10,6 +10,7 @@ const shortid = require("shortid");
 const ABNotification = require("./reqNotification.js");
 const ABPerformance = require("./reqPerformance.js");
 const ABServiceRequest = require("./serviceRequest.js");
+const ABServiceResponder = require("./reqServiceResponder.js");
 const ABValidator = require("./reqValidation.js");
 /*
 var Joi = null;
@@ -57,6 +58,7 @@ class ABRequestAPI {
       this.__console = console;
       this.__Notification = ABNotification(this);
       this.__Requester = ABServiceRequest(this);
+      this.__Responder = ABServiceResponder;
       this.__Validator = ABValidator(this);
    }
 
@@ -137,6 +139,35 @@ class ABRequestAPI {
    }
 
    /**
+    * serviceResponder()
+    * Create a Cote service responder that can parse our data interchange
+    * format.
+    * @param {string} key
+    *        the service handler's key we are responding to.
+    * @param {fn} handler
+    *        a function to handle the incoming request. The function will
+    *        receive 2 parameters: fn(req, cb)
+    *          req: an instance of the ABRequest appropriate for the current
+    *               context.
+    *          cb:  a node.js style callback(err, result) for responding to
+    *               the requester.
+    */
+   serviceResponder(key, handler) {
+      return this.__Responder(key, handler, this);
+   }
+
+   /**
+    * socketKey()
+    * make sure any socket related key is prefixed by our tenantID
+    * @param {string} key
+    *       The socket key we are wanting to reference.
+    * @return {string}
+    */
+   socketKey(key) {
+      return `${this._tenantID}-${key}`;
+   }
+
+   /**
     * @method validateParameters()
     * parse the {description} object and determine if the current req
     * instance passes the tests provided.
@@ -199,17 +230,6 @@ class ABRequestAPI {
    validationReset() {
       console.error("DEPRECIATED: ?? who is calling this?");
       this.__Validator.reset();
-   }
-
-   /**
-    * socketKey()
-    * make sure any socket related key is prefixed by our tenantID
-    * @param {string} key
-    *       The socket key we are wanting to reference.
-    * @return {string}
-    */
-   socketKey(key) {
-      return `${this._tenantID}-${key}`;
    }
 }
 

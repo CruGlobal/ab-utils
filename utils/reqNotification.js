@@ -34,7 +34,7 @@ class ABNotification {
          for (var i = 0; i < param.length; i++) {
             param[i] = this.stringifyErrors(param[i]);
          }
-      } else if (typeof param === "object") {
+      } else if (param && typeof param === "object") {
          // maybe one of my Keys are an Error Object:
          Object.keys(param).forEach((k) => {
             param[k] = this.stringifyErrors(param[k]);

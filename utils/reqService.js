@@ -343,6 +343,17 @@ class ABRequestService {
    }
 
    /**
+    * socketKey()
+    * make sure any socket related key is prefixed by our tenantID
+    * @param {string} key
+    *       The socket key we are wanting to reference.
+    * @return {string}
+    */
+   socketKey(key) {
+      return `${this._tenantID}-${key}`;
+   }
+
+   /**
     * tenantDB()
     * return the database reference for the current Tenant
     * @return {string}

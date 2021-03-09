@@ -35,7 +35,7 @@ class ABServiceRequest {
       if (this.req.performance) {
          this.req.performance.mark(key);
       }
-      var params = this.toParam(key, data);
+      var paramStack = this.toParam(key, data);
       var domain = key.split(".")[0];
       if (!domainRequesters[domain]) {
          this.req.log(`... creating clientRequester(${domain})`);
@@ -44,7 +44,7 @@ class ABServiceRequest {
             key: domain,
          });
       }
-      domainRequesters[domain].send(params, (...params) => {
+      domainRequesters[domain].send(paramStack, (...params) => {
          if (this.req.performance) {
             this.req.performance.measure(key, key);
          }
