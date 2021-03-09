@@ -3,11 +3,12 @@
 // Define a common AppBuilder Controller class for use in our micro services.
 //
 var async = require("async");
-const ABRequest = require("./request.js");
+const ABRequest = require("./reqService.js");
 const cote = require("cote");
 
 var fs = require("fs");
 var path = require("path");
+const prettyTime = require("pretty-time");
 // var _ = require("lodash");
 var EventEmitter = require("events").EventEmitter;
 const config = require(path.join(__dirname, "config.js"));
@@ -25,7 +26,7 @@ class ABServiceController extends EventEmitter {
 
       this.serviceResponder = new cote.Responder({
          name: this.key,
-         key: this.key
+         key: this.key,
       });
 
       this.config = config(this.key);
@@ -222,9 +223,25 @@ class ABServiceController extends EventEmitter {
       // initialize each service handler
       this.handlers.forEach((handler) => {
          handler._cFN = (req, cb) => {
-            var abReq = ABRequest(req.param, this);
+            // ._cFN {function} our intermediate fn() for pre-processing the
+            //       incoming service requests. After we do our thang, then
+            //       we pass control onto the defined handler.fn()
+            // @param {json} req
+            //       the incoming raw data from cote request.  This is in our
+            //       exchange format (defined in {serviceRequest}). we need
+            //       to create an instance of {reqService} from this.
+            // @param {fn} cb
+            //       the callback(err, data) function provided by cote to
+            //       resolve the request.
 
+            var abReq = ABRequest(req.param, this);
+            // {reqService}
+            // This is the handler.fn(req, ...) object being passed into our
+            // handlers.
+
+            //
             // perform basic error checking here:
+            //
             var config = abReq.config();
 
             // if config not set, we have not be initialized properly.
@@ -235,7 +252,7 @@ class ABServiceController extends EventEmitter {
                   message: "Missing config",
                   code: "EMISSINGCONFIG",
                   req: req,
-                  stack: err.stack
+                  stack: err.stack,
                });
                return;
             }
@@ -249,37 +266,45 @@ class ABServiceController extends EventEmitter {
                   message: "Service is disabled.",
                   code: "EDISABLED",
                   req: req,
-                  stack: err2.stack
+                  stack: err2.stack,
                });
                return;
             }
 
             // check for input validations:
             if (handler.inputValidation) {
-               var errors = [];
-
-               for (var i in handler.inputValidation) {
-                  var value = abReq.param(i);
-
-                  var info = handler.inputValidation[i];
-                  if (info.required && !value) {
-                     errors.push({
-                        code: "EMISSINGPARAM",
-                        param: i,
-                        message: `${i} is required`
-                     });
-                  }
-               }
-
-               if (errors.length > 0) {
+               var errors = abReq.validateData(handler.inputValidation);
+               if (errors) {
                   cb({
                      message: "Invalid Inputs",
                      code: "EINVALIDINPUTS",
                      req: req,
-                     errors: errors
+                     errors: errors,
                   });
                   return;
                }
+               // for (var i in handler.inputValidation) {
+               //    var value = abReq.param(i);
+
+               //    var info = handler.inputValidation[i];
+               //    if (info.required && !value) {
+               //       errors.push({
+               //          code: "EMISSINGPARAM",
+               //          param: i,
+               //          message: `${i} is required`,
+               //       });
+               //    }
+               // }
+
+               // if (errors.length > 0) {
+               //    cb({
+               //       message: "Invalid Inputs",
+               //       code: "EINVALIDINPUTS",
+               //       req: req,
+               //       errors: errors,
+               //    });
+               //    return;
+               // }
             }
 
             // so far so good, now pass on to handler:
@@ -292,10 +317,11 @@ class ABServiceController extends EventEmitter {
                      cbErr = {
                         code: err.code,
                         message: err.toString(),
-                        stack: err.stack
+                        stack: err.stack,
                      };
                   }
                }
+               abReq.performance.log();
                cb(cbErr, data);
             });
          };
@@ -311,6 +337,6 @@ class ABServiceController extends EventEmitter {
    }
 }
 
-module.exports = function controller(key) {
-   return new ABServiceController(key);
+module.exports = function controller(...params) {
+   return new ABServiceController(...params);
 };

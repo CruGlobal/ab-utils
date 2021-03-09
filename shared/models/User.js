@@ -11,29 +11,30 @@ module.exports = {
    table_name: "site_user",
    attributes: {
       uuid: { type: "uuid", required: true },
-      // username: "string",
+      username: "string",
       email: "string",
       password: "string",
       salt: "string",
+      languageCode: "string",
 
       isActive: "bool",
       lastLogin: "datetime",
       failedLogins: "integer",
-      image: "string",
+      image_id: "string",
       token: "string",
       roles: {
          collection: "Role",
          via: "users",
-         dominant: true
+         dominant: true,
       },
 
       userForms: {
          collection: "UserForm",
          via: "users",
-         dominant: true
-      }
+         dominant: true,
+      },
    },
-   beforeCreate: function(values, cb) {
+   beforeCreate: function (values, cb) {
       if (!values.uuid) {
          values.uuid = AB.uuid();
       }
@@ -55,5 +56,5 @@ module.exports = {
       } else {
          cb();
       }
-   }
+   },
 };
