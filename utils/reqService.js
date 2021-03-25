@@ -57,12 +57,177 @@ class ABRequestService {
          this.notify("developer", ...params);
       };
 
+      /**
+       * @method req.broadcast.dcCreate()
+       * A shortcut method for posting our "ab.datacollection.create"
+       * messages to our Clients.
+       * @param {string} id
+       *       The {ABObject.id} of the ABObject definition that we are going
+       *       to post an update for. The incoming newItem should be data
+       *       managed by this ABObject.
+       * @param {obj} newItem
+       *       The row data of the new Item that was created. Usually
+       *       fully populated so the clients can work with them as usual.
+       * @param {string} key
+       *       (optional) a specific internal performance marker key
+       *       for tracking how long this broadcast operation took.
+       * @param {fn} cb
+       *       (optional) for legacy code api, a node style callback(error)
+       *       can be provided for the response.
+       * @return {Promise}
+       */
+      this.broadcast.dcCreate = (id, newItem, key, cb) => {
+         return new Promise((resolve, reject) => {
+            key = key || "broadcast.dc.create." + id;
+            this.performance.mark(key);
+            this.broadcast(
+               [
+                  {
+                     room: this.socketKey(id),
+                     event: "ab.datacollection.create",
+                     data: {
+                        objectId: id,
+                        data: newItem,
+                     },
+                  },
+               ],
+               (err) => {
+                  this.performance.measure(key);
+                  if (cb) {
+                     cb(err);
+                  }
+                  if (err) {
+                     reject(err);
+                     return;
+                  }
+                  resolve();
+               }
+            );
+         });
+      };
+
+      /**
+       * @method req.broadcast.dcDelete()
+       * A shortcut method for posting our "ab.datacollection.delete"
+       * messages to our Clients.
+       * @param {string:uuid} id
+       *       The {ABObject.id} of the ABObject definition that we are going
+       *       to post a delete for. The deleted item should be data
+       *       managed by this ABObject.
+       * @param {string:uuid} itemID
+       *       The uuid of the row being deleted..
+       * @param {string} key
+       *       (optional) a specific internal performance marker key
+       *       for tracking how long this broadcast operation took.
+       * @param {fn} cb
+       *       (optional) for legacy code api, a node style callback(error)
+       *       can be provided for the response.
+       * @return {Promise}
+       */
+      this.broadcast.dcDelete = (id, itemID, key, cb) => {
+         return new Promise((resolve, reject) => {
+            key = key || "broadcast.dc.delete." + id;
+            this.performance.mark(key);
+            this.broadcast(
+               [
+                  {
+                     room: this.socketKey(id),
+                     event: "ab.datacollection.delete",
+                     data: {
+                        objectId: id,
+                        data: itemID,
+                     },
+                  },
+               ],
+               (err) => {
+                  this.performance.measure(key);
+                  if (cb) {
+                     cb(err);
+                  }
+                  if (err) {
+                     reject(err);
+                     return;
+                  }
+                  resolve();
+               }
+            );
+         });
+      };
+
+      /**
+       * @method req.broadcast.dcUpdate()
+       * A shortcut method for posting our "ab.datacollection.update"
+       * messages to our Clients.
+       * @param {string} id
+       *       The {ABObject.id} of the ABObject definition that we are going
+       *       to post an update for. The incoming newItem should be data
+       *       managed by this ABObject.
+       * @param {obj} updatedItem
+       *       The row data of the new Item that was updated. Can be fully
+       *       populated, or just the updated values.
+       * @param {string} key
+       *       (optional) a specific internal performance marker key
+       *       for tracking how long this broadcast operation took.
+       * @param {fn} cb
+       *       (optional) for legacy code api, a node style callback(error)
+       *       can be provided for the response.
+       * @return {Promise}
+       */
+      this.broadcast.dcUpdate = (id, updatedItem, key, cb) => {
+         return new Promise((resolve, reject) => {
+            key = key || "broadcast.dc.update." + id;
+            this.performance.mark(key);
+            this.broadcast(
+               [
+                  {
+                     room: this.socketKey(id),
+                     event: "ab.datacollection.update",
+                     data: {
+                        objectId: id,
+                        data: updatedItem,
+                     },
+                  },
+               ],
+               (err) => {
+                  this.performance.measure(key);
+                  if (cb) {
+                     cb(err);
+                  }
+
+                  if (err) {
+                     reject(err);
+                     return;
+                  }
+                  resolve();
+               }
+            );
+         });
+      };
+
       // expose this for Unit Testing & Mocking
       this.__Notification = ABNotification(this);
       this.__Requester = ServiceRequest(this);
       this.__Validator = ABValidator(this);
    }
 
+   /**
+    * @method req.broadcast()
+    * An interface for communicating real time data updates to our clients.
+    * @param {array} packets
+    *       An array of broadcast packets to post to our clients.  Each
+    *       packet has the following information:
+    *       .room: {string} A unique identifier of the group of clients
+    *              to receive the notifications.  Usually this is a
+    *              multi-tenant identified id, generated by:
+    *              req.socketKey(id)
+    *       .event: {string} a unique "key" that tells the client what data
+    *              they are receiving.
+    *       .data: {json} the data delivery for the .event
+    *
+    * @param {fn} cb
+    *       a node style callback(error, results) can be provided to notify
+    *       when the packet has been sent.
+    */
    broadcast(packets, cb) {
       this.serviceRequest("api.broadcast", packets, (err, results) => {
          if (err) {
@@ -396,6 +561,22 @@ class ABRequestService {
       ABReq._DBConn = this._DBConn;
       ABReq._Model = this._Model;
       return ABReq;
+   }
+
+   /**
+    * @method userDefaults()
+    * return a data structure used by our ABModel.find() .create() .update()
+    * .delete() operations that needs credentials for the current User
+    * driving this request.
+    * @return {obj}
+    *          .languageCode: {string} the default language code of the user
+    *          .usernam: {string} the .username of the user for Identification.
+    */
+   userDefaults() {
+      return {
+         languageCode: this.languageCode(),
+         username: this.username(),
+      };
    }
 
    username() {
