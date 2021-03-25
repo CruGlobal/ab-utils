@@ -53,7 +53,7 @@ module.exports = class Model {
     */
    attributes(fn) {
       if (!fn)
-         fn = function() {
+         fn = function () {
             return true;
          };
       var allAttributes = Object.keys(this.config.attributes).map((k) => {
@@ -85,8 +85,8 @@ module.exports = class Model {
       if (typeof attributes.createdAt == "undefined" || attributes.createdAt) {
          attributes.createdAt = {
             type: "datetime",
-            column_name: "createdAt",
-            attr_name: "createdAt"
+            column_name: "created_at",
+            attr_name: "createdAt",
          };
       } else {
          delete attributes.createdAt;
@@ -95,8 +95,8 @@ module.exports = class Model {
       if (typeof attributes.updatedAt == "undefined" || attributes.updatedAt) {
          attributes.updatedAt = {
             type: "datetime",
-            column_name: "updatedAt",
-            attr_name: "updatedAt"
+            column_name: "updated_at",
+            attr_name: "updatedAt",
          };
       } else {
          delete attributes.updatedAt;
@@ -239,10 +239,10 @@ module.exports = class Model {
       // TODO: check to see if createdAt and updatedAt are disabled
       var now = new Date();
       if (includeCreatedAt && this.config.attributes.createdAt) {
-         usefulValues.createdAt = now;
+         usefulValues.created_at = now;
       }
       if (includeUpdatedAt && this.config.attributes.updatedAt) {
-         usefulValues.updatedAt = now;
+         usefulValues.updated_at = now;
       }
 
       return usefulValues;
@@ -505,7 +505,7 @@ module.exports = class Model {
                         done(err);
                      }
                   );
-               }
+               },
             ],
             (err) => {
                if (err) {
@@ -610,7 +610,7 @@ module.exports = class Model {
       // lookupTable.find({field})
       var joinTableDefinition = {
          table_name: "",
-         attributes: { createdAt: false, updatedAt: false }
+         attributes: { createdAt: false, updatedAt: false },
       };
       if (connInfo.dominant) {
          joinTableDefinition.table_name = `${this._key}_${connInfo.otherModel._key}`;
@@ -749,7 +749,7 @@ module.exports = class Model {
                   (done) => {
                      // perform .afterCreate()
                      this.afterCreate(returnValue, done);
-                  }
+                  },
                ],
                (err) => {
                   if (err) {
@@ -958,7 +958,7 @@ module.exports = class Model {
                this._queryIt(query, values, cb, numRetries + 1, {
                   error,
                   results,
-                  fields
+                  fields,
                });
                return;
             }
@@ -1143,7 +1143,7 @@ module.exports = class Model {
                            done(err);
                         }
                      );
-                  }
+                  },
                ],
                (err) => {
                   if (err) {
