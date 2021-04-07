@@ -32,6 +32,8 @@ class ABServiceController extends EventEmitter {
       this.config = config(this.key);
       this.connections = config("datastores");
 
+      var ignoreFiles = [".DS_Store", ".gitkeep"];
+
       // scan our /handlers directory and load the handlers
       // into this.handlers
       this.handlers = [];
@@ -39,21 +41,22 @@ class ABServiceController extends EventEmitter {
       if (fs.existsSync(pathHandlers)) {
          var files = fs.readdirSync(pathHandlers);
          files.forEach((fileName) => {
-            try {
-               var handler = require(path.join(pathHandlers, fileName));
-               if (handler.key && handler.fn) {
-                  // this looks like a handler:
-                  this.handlers.push(handler);
+            if (ignoreFiles.indexOf(fileName) == -1) {
+               try {
+                  var handler = require(path.join(pathHandlers, fileName));
+                  if (handler.key && handler.fn) {
+                     // this looks like a handler:
+                     this.handlers.push(handler);
+                  }
+               } catch (e) {
+                  console.log("::", e);
                }
-            } catch (e) {
-               console.log("::", e);
             }
          });
       }
 
       // scan our [ /models, /models/shared ] directories and load our model
       // definitions into this.models
-      var ignoreFiles = [".DS_Store", ".gitkeep"];
       this.models = {};
       this.haveModels = false;
       var includeModels = (pathModels) => {
@@ -265,7 +268,7 @@ class ABServiceController extends EventEmitter {
                cb({
                   message: "Service is disabled.",
                   code: "EDISABLED",
-                  req: req,
+                  req: req.data,
                   stack: err2.stack,
                });
                return;
@@ -278,7 +281,7 @@ class ABServiceController extends EventEmitter {
                   cb({
                      message: "Invalid Inputs",
                      code: "EINVALIDINPUTS",
-                     req: req,
+                     req: req.data,
                      errors: errors,
                   });
                   return;

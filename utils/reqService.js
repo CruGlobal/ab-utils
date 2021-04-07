@@ -50,11 +50,86 @@ class ABRequestService {
       this.debug = false;
 
       // extend
+
+      /**
+       * @method req.log.verbose()
+       * A shortcut method for logging "verbose" messages. There needs to be
+       * a .verbose = true  in the config.local entry for the current service
+       * in order for these messages to be displayed.
+       *
+       * Now get ready to eat up all kinds of disk space with needless
+       * information to the console!
+       */
+      this.log.verbose = (...params) => {
+         if ((this.config() || {}).verbose) {
+            this.log(...params);
+         }
+      };
+
+      /**
+       * @method req.notifiy.builder()
+       * A shortcut method for notifying builders of configuration errors.
+       */
       this.notify.builder = (...params) => {
          this.notify("builder", ...params);
       };
+
+      /**
+       * @method req.notifiy.developer()
+       * A shortcut method for notifying developer of operational errors.
+       */
       this.notify.developer = (...params) => {
          this.notify("developer", ...params);
+      };
+
+      /**
+       * @method req.broadcast.inboxCreate()
+       * A shortcut method for posting our "ab.inbox.create"
+       * messages to our Clients.
+       * @param {array[SiteUser.uuid]} users
+       *        An array of SiteUser.uuid(s) that should receive this message.
+       *        Can also work with [{SiteUser}] objects.
+       * @param {array[Role]} roles
+       *        An array of Role.uuid(s) that should receive this message.
+       *        Can also work with [{Role}] objects.
+       * @param {obj} item
+       *        The newly created Inbox Item definition.
+       * @param {fn} cb
+       *        (optional) for legacy code api, a node style callback(error)
+       *        can be provided for the response.
+       * @return {Promise}
+       */
+      this.broadcast.inboxCreate = (users, roles, item, cb) => {
+         return new Promise((resolve, reject) => {
+            var key = "broadcast.inbox.create";
+            this.performance.mark(key);
+            var packets = [];
+            (users || []).forEach((u) => {
+               packets.push({
+                  room: this.socketKey(u.uuid || u.username || u),
+                  event: "ab.inbox.create",
+                  data: item,
+               });
+            });
+            (roles || []).forEach((r) => {
+               packets.push({
+                  room: this.socketKey(r.uuid || r),
+                  event: "ab.inbox.create",
+                  data: item,
+               });
+            });
+            this.broadcast(packets, (err) => {
+               this.performance.measure(key);
+               if (cb) {
+                  cb(err);
+               }
+               if (err) {
+                  reject(err);
+                  return;
+               }
+               resolve();
+            });
+         });
       };
 
       /**

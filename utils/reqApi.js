@@ -12,24 +12,9 @@ const ABPerformance = require("./reqPerformance.js");
 const ABServiceRequest = require("./serviceRequest.js");
 const ABServiceResponder = require("./reqServiceResponder.js");
 const ABValidator = require("./reqValidation.js");
-/*
-var Joi = null;
-const NODE_MAJOR_VERSION = process.versions.node.split(".")[0];
-if (NODE_MAJOR_VERSION >= 12) {
-   Joi = require("joi");
-}
-
-var validators = {
-   /* key : Joi.object() * /
-};
-*/
-
-// var domainRequesters = {
-//     domainKey : coteRequester
-// };
 
 class ABRequestAPI {
-   constructor(req, res) {
+   constructor(req, res, config = {}) {
       this.jobID = shortid.generate();
       // {string}
       // the unique id of this job.  It helps track actions for a particular
@@ -60,6 +45,39 @@ class ABRequestAPI {
       this.__Requester = ABServiceRequest(this);
       this.__Responder = ABServiceResponder;
       this.__Validator = ABValidator(this);
+
+      // extend
+
+      /**
+       * @method req.log.verbose()
+       * A shortcut method for logging "verbose" messages. There needs to be
+       * a .verbose = true  in the config.local entry for the current service
+       * in order for these messages to be displayed.
+       *
+       * Now get ready to eat up all kinds of disk space with needless
+       * information to the console!
+       */
+      this.log.verbose = (...params) => {
+         if ((config || {}).verbose) {
+            this.log(...params);
+         }
+      };
+
+      /**
+       * @method req.notifiy.builder()
+       * A shortcut method for notifying builders of configuration errors.
+       */
+      this.notify.builder = (...params) => {
+         this.notify("builder", ...params);
+      };
+
+      /**
+       * @method req.notifiy.developer()
+       * A shortcut method for notifying developer of operational errors.
+       */
+      this.notify.developer = (...params) => {
+         this.notify("developer", ...params);
+      };
    }
 
    get tenantID() {
