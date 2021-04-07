@@ -2,15 +2,18 @@
 // Controller
 // Define a common AppBuilder Controller class for use in our micro services.
 //
-var async = require("async");
+const async = require("async");
 const ABRequest = require("./reqService.js");
 const cote = require("cote");
 
-var fs = require("fs");
-var path = require("path");
+const fs = require("fs");
+const path = require("path");
 const prettyTime = require("pretty-time");
+
+const redis = require("redis");
+
 // var _ = require("lodash");
-var EventEmitter = require("events").EventEmitter;
+const EventEmitter = require("events").EventEmitter;
 const config = require(path.join(__dirname, "config.js"));
 
 class ABServiceController extends EventEmitter {
@@ -23,11 +26,6 @@ class ABServiceController extends EventEmitter {
       this._afterStartup = [];
       this._beforeShutdown = [];
       this._afterShutdown = [];
-
-      this.serviceResponder = new cote.Responder({
-         name: this.key,
-         key: this.key,
-      });
 
       this.config = config(this.key);
       this.connections = config("datastores");
@@ -136,6 +134,17 @@ class ABServiceController extends EventEmitter {
     */
    init() {
       return Promise.resolve()
+         .then(() => {
+            // our cote connection will throw an error if it can't connect to
+            // redis, so wait until we can establish a connection before
+            // proceeding with our initialization.
+            return this.waitForRedis().then(() => {
+               this.serviceResponder = new cote.Responder({
+                  name: this.key,
+                  key: this.key,
+               });
+            });
+         })
          .then(() => {
             return new Promise((resolve, reject) => {
                async.series(this._beforeStartup, (err) => {
@@ -337,6 +346,51 @@ class ABServiceController extends EventEmitter {
          var AB = ABRequest({}, this);
          AB.dbConnection();
       }
+   }
+
+   /**
+    * waitForRedis()
+    * attempts to connect to our redis server and then resolves() once the connection is ready.
+    * @return {Promise}
+    */
+   waitForRedis() {
+      return new Promise((resolve /* , reject */) => {
+         var client = redis.createClient({
+            host: "redis",
+            // port: <port>,
+            // password: '<password>'
+
+            retry_strategy: function (options) {
+               // if (options.error && options.error.code === "ECONNREFUSED") {
+               //    // End reconnecting on a specific error and flush all commands with
+               //    // a individual error
+               //    return new Error("The server refused the connection");
+               // }
+               // if (options.total_retry_time > 1000 * 60 * 60) {
+               //    // End reconnecting after a specific timeout and flush all commands
+               //    // with a individual error
+               //    return new Error("Retry time exhausted");
+               // }
+               // if (options.attempt > 10) {
+               //    // End reconnecting with built in error
+               //    return undefined;
+               // }
+
+               // console.log("... waiting for redis attempt:" + options.attempt);
+               // reconnect after
+               return Math.min(options.attempt * 200, 3000);
+            },
+         });
+
+         // client.on("error", (err) => {
+         //    console.log("... waiting for redis");
+         // });
+
+         client.on("connect", () => {
+            client.quit();
+            resolve();
+         });
+      });
    }
 }
 
