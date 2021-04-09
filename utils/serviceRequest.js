@@ -44,11 +44,15 @@ class ABServiceRequest {
             key: domain,
          });
       }
-      domainRequesters[domain].send(paramStack, (...params) => {
+      domainRequesters[domain].send(paramStack, (err, results) => {
          if (this.req.performance) {
             this.req.performance.measure(key, key);
          }
-         cb(...params);
+         if (err) {
+            err._serviceRequest = key;
+            err._params = paramStack;
+         }
+         cb(err, results);
       });
    }
 

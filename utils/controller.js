@@ -288,6 +288,7 @@ class ABServiceController extends EventEmitter {
                var errors = abReq.validateData(handler.inputValidation);
                if (errors) {
                   cb({
+                     service: handler.key || "??",
                      message: "Invalid Inputs",
                      code: "EINVALIDINPUTS",
                      req: req.data,

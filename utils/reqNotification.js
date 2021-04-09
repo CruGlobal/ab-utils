@@ -9,6 +9,8 @@ class ABNotification {
    notify(domain, error, info) {
       var serError = this.stringifyErrors(error);
 
+      var errStack = new Error("just getting my stack");
+
       info.tenantID = info.tenantID || this.req._tenantID;
       info.jobID = info.jobID || this.req.jobID;
 
@@ -17,8 +19,9 @@ class ABNotification {
          domain,
          error: serError,
          info,
+         callStack: errStack.stack,
       };
-      console.error(
+      this.req.log(
          "TODO: reqNotification.notify() : trigger 'system.notification' ",
          jobData
       );
