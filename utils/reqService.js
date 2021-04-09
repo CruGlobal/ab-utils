@@ -568,6 +568,41 @@ class ABRequestService {
    }
 
    /**
+    * @method retry()
+    * Attempt to retry the provided fn() if it results in an interrupted
+    * Network operation error.
+    *
+    * The provided fn() needs to return a {Promise} that resolves() with
+    * the expected return data, and rejects() with the Network errors.
+    *
+    * @param {fn} fn
+    *        The promise based network operation
+    * @return {Promise}
+    */
+   retry(fn) {
+      var reTryErrors = ["ECONNRESET", "ETIMEDOUT"];
+      return fn().catch((error) => {
+         // retry on a connection reset
+         var strErr = error.toString();
+         var isRetry = false;
+         var msg = "";
+         reTryErrors.forEach((e) => {
+            if (strErr.indexOf(e) > -1) {
+               isRetry = true;
+               msg = `... received ${e}, retrying`;
+            }
+         });
+         if (isRetry) {
+            this.log(msg);
+            return this.retry(fn);
+         }
+
+         // propogate the error
+         throw error;
+      });
+   }
+
+   /**
     * serviceRequest()
     * Send a request to another micro-service using the cote protocol.
     * @param {string} key
