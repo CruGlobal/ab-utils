@@ -14,6 +14,44 @@ const ServiceRequest = require("./serviceRequest.js");
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 const ABValidator = require("./reqValidation.js");
 
+/**
+ * @function deCircular()
+ * perform a Depth First Search of the given object, and attempt to stringify
+ * it for our logs.  This method is used when we detect a "circular" reference
+ * in data we are trying to JSON.stringify() and we then attempt to parse the
+ * values and convert any of our ABObjects into their .toObj() values to
+ * prevent the circular references.
+ * @param {array} args
+ *        The array of text to display in our data dump.  Each row is another
+ *        line of data to display.
+ * @param {object} o
+ *        The provided object we are parsing.
+ * @param {string} context
+ *        The display context of the object we are trying to display.
+ */
+function deCircular(args, o, context) {
+   // Attempt to De-Circular our ABObject data
+   for (var k in o) {
+      if (null === o[k]) {
+         args.push(`${context ? context : ""}${context ? "." : ""}${k}: null`);
+      } else if ("object" === typeof o[k]) {
+         if (o[k] && o[k].toObj) {
+            args.push(
+               `${context ? context : ""}${
+                  context ? "." : ""
+               }${k}: ${JSON.stringify(o[k].toObj())}`
+            );
+         } else {
+            deCircular(args, o[k], (context ? context + "->" : "") + k);
+         }
+      } else {
+         args.push(
+            `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
+         );
+      }
+   }
+}
+
 class ABRequestService {
    constructor(req, controller) {
       // console.log("ABRequest():", req);
@@ -384,7 +422,22 @@ class ABRequestService {
    log(...allArgs) {
       var args = [];
       allArgs.forEach((a) => {
-         args.push(JSON.stringify(a));
+         try {
+            args.push(JSON.stringify(a));
+         } catch (e) {
+            if (e.toString().indexOf("circular") > -1) {
+               var errStack = new Error(
+                  ">>>>>  Fix Circular reference sent to log(): "
+               );
+               this.notify.developer(errStack, {
+                  context: "reqService.log(): circular reference detected",
+               });
+
+               deCircular(args, a);
+            } else {
+               throw e; // What was this error?
+            }
+         }
       });
       console.log(`${this.jobID}::${args.join(" ")}`);
    }

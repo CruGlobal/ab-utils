@@ -107,8 +107,8 @@ class ABRequestAPI {
     */
    userDefaults() {
       return {
-         languageCode: this._user.languageCode || "en",
-         username: this._user.username || "_system_",
+         languageCode: this._user ? this._user.languageCode : false || "en",
+         username: this._user ? this._user.username : false || "_system_",
       };
    }
 

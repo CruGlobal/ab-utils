@@ -1,18 +1,26 @@
 // reqNotification.js
-const { serializeError, deserializeError } = require("serialize-error");
+const { serializeError /*, deserializeError */ } = require("serialize-error");
 
 class ABNotification {
    constructor(req) {
       this.req = req;
    }
 
-   notify(domain, error, info) {
+   notify(domain, error, info = {}) {
       var serError = this.stringifyErrors(error);
 
       var errStack = new Error("just getting my stack");
 
-      info.tenantID = info.tenantID || this.req._tenantID;
-      info.jobID = info.jobID || this.req.jobID;
+      info.tenantID = info.tenantID || this.req ? this.req._tenantID : "??";
+      info.jobID = info.jobID || this.req ? this.req.jobID : "??";
+      info.serviceKey = this.req ? this.req.serviceKey : "??";
+      info.user = this.req ? this.req._user : "??";
+
+      if (info.AB) {
+         var AB = info.AB;
+         delete info.AB;
+         info = AB._notifyInfo(info);
+      }
 
       // TODO: perhaps this should trigger a 'system.notification' process?
       var jobData = {
