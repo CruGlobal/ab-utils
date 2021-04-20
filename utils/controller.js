@@ -27,8 +27,8 @@ class ABServiceController extends EventEmitter {
       this._beforeShutdown = [];
       this._afterShutdown = [];
 
-      this.config = config(this.key);
-      this.connections = config("datastores");
+      // this.config = config(this.key);
+      // this.connections = config("datastores");
 
       var ignoreFiles = [".DS_Store", ".gitkeep"];
 
@@ -134,6 +134,13 @@ class ABServiceController extends EventEmitter {
     */
    init() {
       return Promise.resolve()
+         .then(() => {
+            // make sure the config service has completed:
+            return this.waitForConfig().then(() => {
+               this.config = config(this.key);
+               this.connections = config("datastores");
+            });
+         })
          .then(() => {
             // our cote connection will throw an error if it can't connect to
             // redis, so wait until we can establish a connection before
@@ -347,6 +354,35 @@ class ABServiceController extends EventEmitter {
          var AB = ABRequest({}, this);
          AB.dbConnection();
       }
+   }
+
+   /**
+    * waitForConfig()
+    * waits until the config service has posted a '.config_ready' file
+    * @return {Promise}
+    */
+   waitForConfig() {
+      return new Promise((resolve /* , reject */) => {
+         var delay = 500; // ms
+         var countTimeout = 40;
+         var count = 0;
+         function waitConfig() {
+            count++;
+            fs.access("/app/config/.config_ready", fs.constants.F_OK, (err) => {
+               if (err && count < countTimeout) {
+                  setTimeout(waitConfig, delay);
+                  return;
+               }
+               if (count >= countTimeout) {
+                  console.log("... wait config timeout");
+               } else {
+                  console.log("... config ready");
+               }
+               resolve();
+            });
+         }
+         setTimeout(waitConfig, delay);
+      });
    }
 
    /**

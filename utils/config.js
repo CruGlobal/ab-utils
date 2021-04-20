@@ -15,6 +15,11 @@ module.exports = (baseFile) => {
             "config",
             baseFile + ".js"
          ));
+
+         // adjust for sails style config referencing
+         if (baseConfig[baseFile]) {
+            baseConfig = baseConfig[baseFile];
+         }
       }
    } catch (e) {
       baseConfig = {};
