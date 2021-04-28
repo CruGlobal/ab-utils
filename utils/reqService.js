@@ -10,7 +10,9 @@ const DBConn = require(path.join(__dirname, "dbConn"));
 const Model = require(path.join(__dirname, "model"));
 const ABPerformance = require("./reqPerformance.js");
 const ABNotification = require("./reqNotification.js");
+const ServicePublish = require("./reqServicePublish.js");
 const ServiceRequest = require("./serviceRequest.js");
+const ServiceSubscriber = require("./reqServiceSubscriber.js");
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 const ABValidator = require("./reqValidation.js");
 
@@ -319,7 +321,9 @@ class ABRequestService {
 
       // expose this for Unit Testing & Mocking
       this.__Notification = ABNotification(this);
+      this.__Publisher = ServicePublish(this);
       this.__Requester = ServiceRequest(this);
+      this.__Subscriber = ServiceSubscriber; // Not an instance
       this.__Validator = ABValidator(this);
    }
 
@@ -656,6 +660,21 @@ class ABRequestService {
    }
 
    /**
+    * servicePublish()
+    * Publish an update to other subscribed services.
+    * @param {string} key
+    *        the channel we are updating.
+    * @param {json} data
+    *        the data packet to send to the subscribers.
+    * @param {fn} cb
+    *        a node.js style callback(err, result) for when the response
+    *        is received.
+    */
+   servicePublish(key, data) {
+      this.__Publisher.publish(key, data);
+   }
+
+   /**
     * serviceRequest()
     * Send a request to another micro-service using the cote protocol.
     * @param {string} key
@@ -668,6 +687,22 @@ class ABRequestService {
     */
    serviceRequest(key, data, cb) {
       this.__Requester.request(key, data, cb);
+   }
+
+   /**
+    * serviceSubscribe()
+    * Create a Cote service subscriber that can parse our data interchange
+    * format.
+    * @param {string} key
+    *        the service handler's key we are responding to.
+    * @param {fn} handler
+    *        a function to handle the incoming request. The function will
+    *        receive 1 parameters: fn(req)
+    *          req: an instance of the ABRequest appropriate for the current
+    *               context.
+    */
+   serviceSubscribe(key, handler) {
+      return this.__Subscriber(key, handler, this);
    }
 
    /**

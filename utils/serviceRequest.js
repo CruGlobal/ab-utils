@@ -1,25 +1,20 @@
 /// serviceRequest.js
 ///
 /*
- * request
+ * serviceRequest
  *
- * return a modified req object that supports our typical AB functions.
- * @param {obj} req the standard request object received from the Cote service.
- * @return {ABRequest}
+ * manage a Request to another service.
  */
 const cote = require("cote");
+const ServiceCote = require("./reqServiceCote.js");
 
-const { serializeError, deserializeError } = require("serialize-error");
+// const { serializeError, deserializeError } = require("serialize-error");
 
 var domainRequesters = {
    /* domainKey : coteRequester */
 };
 
-class ABServiceRequest {
-   constructor(req) {
-      this.req = req;
-   }
-
+class ABServiceRequest extends ServiceCote {
    /**
     * request()
     * Send a request to another micro-service using the cote protocol.
@@ -54,28 +49,6 @@ class ABServiceRequest {
          }
          cb(err, results);
       });
-   }
-
-   /**
-    * toParam()
-    * repackage the current data into a common format between our services
-    * @param {string} key
-    *			The cote request key that identifies which service we are sending
-    *			our request to.
-    * @param {json} data
-    *			The data packet we are providing to the service.
-    */
-   toParam(key, data) {
-      data = data || {};
-      return {
-         type: key,
-         param: {
-            jobID: this.req.jobID,
-            tenantID: this.req._tenantID,
-            user: this.req._user,
-            data,
-         },
-      };
    }
 }
 

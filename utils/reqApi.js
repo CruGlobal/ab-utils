@@ -9,8 +9,10 @@ const shortid = require("shortid");
 
 const ABNotification = require("./reqNotification.js");
 const ABPerformance = require("./reqPerformance.js");
+const ABServicePublish = require("./reqServicePublish.js");
 const ABServiceRequest = require("./serviceRequest.js");
 const ABServiceResponder = require("./reqServiceResponder.js");
+const ABServiceSubscriber = require("./reqServiceSubscriber.js");
 const ABValidator = require("./reqValidation.js");
 
 class ABRequestAPI {
@@ -42,8 +44,10 @@ class ABRequestAPI {
       this.__res = res;
       this.__console = console;
       this.__Notification = ABNotification(this);
+      this.__Publisher = ABServicePublish(this);
       this.__Requester = ABServiceRequest(this);
-      this.__Responder = ABServiceResponder;
+      this.__Responder = ABServiceResponder; // Not an instance
+      this.__Subscriber = ABServiceSubscriber; // Not an instance
       this.__Validator = ABValidator(this);
 
       // extend
@@ -158,6 +162,21 @@ class ABRequestAPI {
    }
 
    /**
+    * servicePublish()
+    * Publish an update to other subscribed services.
+    * @param {string} key
+    *        the channel we are updating.
+    * @param {json} data
+    *        the data packet to send to the subscribers.
+    * @param {fn} cb
+    *        a node.js style callback(err, result) for when the response
+    *        is received.
+    */
+   servicePublish(key, data) {
+      this.__Publisher.publish(key, data);
+   }
+
+   /**
     * serviceRequest()
     * Send a request to another micro-service using the cote protocol.
     * @param {string} key
@@ -188,6 +207,22 @@ class ABRequestAPI {
     */
    serviceResponder(key, handler) {
       return this.__Responder(key, handler, this);
+   }
+
+   /**
+    * serviceSubscribe()
+    * Create a Cote service subscriber that can parse our data interchange
+    * format.
+    * @param {string} key
+    *        the service handler's key we are responding to.
+    * @param {fn} handler
+    *        a function to handle the incoming request. The function will
+    *        receive 1 parameters: fn(req)
+    *          req: an instance of the ABRequest appropriate for the current
+    *               context.
+    */
+   serviceSubscribe(key, handler) {
+      return this.__Subscriber(key, handler, this);
    }
 
    /**

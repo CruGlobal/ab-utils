@@ -2,15 +2,11 @@
 /*
  * ServiceResponder
  *
- * return a modified req object that supports our typical AB functions.
- * @param {obj} req the standard request object received from the Cote service.
- * @return {ABRequest}
+ * manage the responses to a ServiceRequest.
  */
 const cote = require("cote");
-const RequestAPI = require("./reqApi.js");
-const RequestService = require("./reqService.js");
 
-const { serializeError, deserializeError } = require("serialize-error");
+const { serializeError /*, deserializeError */ } = require("serialize-error");
 
 var domainResponder = {
    /* domainKey : coteResponder */
@@ -35,9 +31,10 @@ class ABServiceResponder {
 
          var abReq = null;
          if (this.req.controller) {
-            abReq = RequestService(packet, this.req.controller);
+            // make an instance of reqService
+            abReq = new this.req.constructor(packet, this.req.controller);
          } else {
-            // abReq = RequestAPI(null, null);
+            // make an instance of reqApi
             abReq = new this.req.constructor(null, null);
             abReq.jobID = packet.jobID;
             abReq.tenantID = packet.tenantID;
