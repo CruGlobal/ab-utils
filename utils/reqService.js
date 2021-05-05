@@ -430,12 +430,12 @@ class ABRequestService {
             args.push(JSON.stringify(a));
          } catch (e) {
             if (e.toString().indexOf("circular") > -1) {
-               var errStack = new Error(
-                  ">>>>>  Fix Circular reference sent to log(): "
-               );
-               this.notify.developer(errStack, {
-                  context: "reqService.log(): circular reference detected",
-               });
+               // var errStack = new Error(
+               //    ">>>>>  Fix Circular reference sent to log(): "
+               // );
+               // this.notify.developer(errStack, {
+               //    context: "reqService.log(): circular reference detected",
+               // });
 
                deCircular(args, a);
             } else {
@@ -759,6 +759,19 @@ class ABRequestService {
       ABReq._DBConn = this._DBConn;
       ABReq._Model = this._Model;
       return ABReq;
+   }
+
+   /**
+    * @method toObj()
+    * return a simplified {obj} hash of this request's data.
+    * @return {obj}
+    */
+   toObj() {
+      var obj = {};
+      ["jobID", "_tenantID", "_user", "serviceKey"].forEach((f) => {
+         obj[f] = this[f];
+      });
+      return obj;
    }
 
    /**

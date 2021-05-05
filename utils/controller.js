@@ -218,6 +218,17 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
+    * @method requestObj()
+    * return a new ABRequest() object.
+    * @param {json} option
+    *        any initial settings for the {ABRequest} obj
+    * @return {ABRequest}
+    */
+   requestObj(options = {}) {
+      return ABRequest(options, this);
+   }
+
+   /**
     * shutdown
     * the process a service should perform to gracefully shutdown.
     */
