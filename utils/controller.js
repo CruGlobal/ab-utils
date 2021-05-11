@@ -100,7 +100,18 @@ class ABServiceController extends EventEmitter {
       return Promise.resolve()
          .then(() => {
             return new Promise((resolve, reject) => {
-               async.series(this._beforeShutdown, (err) => {
+               var reqShutdown = ABRequest(
+                  { jobID: `${this.key}.before_shutdown` },
+                  this
+               );
+               var allFNs = [];
+               this._beforeShutdown.forEach((f) => {
+                  allFNs.push((cb) => {
+                     f(reqShutdown, cb);
+                  });
+               });
+
+               async.series(allFNs, (err) => {
                   if (err) {
                      reject(err);
                   } else {
@@ -168,7 +179,17 @@ class ABServiceController extends EventEmitter {
          })
          .then(() => {
             return new Promise((resolve, reject) => {
-               async.series(this._afterStartup, (err) => {
+               var reqStartup = ABRequest(
+                  { jobID: `${this.key}.after_startup` },
+                  this
+               );
+               var allStartups = [];
+               this._afterStartup.forEach((f) => {
+                  allStartups.push((cb) => {
+                     f(reqStartup, cb);
+                  });
+               });
+               async.series(allStartups, (err) => {
                   if (err) {
                      reject(err);
                   } else {
