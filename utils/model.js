@@ -5,6 +5,10 @@
 const _ = require("lodash");
 const async = require("async");
 
+const retryErrors = [
+   "PROTOCOL_SEQUENCE_TIMEOUT",
+   "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR",
+];
 module.exports = class Model {
    constructor(config, dbConn, AB) {
       this.config = _.cloneDeep(config);
@@ -949,10 +953,7 @@ module.exports = class Model {
          // fields will contain information about the returned results fields (if any)
 
          if (error) {
-            if (
-               error.toString().indexOf("PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR") >
-               -1
-            ) {
+            if (retryErrors.indexOf(error.code) > -1) {
                console.log(error);
                console.log("trying again");
                this._queryIt(query, values, cb, numRetries + 1, {
