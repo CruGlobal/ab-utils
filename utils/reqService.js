@@ -31,9 +31,13 @@ const ABValidator = require("./reqValidation.js");
  * @param {string} context
  *        The display context of the object we are trying to display.
  */
-function deCircular(args, o, context) {
+function deCircular(args, o, context, level = 1) {
+   if (level > 3) return;
+
    // Attempt to De-Circular our ABObject data
    for (var k in o) {
+      if (k === "____deCircular") continue;
+
       if (null === o[k]) {
          args.push(`${context ? context : ""}${context ? "." : ""}${k}: null`);
       } else if ("object" === typeof o[k]) {
@@ -44,12 +48,22 @@ function deCircular(args, o, context) {
                }${k}: ${JSON.stringify(o[k].toObj())}`
             );
          } else {
-            deCircular(args, o[k], (context ? context + "->" : "") + k);
+            if (!o[k].____deCircular) {
+               o[k].____deCircular = 1;
+               deCircular(
+                  args,
+                  o[k],
+                  (context ? context + "->" : "") + k,
+                  level + 1
+               );
+            }
          }
       } else {
-         args.push(
-            `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
-         );
+         if (typeof o[k] != "function") {
+            args.push(
+               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
+            );
+         }
       }
    }
 }
@@ -637,7 +651,12 @@ class ABRequestService {
     * @return {Promise}
     */
    retry(fn) {
-      var reTryErrors = ["ECONNRESET", "ETIMEDOUT"];
+      var reTryErrors = [
+         "ECONNRESET",
+         "ETIMEDOUT",
+         "PROTOCOL_SEQUENCE_TIMEOUT",
+         "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR",
+      ];
       return fn().catch((error) => {
          // retry on a connection reset
          var strErr = error.toString();
