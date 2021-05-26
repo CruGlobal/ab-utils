@@ -300,6 +300,38 @@ class ABRequestAPI {
       console.error("DEPRECIATED: ?? who is calling this?");
       this.__Validator.reset();
    }
+
+   /**
+    * @method validUser()
+    * returns {true} if there is a valid .user set on the request
+    * or {false} if not.
+    *
+    * By default, this function will return a "E_REAUTH" error back
+    * as the response.  If you want to externally handle this situation
+    * then need to pass {false} for autoRespond.
+    *
+    * @param {bool} autoRespond
+    *        if {true} will auto respond on errors with the {res} object.
+    * @return {bool}
+    **/
+   validUser(autoRespond = true) {
+      if (!this._user) {
+         if (autoRespond) {
+            var err = new Error("Reauthenticate.");
+            err.id = 5; // v1/legacy value
+            err.code = "E_REAUTH";
+
+            // use our {resAPI} error handler to return the error
+            if (this.__res && this.__res.ab && this.__res.ab.error) {
+               this.__res.ab.error(err);
+            } else {
+               console.error(err);
+            }
+         }
+         return false;
+      }
+      return true;
+   }
 }
 
 module.exports = function (...params) {
