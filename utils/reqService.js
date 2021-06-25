@@ -68,6 +68,15 @@ function deCircular(args, o, context, level = 1) {
    }
 }
 
+// ERRORS_RETRY
+// the error.code of typical sql errors that simply need to be retried.
+var ERRORS_RETRY = [
+   "ECONNRESET",
+   "ETIMEDOUT",
+   "PROTOCOL_SEQUENCE_TIMEOUT",
+   "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR",
+];
+
 class ABRequestService {
    constructor(req, controller) {
       // console.log("ABRequest():", req);
@@ -536,12 +545,44 @@ class ABRequestService {
     *        the previous value of our .query() attempt if this is a retry.
     *        these previous values will be sent on if we have too many retries.
     */
-   query(query, values, cb, numRetries = 0, prev = null) {
-      if (numRetries > 3) {
-         cb(prev.error, prev.results, prev.fields);
-         return;
-      }
+   query(query, values, cb /*, numRetries = 0, prev = null*/) {
+      // if (numRetries > 3) {
+      //    cb(prev.error, prev.results, prev.fields);
+      //    return;
+      // }
 
+      this.retry(() => {
+         return new Promise((resolve, reject) => {
+            var q = this.dbConnection().query(
+               query,
+               values,
+               (error, results, fields) => {
+                  // error will be an Error if one occurred during the query
+                  // results will contain the results of the query
+                  // fields will contain information about the returned results fields (if any)
+
+                  if (this.debug) {
+                     this.log("req.query():", q.sql);
+                  }
+
+                  if (error) {
+                     error.sql = q.sql;
+                     return reject(error);
+                  }
+                  resolve({ results, fields });
+                  // cb(error, results, fields);
+               }
+            );
+         });
+      })
+         .then((data) => {
+            cb(null, data.results, data.fields);
+         })
+         .catch((err) => {
+            cb(err, null, null);
+         });
+      /*
+/// OLD version:
       var q = this.dbConnection().query(
          query,
          values,
@@ -574,6 +615,7 @@ class ABRequestService {
             cb(error, results, fields);
          }
       );
+      */
       // console.log("req.query():", q.sql);
    }
 
@@ -651,18 +693,12 @@ class ABRequestService {
     * @return {Promise}
     */
    retry(fn) {
-      var reTryErrors = [
-         "ECONNRESET",
-         "ETIMEDOUT",
-         "PROTOCOL_SEQUENCE_TIMEOUT",
-         "PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR",
-      ];
       return fn().catch((error) => {
          // retry on a connection reset
-         var strErr = error.toString();
+         var strErr = `${error.code}:${error.toString()}`;
          var isRetry = false;
          var msg = "";
-         reTryErrors.forEach((e) => {
+         ERRORS_RETRY.forEach((e) => {
             if (strErr.indexOf(e) > -1) {
                isRetry = true;
                msg = `... received ${e}, retrying`;
