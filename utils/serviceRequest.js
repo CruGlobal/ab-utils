@@ -30,6 +30,13 @@ class ABServiceRequest extends ServiceCote {
       if (this.req.performance) {
          this.req.performance.mark(key);
       }
+      var countTimeout = 1;
+      var timeOutID = setInterval(() => {
+         this.req.log(
+            `... timeout ${countTimeout++} waiting for request(${key})`
+         );
+      }, 1000);
+
       var paramStack = this.toParam(key, data);
       var domain = key.split(".")[0];
       if (!domainRequesters[domain]) {
@@ -43,6 +50,7 @@ class ABServiceRequest extends ServiceCote {
          if (this.req.performance) {
             this.req.performance.measure(key, key);
          }
+         clearInterval(timeOutID);
          if (err) {
             err._serviceRequest = key;
             err._params = paramStack;
