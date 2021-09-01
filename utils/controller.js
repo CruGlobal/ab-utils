@@ -7,6 +7,7 @@ const ABRequest = require("./reqService.js");
 const cote = require("cote");
 
 const fs = require("fs");
+const Mysql = require("mysql");
 const path = require("path");
 const prettyTime = require("pretty-time");
 
@@ -29,6 +30,9 @@ class ABServiceController extends EventEmitter {
 
       // this.config = config(this.key);
       // this.connections = config("datastores");
+
+      this.waitForDB = false;
+      // {bool} wait for DB service to be ready before continuing our .init()
 
       var ignoreFiles = [".DS_Store", ".gitkeep"];
 
@@ -144,19 +148,26 @@ class ABServiceController extends EventEmitter {
     * begin this service.
     */
    init() {
+      var initState = "";
+      // {string}
+      // identifies the current step of our .init() process for use in
+      // error identification.
+
       return Promise.resolve()
          .then(() => {
+            initState = "1.wait_config_complete";
             // make sure the config service has completed:
-            return this.waitForConfig().then(() => {
+            return this._waitForConfig().then(() => {
                this.config = config(this.key);
                this.connections = config("datastores");
             });
          })
          .then(() => {
+            initState = "2.wait_redis_ready";
             // our cote connection will throw an error if it can't connect to
             // redis, so wait until we can establish a connection before
             // proceeding with our initialization.
-            return this.waitForRedis().then(() => {
+            return this._waitForRedis().then(() => {
                this.serviceResponder = new cote.Responder({
                   name: this.key,
                   key: this.key,
@@ -164,6 +175,16 @@ class ABServiceController extends EventEmitter {
             });
          })
          .then(() => {
+            if (!this.waitForDB) {
+               return Promise.resolve();
+            }
+            initState = "2.5.wait_DB_ready";
+            // This service depends on the DB service to be ready before
+            // continuing.
+            return this._waitForDB();
+         })
+         .then(() => {
+            initState = "3.process_before_startups";
             return new Promise((resolve, reject) => {
                async.series(this._beforeStartup, (err) => {
                   if (err) {
@@ -175,9 +196,11 @@ class ABServiceController extends EventEmitter {
             });
          })
          .then(() => {
+            initState = "4.startups";
             return this.startup();
          })
          .then(() => {
+            initState = "5.process_after_startups";
             return new Promise((resolve, reject) => {
                var reqStartup = ABRequest(
                   { jobID: `${this.key}.after_startup` },
@@ -199,7 +222,15 @@ class ABServiceController extends EventEmitter {
             });
          })
          .then(() => {
+            initState = "5.controller.ready";
             this.ready();
+         })
+         .catch((err) => {
+            var reqErrorStartup = ABRequest(
+               { jobID: `${this.key}.error_startup` },
+               this
+            );
+            reqErrorStartup.notify.developer(err, { initState });
          });
    }
 
@@ -255,7 +286,9 @@ class ABServiceController extends EventEmitter {
     */
    shutdown() {
       this.handlers.forEach((handler) => {
-         this.serviceResponder.off(handler.key, handler._cFN);
+         if (handler._cFN) {
+            this.serviceResponder.off(handler.key, handler._cFN);
+         }
       });
 
       // make sure we close down our db connection.
@@ -389,11 +422,11 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * waitForConfig()
+    * _waitForConfig()
     * waits until the config service has posted a '.config_ready' file
     * @return {Promise}
     */
-   waitForConfig() {
+   _waitForConfig() {
       return new Promise((resolve /* , reject */) => {
          var delay = 500; // ms
          var countTimeout = 40;
@@ -418,11 +451,28 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * waitForRedis()
+    * waitForDB()
+    * attempts to connect to our maria DB service before continuing.
+    * @return {Promise}
+    */
+   _waitForDB() {
+      return new Promise((resolve /* , reject */) => {
+         var reqWaitDB = ABRequest({ jobID: `${this.key}.wait_db` }, this);
+         var dbConfig = reqWaitDB.configDB();
+
+         tryConnect(dbConfig, () => {
+            // now we can continue.
+            resolve();
+         });
+      });
+   }
+
+   /**
+    * _waitForRedis()
     * attempts to connect to our redis server and then resolves() once the connection is ready.
     * @return {Promise}
     */
-   waitForRedis() {
+   _waitForRedis() {
       return new Promise((resolve /* , reject */) => {
          var client = redis.createClient({
             host: "redis",
@@ -466,3 +516,47 @@ class ABServiceController extends EventEmitter {
 module.exports = function controller(...params) {
    return new ABServiceController(...params);
 };
+
+/* --- Helper Functions --- */
+
+/**
+ * @function tryConect()
+ * continue attempting to connect to our DB using our provided dbConfig
+ * until we finally succeed.  Then we call our cb();
+ * @param {json} dbConfig
+ *        The mysql connection info
+ * @param {fn} cb(err)
+ *        A node style callback(err);
+ *        Will be called once we successfully connect to mysql.
+ * @param {int} count
+ *        A counter so we don't output the "not ready" log so many times.
+ */
+function tryConnect(dbConfig, cb, count = 0) {
+   // attempt connection:
+   var DB = Mysql.createConnection(dbConfig);
+   // DB.on("error", (err) => {
+   //    console.log("DB.on(error):", err);
+
+   //    setTimeout(() => {
+   //       Connect(cb);
+   //    }, 250);
+
+   //    DB.destroy();
+   // });
+   DB.connect(function (err) {
+      if (err) {
+         if (count == 0) {
+            console.log("mysql not ready ... waiting.");
+         }
+         if (count > 5) count = -1;
+
+         setTimeout(() => {
+            tryConnect(dbConfig, cb, count + 1);
+         }, 500);
+         return;
+      }
+      console.log("successful connection to mysql, continuing");
+      DB.destroy();
+      cb();
+   });
+}
