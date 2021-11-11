@@ -302,6 +302,58 @@ class ABRequestAPI {
    }
 
    /**
+    * @method validRoles()
+    * Verify if the current user has one of the provided roleIDs assigned.
+    * @param {array} roleIDs
+    *        the {uuid} of the roles we are verifying.
+    * @return {bool}
+    */
+   validRoles(roleIDs) {
+      if (this._user) {
+         var found = this._user?.SITE_ROLE?.filter(
+            (r) => roleIDs.indexOf(r.uuid) > -1
+         );
+         if (found?.length > 0) {
+            return true;
+         }
+      }
+      return false;
+   }
+
+   /**
+    * @method validBuilder()
+    * Verify if the current user has one of the default Builder Roles assigned
+    * @param {bool} autoRespond
+    *        do we auto res.ab.error() on a negative result
+    *        see validUser() method.
+    * @return {bool}
+    */
+   validBuilder(autoRespond = true) {
+      // these are the default Builder & System Designer Roles:
+      if (
+         !this.validRoles([
+            "6cc04894-a61b-4fb5-b3e5-b8c3f78bd331",
+            "e1be4d22-1d00-4c34-b205-ef84b8334b19",
+         ])
+      ) {
+         if (autoRespond) {
+            var err = new Error("Forbidden.");
+            err.id = 6;
+            err.code = "E_NOPERM";
+
+            // use our {resAPI} error handler to return the error
+            if (this.__res?.ab?.error) {
+               this.__res.ab.error(err, 403);
+            } else {
+               console.error(err);
+            }
+         }
+         return false;
+      }
+      return true;
+   }
+
+   /**
     * @method validUser()
     * returns {true} if there is a valid .user set on the request
     * or {false} if not.
