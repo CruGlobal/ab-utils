@@ -345,7 +345,7 @@ class ABRequestAPI {
             if (this.__res?.ab?.error) {
                this.__res.ab.error(err, 403);
             } else {
-               console.error(err);
+               this.log(err);
             }
          }
          return false;
@@ -377,7 +377,7 @@ class ABRequestAPI {
             if (this.__res && this.__res.ab && this.__res.ab.error) {
                this.__res.ab.error(err);
             } else {
-               console.error(err);
+               this.log(err);
             }
          }
          return false;

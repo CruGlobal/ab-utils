@@ -78,6 +78,7 @@ var ERRORS_RETRY = [
    "PROTOCOL_PACKETS_OUT_OF_ORDER",
 
    "ER_LOCK_DEADLOCK",
+   "Lock deadlock; Retry transaction", // shows up in embedded sql error
    "ER_LOCK_WAIT_TIMEOUT",
 ];
 
