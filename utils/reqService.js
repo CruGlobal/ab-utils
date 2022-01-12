@@ -426,10 +426,12 @@ class ABRequestService {
     * return a connection to our mysql DB for the current request:
     * @param {bool} create
     *        create a new DB connection if we are not currently connected.
+    * @param {bool} isolate
+    *        return a unique DB connection not shared by other requests.
     * @return {Mysql.conn || null}
     */
-   dbConnection(create = true) {
-      return this._DBConn(this, create);
+   dbConnection(create = true, isolate = false) {
+      return this._DBConn(this, create, isolate);
    }
 
    /**
@@ -544,40 +546,33 @@ class ABRequestService {
     * @param {fn} cb
     *        a node style callback with 3 paramaters (error, results, fields)
     *        these are the same values as returned by the mysql library .query()
-    * @param {int} numRetries
-    *        the number of times this query has been attempted. (default: 0)
-    * @param {obj} prev
-    *        the previous value of our .query() attempt if this is a retry.
-    *        these previous values will be sent on if we have too many retries.
+    * @param {MySQL} dbConn [optional]
+    *        the DB Connection to use for this request. If not provided the
+    *        common dbConnection() will be used.
     */
-   query(query, values, cb /*, numRetries = 0, prev = null*/) {
-      // if (numRetries > 3) {
-      //    cb(prev.error, prev.results, prev.fields);
-      //    return;
-      // }
+   query(query, values, cb, dbConn) {
+      if (!dbConn) {
+         dbConn = this.dbConnection();
+      }
 
       this.retry(() => {
          return new Promise((resolve, reject) => {
-            var q = this.dbConnection().query(
-               query,
-               values,
-               (error, results, fields) => {
-                  // error will be an Error if one occurred during the query
-                  // results will contain the results of the query
-                  // fields will contain information about the returned results fields (if any)
+            var q = dbConn.query(query, values, (error, results, fields) => {
+               // error will be an Error if one occurred during the query
+               // results will contain the results of the query
+               // fields will contain information about the returned results fields (if any)
 
-                  if (this.debug) {
-                     this.log("req.query():", q.sql);
-                  }
-
-                  if (error) {
-                     error.sql = q.sql;
-                     return reject(error);
-                  }
-                  resolve({ results, fields });
-                  // cb(error, results, fields);
+               if (this.debug) {
+                  this.log("req.query():", q.sql);
                }
-            );
+
+               if (error) {
+                  error.sql = q.sql;
+                  return reject(error);
+               }
+               resolve({ results, fields });
+               // cb(error, results, fields);
+            });
          });
       })
          .then((data) => {
@@ -586,42 +581,37 @@ class ABRequestService {
          .catch((err) => {
             cb(err, null, null);
          });
-      /*
-/// OLD version:
-      var q = this.dbConnection().query(
-         query,
-         values,
-         (error, results, fields) => {
-            // error will be an Error if one occurred during the query
-            // results will contain the results of the query
-            // fields will contain information about the returned results fields (if any)
+   }
 
-            if (this.debug) {
-               this.log("req.query():", q.sql);
-            }
+   /**
+    * @method queryIsolate()
+    * Perform a query on it's own DB Connection. Not shared with other
+    * requests.
+    * @param {string} query
+    *        the sql query to perform.  Use "?" for placeholders.
+    * @param {array} values
+    *        the array of values that correspond to the placeholders in the sql
+    * @param {fn} cb
+    *        a node style callback with 3 paramaters (error, results, fields)
+    *        these are the same values as returned by the mysql library .query()
+    */
+   queryIsolate(query, values, cb) {
+      if (!this.___isoDB) {
+         this.___isoDB = this.dbConnection(false, true);
+      }
+      this.query(query, values, cb, this.___isoDB);
+   }
 
-            if (error) {
-               if (
-                  error
-                     .toString()
-                     .indexOf("PROTOCOL_ENQUEUE_AFTER_FATAL_ERROR") > -1
-               ) {
-                  console.log(error);
-                  console.log("trying again");
-                  this.query(query, values, cb, numRetries + 1, {
-                     error,
-                     results,
-                     fields,
-                  });
-                  return;
-               }
-               error.sql = q.sql;
-            }
-            cb(error, results, fields);
-         }
-      );
-      */
-      // console.log("req.query():", q.sql);
+   /**
+    * @method queryIsolateClose()
+    * Ensure the temporary isolated db connection is closed out properly.
+    * This method is intended to be used after all your desired queryIsolate()
+    * actions are performed.
+    */
+   queryIsolateClose() {
+      if (this.___isoDB) {
+         this.___isoDB.end();
+      }
    }
 
    /**

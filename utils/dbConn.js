@@ -1,6 +1,14 @@
 /*
  * dbConn
  * manage and return a connection to our DB.
+ * We will currently create a single Mysql Connection Pool and share that among
+ * all our running operations.
+ * @param {reqService} req
+ *        the current {reqService} object for this request
+ * @param {bool} shouldCreate
+ *        should we create a new DB connection if one isn't currently active?
+ * @param {bool} isolate
+ *        do we create a NEW connection and return that instead?
  */
 const Mysql = require("mysql"); // our  {DB Connection}
 var DB = null;
@@ -11,32 +19,38 @@ var DB = null;
 // Tenant DB in the SQL.  But DB connects to the running {MySQL|Mariadb} server
 // that houses the data.
 
-module.exports = function (req, shouldCreate = true) {
+function newConn(req, limit = 10) {
+   var config = req.configDB();
+   config.connectionLimit = limit;
+   var db = Mysql.createPool(config);
+   db.on("error", (err) => {
+      req.log("DB.on(error):", err);
+
+      // format of err:
+      // {
+      //   Error: "read ECONNRESET at TCP.onStreamRead (internal/stream_base_commons.js:162:27)",
+      //   errno: 'ECONNRESET',
+      //   code: 'ECONNRESET',
+      //   syscall: 'read',
+      //   fatal: true
+      // }
+
+      db.end();
+   });
+   return db;
+}
+
+module.exports = function (req, shouldCreate = true, isolate = false) {
+   if (isolate) {
+      return newConn(req, 5);
+   }
+
    if (!DB) {
       if (shouldCreate) {
-         var config = req.configDB();
-         config.connectionLimit = 10;
-         DB = Mysql.createPool(config);
-         DB.on("error", (err) => {
-            req.log("DB.on(error):", err);
-
-            // {
-            //   Error: "read ECONNRESET at TCP.onStreamRead (internal/stream_base_commons.js:162:27)",
-            //   errno: 'ECONNRESET',
-            //   code: 'ECONNRESET',
-            //   syscall: 'read',
-            //   fatal: true
-            // }
-            DB.end();
-            DB = null; // reset our connection.
+         DB = newConn(req);
+         DB.on("error", () => {
+            DB = null;
          });
-         // DB.connect(function(err) {
-         //    if (err) {
-         //       AB.log("error connecting: " + err, AB.configDB());
-         //       return;
-         //    }
-         //    AB.log("connected as  id " + DB.threadId);
-         // });
       }
    }
    return DB;
