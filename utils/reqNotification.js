@@ -1,6 +1,10 @@
 // reqNotification.js
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 
+const UserFields = ["uuid", "username", "email", "languageCode"];
+// {array}
+// a subset of User fields that we want to include in our notification data.
+
 class ABNotification {
    constructor(req) {
       this.req = req;
@@ -14,7 +18,10 @@ class ABNotification {
       info.tenantID = info.tenantID || this.req ? this.req._tenantID : "??";
       info.jobID = info.jobID || this.req ? this.req.jobID : "??";
       info.serviceKey = this.req ? this.req.serviceKey : "??";
-      info.user = this.req ? this.req._user : "??";
+      info.user = {};
+      UserFields.forEach((k) => {
+         info.user[k] = this.req?._user?.[k] ?? "??";
+      });
 
       if (info.AB) {
          var AB = info.AB;
