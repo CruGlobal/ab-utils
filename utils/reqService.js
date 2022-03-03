@@ -691,23 +691,27 @@ class ABRequestService {
    retry(fn) {
       return fn().catch((error) => {
          // retry on a connection reset
-         var strErr = `${error.code}:${error.toString()}`;
-         var isRetry = false;
-         var msg = "";
-         ERRORS_RETRY.forEach((e) => {
-            if (strErr.indexOf(e) > -1) {
-               isRetry = true;
-               msg = `... received ${e}, retrying`;
-            }
-         });
-         if (isRetry) {
-            this.log(msg);
+
+         if (this.shouldRetry(error)) {
+            this.log(`... received ${error._retryMsg}, retrying`);
             return this.retry(fn);
          }
 
          // propogate the error
          throw error;
       });
+   }
+
+   shouldRetry(error) {
+      var strErr = `${error.code}:${error.toString()}`;
+      var isRetry = false;
+      ERRORS_RETRY.forEach((e) => {
+         if (strErr.indexOf(e) > -1) {
+            isRetry = true;
+            error._retryMsg = e;
+         }
+      });
+      return isRetry;
    }
 
    /**
