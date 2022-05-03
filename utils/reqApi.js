@@ -309,11 +309,11 @@ class ABRequestAPI {
     * @return {bool}
     */
    validRoles(roleIDs) {
-      if (this._user) {
-         var found = this._user?.SITE_ROLE?.filter(
+      if (this._user && this._user.SITE_ROLE) {
+         var found = this._user.SITE_ROLE.filter(
             (r) => roleIDs.indexOf(r.uuid) > -1
          );
-         if (found?.length > 0) {
+         if (found.length > 0) {
             return true;
          }
       }
@@ -342,7 +342,7 @@ class ABRequestAPI {
             err.code = "E_NOPERM";
 
             // use our {resAPI} error handler to return the error
-            if (this.__res?.ab?.error) {
+            if (this.__res.ab.error) {
                this.__res.ab.error(err, 403);
             } else {
                this.log(err);

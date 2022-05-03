@@ -19,9 +19,15 @@ class ABNotification {
       info.jobID = info.jobID || this.req ? this.req.jobID : "??";
       info.serviceKey = this.req ? this.req.serviceKey : "??";
       info.user = {};
-      UserFields.forEach((k) => {
-         info.user[k] = this.req?._user?.[k] ?? "??";
-      });
+      if (this.req._user) {
+         UserFields.forEach((k) => {
+            if (typeof this.req._user[k] == "undefined") {
+               info.user[k] = "??";
+               return;
+            }
+            info.user[k] = this.req._user[k];
+         });
+      }
 
       if (info.AB) {
          var AB = info.AB;
