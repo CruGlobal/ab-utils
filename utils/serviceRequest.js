@@ -34,12 +34,6 @@ class ABServiceRequest extends ServiceCote {
          this.req.performance.mark(key);
       }
       let countRequest = 0;
-      // var countTimeout = 1;
-      // var timeOutID = setInterval(() => {
-      //    this.req.log(
-      //       `... timeout ${countTimeout++} waiting for request(${key})`
-      //    );
-      // }, 1000);
 
       var paramStack = this.toParam(key, data);
       var domain = key.split(".")[0];
@@ -60,7 +54,7 @@ class ABServiceRequest extends ServiceCote {
             if (this.req.performance) {
                this.req.performance.measure(key, key);
             }
-            // clearInterval(timeOutID);
+
             if (err) {
                // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
                if (err.message === "Request timed out.") {
