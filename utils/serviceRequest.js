@@ -10,6 +10,9 @@ const ServiceCote = require("./reqServiceCote.js");
 
 // const { serializeError, deserializeError } = require("serialize-error");
 
+const REQUEST_TIMEOUT = 5000;
+const ATTEMPT_REQUEST_MAXIMUM = 5;
+
 var domainRequesters = {
    /* domainKey : coteRequester */
 };
@@ -30,12 +33,13 @@ class ABServiceRequest extends ServiceCote {
       if (this.req.performance) {
          this.req.performance.mark(key);
       }
-      var countTimeout = 1;
-      var timeOutID = setInterval(() => {
-         this.req.log(
-            `... timeout ${countTimeout++} waiting for request(${key})`
-         );
-      }, 1000);
+      let countRequest = 0;
+      // var countTimeout = 1;
+      // var timeOutID = setInterval(() => {
+      //    this.req.log(
+      //       `... timeout ${countTimeout++} waiting for request(${key})`
+      //    );
+      // }, 1000);
 
       var paramStack = this.toParam(key, data);
       var domain = key.split(".")[0];
@@ -44,19 +48,45 @@ class ABServiceRequest extends ServiceCote {
          domainRequesters[domain] = new cote.Requester({
             name: `${this.req.serviceKey} > requester > ${domain}`,
             key: domain,
+            // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
+            timeout: REQUEST_TIMEOUT,
          });
       }
-      domainRequesters[domain].send(paramStack, (err, results) => {
-         if (this.req.performance) {
-            this.req.performance.measure(key, key);
-         }
-         clearInterval(timeOutID);
-         if (err) {
-            err._serviceRequest = key;
-            err._params = paramStack;
-         }
-         cb(err, results);
-      });
+
+      const sendRequest = () => {
+         countRequest += 1;
+
+         domainRequesters[domain].send(paramStack, (err, results) => {
+            if (this.req.performance) {
+               this.req.performance.measure(key, key);
+            }
+            // clearInterval(timeOutID);
+            if (err) {
+               // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
+               if (err.message === "Request timed out.") {
+                  // Retry .send
+                  if (countRequest < ATTEMPT_REQUEST_MAXIMUM) {
+                     this.req.log(
+                        `...It is ${countRequest} time to re-request(${key})`
+                     );
+                     sendRequest();
+                     return;
+                  }
+
+                  this.req.notify.developer(err, {
+                     message: `Could not request (${key}) - ${JSON.stringify(
+                        paramStack
+                     )}`,
+                  });
+               }
+
+               err._serviceRequest = key;
+               err._params = paramStack;
+            }
+            cb(err, results);
+         });
+      };
+      sendRequest();
    }
 }
 
