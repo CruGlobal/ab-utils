@@ -67,7 +67,7 @@ class ABServiceRequest extends ServiceCote {
                   // Retry .send
                   if (countRequest < ATTEMPT_REQUEST_MAXIMUM) {
                      this.req.log(
-                        `...It is ${countRequest} time to re-request(${key})`
+                        `... timeout waiting for request (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_MAXIMUM}`
                      );
                      sendRequest();
                      return;
