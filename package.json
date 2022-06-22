@@ -6,7 +6,7 @@
   "author": "Johnny Hausman",
   "license": "MIT",
   "dependencies": {
-    "async": "^3.2.0",
+    "async": "^3.2.2",
     "cote": "^1.0.2",
     "joi": "^17.3.0",
     "lodash": "^4.17.21",
