@@ -35,17 +35,16 @@ class ABNotification {
          info = AB._notifyInfo(info);
       }
 
-      // TODO: perhaps this should trigger a 'system.notification' process?
       var jobData = {
          domain,
          error: serError,
          info,
          callStack: errStack.stack,
       };
-      this.req.log(
-         "TODO: reqNotification.notify() : trigger 'system.notification' ",
-         jobData
-      );
+
+      this.req.serviceRequest("log_manager.notification", jobData, (err) => {
+         this.req.log(err);
+      });
    }
 
    stringifyErrors(param) {
