@@ -10,7 +10,8 @@ const ServiceCote = require("./reqServiceCote.js");
 
 // const { serializeError, deserializeError } = require("serialize-error");
 
-const REQUEST_TIMEOUT = 5000;
+const REQUEST_TIMEOUT = 5000; // 5 Seconds
+const LONG_REQUEST_TIMEOUT = 90000; // 90 Seconds
 const ATTEMPT_REQUEST_MAXIMUM = 5;
 
 var domainRequesters = {
@@ -34,6 +35,8 @@ class ABServiceRequest extends ServiceCote {
          this.req.performance.mark(key);
       }
       let countRequest = 0;
+      const timeout = data.longRequest ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT;
+      delete data.longRequest; // The service does not need this passed.
 
       var paramStack = this.toParam(key, data);
       var domain = key.split(".")[0];
@@ -43,7 +46,7 @@ class ABServiceRequest extends ServiceCote {
             name: `${this.req.serviceKey} > requester > ${domain}`,
             key: domain,
             // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
-            timeout: REQUEST_TIMEOUT,
+            timeout,
          });
       }
 
