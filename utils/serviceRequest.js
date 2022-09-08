@@ -10,10 +10,11 @@ const ServiceCote = require("./reqServiceCote.js");
 
 // const { serializeError, deserializeError } = require("serialize-error");
 
-const REQUEST_TIMEOUT = 5000;
+const REQUEST_TIMEOUT = 5000; // 5 Seconds
+const LONG_REQUEST_TIMEOUT = 90000; // 90 Seconds
 const ATTEMPT_REQUEST_MAXIMUM = 5;
 
-var domainRequesters = {
+const domainRequesters = {
    /* domainKey : coteRequester */
 };
 
@@ -34,23 +35,17 @@ class ABServiceRequest extends ServiceCote {
          this.req.performance.mark(key);
       }
       let countRequest = 0;
+      const longRequest = data.longRequest ?? false;
+      delete data.longRequest; // The service does not need this passed.
 
-      var paramStack = this.toParam(key, data);
-      var domain = key.split(".")[0];
-      if (!domainRequesters[domain]) {
-         this.req.log(`... creating clientRequester(${domain})`);
-         domainRequesters[domain] = new cote.Requester({
-            name: `${this.req.serviceKey} > requester > ${domain}`,
-            key: domain,
-            // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
-            timeout: REQUEST_TIMEOUT,
-         });
-      }
+      const paramStack = this.toParam(key, data);
+      const domain = key.split(".")[0];
+      const requester = this.getRequester(domain, longRequest);
 
       const sendRequest = () => {
          countRequest += 1;
 
-         domainRequesters[domain].send(paramStack, (err, results) => {
+         requester.send(paramStack, (err, results) => {
             if (this.req.performance) {
                this.req.performance.measure(key, key);
             }
@@ -81,6 +76,26 @@ class ABServiceRequest extends ServiceCote {
          });
       };
       sendRequest();
+   }
+
+   /**
+    * Gets a cached requester for the domain, creating one if needed
+    * @function getRequester
+    * @param {string} domain cote domain key
+    * @param {boolean} long whether the requester needs a longer timeout
+    */
+   getRequester(domain, long) {
+      const key = `${domain}${long ? "_long" : ""}`;
+      if (!domainRequesters[key]) {
+         this.req.log(`... creating clientRequester(${key})`);
+         domainRequesters[key] = new cote.Requester({
+            name: `${this.req.serviceKey} > requester > ${key}`,
+            key,
+            // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
+            timeout: long ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT,
+         });
+      }
+      return domainRequesters[key];
    }
 }
 
