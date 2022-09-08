@@ -90,7 +90,7 @@ class ABServiceRequest extends ServiceCote {
          this.req.log(`... creating clientRequester(${key})`);
          domainRequesters[key] = new cote.Requester({
             name: `${this.req.serviceKey} > requester > ${key}`,
-            key,
+            key: domain,
             // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
             timeout: long ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT,
          });
