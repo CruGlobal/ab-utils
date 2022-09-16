@@ -35,6 +35,24 @@ class ABNotification {
          info = AB._notifyInfo(info);
       }
 
+      // We need to remove circular data from info, because it get's stringified later
+      try {
+         JSON.stringify(info);
+      } catch (err) {
+         // Source: https://stackoverflow.com/questions/11616630/how-can-i-print-a-circular-structure-in-a-json-like-format
+         const cache = [];
+         const infoStr = JSON.stringify(info, (key, value) => {
+            if (typeof value === "object" && value !== null) {
+               // Duplicate reference found, discard key
+               if (cache.includes(value)) return;
+               // Store value in our collection
+               cache.push(value);
+            }
+            return value;
+         });
+         info = JSON.parse(infoStr);
+      }
+
       var jobData = {
          domain,
          error: serError,
