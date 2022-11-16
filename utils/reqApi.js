@@ -30,6 +30,13 @@ class ABRequestAPI {
       // {json}
       // the SiteUser entry for the user making this request.
 
+      this._userReal = null;
+      // {json}
+      // the SiteUser entry of the ACTUAL user making this request.
+      // this should normally be null, unless the current user is using
+      // Switcheroo to impersonate another user.  In that case, ._user
+      // is the impersonated user, and ._userReal is really them.
+
       this.serviceKey = "api_sails";
       // {string}
       // a unique string to identify this service for our service calls.
@@ -98,6 +105,28 @@ class ABRequestAPI {
 
    set user(u) {
       this._user = u;
+   }
+
+   get userReal() {
+      return this._userReal;
+   }
+
+   set userReal(u) {
+      this._userReal = u;
+   }
+
+   isSwitcherood() {
+      return this._userReal != null;
+   }
+
+   /**
+    * @method switcherooToUser()
+    * allow the current user to impersonate the provided user.
+    * @param {json:SiteUser} u
+    */
+   switcherooToUser(u) {
+      this.userReal = this.user;
+      this.user = u;
    }
 
    /**
@@ -343,6 +372,34 @@ class ABRequestAPI {
 
             // use our {resAPI} error handler to return the error
             if (this.__res.ab.error) {
+               this.__res.ab.error(err, 403);
+            } else {
+               this.log(err);
+            }
+         }
+         return false;
+      }
+      return true;
+   }
+
+   /**
+    * @method validSwitcheroo()
+    * Verify if the current user has the Switcheroo Role assigned
+    * @param {bool} autoRespond
+    *        do we auto res.ab.error() on a negative result
+    *        see validUser() method.
+    * @return {bool}
+    */
+   validSwitcheroo(autoRespond = true) {
+      // these are the default Builder & System Designer Roles:
+      if (!this.validRoles(["320ef94a-73b5-476e-9db4-c08130c64bb8"])) {
+         if (autoRespond) {
+            var err = new Error("Forbidden.");
+            err.id = 6;
+            err.code = "E_NOPERM";
+
+            // use our {resAPI} error handler to return the error
+            if (this.__res?.ab?.error) {
                this.__res.ab.error(err, 403);
             } else {
                this.log(err);
