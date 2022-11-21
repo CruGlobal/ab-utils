@@ -99,6 +99,13 @@ class ABRequestService {
       // {json}
       // the SiteUser entry for the user making this request.
 
+      this._userReal = req.userReal || null;
+      // {json}
+      // the SiteUser entry of the ACTUAL user making this request.
+      // this should normally be null, unless the current user is using
+      // Switcheroo to impersonate another user.  In that case, ._user
+      // is the impersonated user, and ._userReal is really them.
+
       this.serviceKey = controller.key || this.jobID;
       // {string}
       // a unique string to identify this service for our service calls.
@@ -850,6 +857,13 @@ class ABRequestService {
          return this._user.username;
       }
       return "_system_";
+   }
+
+   usernameReal() {
+      if (this._userReal && this._userReal.username) {
+         return this._userReal.username;
+      }
+      return null;
    }
 
    validateData(description) {
