@@ -391,7 +391,6 @@ class ABRequestAPI {
     * @return {bool}
     */
    validSwitcheroo(autoRespond = true) {
-      // these are the default Builder & System Designer Roles:
       if (!this.validRoles(["320ef94a-73b5-476e-9db4-c08130c64bb8"])) {
          if (autoRespond) {
             var err = new Error("Forbidden.");
