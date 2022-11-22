@@ -6,6 +6,8 @@ if (NODE_MAJOR_VERSION >= 12) {
    Joi = require("joi");
 }
 
+const _ = require("lodash");
+
 var validators = {
    /* key : Joi.object() */
 };
@@ -148,6 +150,15 @@ class ABRequestValidation {
 
                   var iVal = input[iKey];
                   switch (iKey) {
+                     case "allow":
+                        // .allow: ['', null, ...]
+                        if (_.isArray(iVal)) {
+                           test = test.allow(...iVal);
+                        } else {
+                           test = test.allow(iVal);
+                        }
+                        break;
+
                      //
                      // Constraint Fields:
                      //
@@ -276,8 +287,15 @@ class ABRequestValidation {
                               test = parseRules(test, dKey, iVal, level + 1);
                            } catch (e) {
                               console.error(e);
+                              let iValText = iVal;
+                              try {
+                                 iValText = JSON.stringify(iVal);
+                              } catch (eJson) {
+                                 /* just ignore */
+                              }
+
                               console.error(`iKey : ${iKey}`);
-                              console.error(`iVal : ${iVal}`);
+                              console.error(`iVal : ${iValText}`);
                            }
 
                            return;

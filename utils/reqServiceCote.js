@@ -23,6 +23,7 @@ class ABServiceCote {
             jobID: this.req.jobID,
             tenantID: this.req._tenantID,
             user: this.req._user,
+            userReal: this.req._userReal,
             data,
          },
       };
