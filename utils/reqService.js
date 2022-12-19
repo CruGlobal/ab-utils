@@ -830,9 +830,11 @@ class ABRequestService {
     */
    toObj() {
       var obj = {};
-      ["jobID", "_tenantID", "_user", "serviceKey"].forEach((f) => {
-         obj[f] = this[f];
-      });
+      ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
+         (f) => {
+            obj[f] = this[f];
+         }
+      );
       return obj;
    }
 
