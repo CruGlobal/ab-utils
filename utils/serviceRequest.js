@@ -20,62 +20,98 @@ const domainRequesters = {
 
 class ABServiceRequest extends ServiceCote {
    /**
-    * request()
-    * Send a request to another micro-service using the cote protocol.
-    * @param {string} key
-    *        the service handler's key we are sending a request to.
-    * @param {json} data
-    *        the data packet to send to the service.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
+    * Send a request to another micro-service using the cote protocol. Accept an
+    * optional callback, but also returns a promise.
+    * @fucntion request
+    * @param {string} key the service handler's key we are sending a request to.
+    * @param {json} data the data packet to send to the service.
+    * @param {object=} options optional options
+    * @param {number=5000} options.timeout ms to wait before timing out
+    * @param {number=5} options.maxAttempts how many times to try the request if
+    *  it fails
+    * @param {boolean=false} options.longRequest timeout after 90 seconds, will
+    * be ignored if timeout was set
+    * @param {function=} cb optional node.js style callback(err, result) for
+    * when the response is received.
+    * @returns {Promise} resolves with the response from the service
+    * @example
+    * // async/await
+    * try {
+    *    let result = await request(key, data);
+    * } catch (err) {}
+    * // promise
+    * request(key, data, opts).then((result) => {}).catch((err) => {})
+    * // callback
+    * request(key, data, opts, (result, err) => {})
+    * // or
+    * request(key, data, (result, err) => {})
     */
-   request(key, data, cb) {
-      if (this.req.performance) {
-         this.req.performance.mark(key);
+   async request(key, data, ...args) {
+      // handle args
+      const callback = args.find((arg) => typeof arg == "function");
+      const options = args.find((arg) => typeof arg == "object") ?? {};
+      if (data.longRequest) {
+         this.req.notify.developer(
+            "Depreciated data.longRequest passed to req.serviceRequest()",
+            {
+               details:
+                  "Warning: serviceRequest() now supports an options parameter `serviceRequest(key, data, options = {}, callback?)`. Please refactor longRequest to options",
+            }
+         );
+         options.longRequest = data.longRequest;
+         delete data.longRequest;
       }
-      let countRequest = 0;
-      const longRequest = data.longRequest ?? false;
-      delete data.longRequest; // The service does not need this passed.
+      // console.log("options", options);
+      const timeout =
+         options.timeout ??
+         (options.longRequest ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT);
+      const attempts = options.maxAttempts ?? ATTEMPT_REQUEST_MAXIMUM;
+
+      let requestCount = 0;
 
       const paramStack = this.toParam(key, data);
       const domain = key.split(".")[0];
-      const requester = this.getRequester(domain, longRequest);
-
-      const sendRequest = () => {
-         countRequest += 1;
-
-         requester.send(paramStack, (err, results) => {
-            if (this.req.performance) {
-               this.req.performance.measure(key, key);
+      const requester = this.getRequester(domain);
+      const sendRequest = async () => {
+         requestCount += 1;
+         try {
+            const results = await requester.send({
+               ...paramStack,
+               __timeout: timeout,
+            });
+            return results;
+         } catch (err) {
+            if (
+               err.message === "Request timed out." &&
+               requestCount < attempts
+            ) {
+               this.req.log(
+                  `... timeout waiting for request (${key}), retrying ${requestCount}/${attempts}`
+               );
+               return await sendRequest();
+            } else {
+               throw err;
             }
-
-            if (err) {
-               // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
-               if (err.message === "Request timed out.") {
-                  // Retry .send
-                  if (countRequest < ATTEMPT_REQUEST_MAXIMUM) {
-                     this.req.log(
-                        `... timeout waiting for request (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_MAXIMUM}`
-                     );
-                     sendRequest();
-                     return;
-                  }
-
-                  this.req.notify.developer(err, {
-                     message: `Could not request (${key}) - ${JSON.stringify(
-                        paramStack
-                     )}`,
-                  });
-               }
-
-               err._serviceRequest = key;
-               err._params = paramStack;
-            }
-            cb(err, results);
-         });
+         }
       };
-      sendRequest();
+      try {
+         const results = await sendRequest();
+         if (this.req.performance) {
+            this.req.performance.measure(key, key);
+         }
+         if (callback) return callback(null, results);
+         return results;
+      } catch (err) {
+         err._serviceRequest = key;
+         err._params = paramStack;
+         this.req.notify.developer(err, {
+            message: `Could not request (${key}) - ${JSON.stringify(
+               paramStack
+            )}`,
+         });
+         if (callback) return callback(err);
+         throw err;
+      }
    }
 
    /**
@@ -84,18 +120,17 @@ class ABServiceRequest extends ServiceCote {
     * @param {string} domain cote domain key
     * @param {boolean} long whether the requester needs a longer timeout
     */
-   getRequester(domain, long) {
-      const key = `${domain}${long ? "_long" : ""}`;
-      if (!domainRequesters[key]) {
-         this.req.log(`... creating clientRequester(${key})`);
-         domainRequesters[key] = new cote.Requester({
-            name: `${this.req.serviceKey} > requester > ${key}`,
+   getRequester(domain) {
+      if (!domainRequesters[domain]) {
+         this.req.log(`... creating clientRequester(${domain})`);
+         domainRequesters[domain] = new cote.Requester({
+            name: `${this.req.serviceKey} > requester > ${domain}`,
             key: domain,
             // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
-            timeout: long ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT,
+            timeout: REQUEST_TIMEOUT,
          });
       }
-      return domainRequesters[key];
+      return domainRequesters[domain];
    }
 }
 
