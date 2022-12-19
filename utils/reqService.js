@@ -737,18 +737,34 @@ class ABRequestService {
    }
 
    /**
-    * serviceRequest()
-    * Send a request to another micro-service using the cote protocol.
-    * @param {string} key
-    *        the service handler's key we are sending a request to.
-    * @param {json} data
-    *        the data packet to send to the service.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
+    * Send a request to another micro-service using the cote protocol. Accept an
+    * optional callback, but also returns a promise.
+    * @fucntion serviceRequest
+    * @param {string} key the service handler's key we are sending a request to.
+    * @param {json} data the data packet to send to the service.
+    * @param {object=} options optional options
+    * @param {number=5000} options.timeout ms to wait before timing out
+    * @param {number=5} options.maxAttempts how many times to try the request if
+    *  it fails
+    * @param {boolean=false} options.longRequest timeout after 90 seconds, will
+    * be ignored if timeout was set
+    * @param {function=} cb optional node.js style callback(err, result) for
+    * when the response is received.
+    * @returns {Promise} resolves with the response from the service
+    * @example
+    * // async/await
+    * try {
+    *    let result = await serviceRequest(key, data);
+    * } catch (err) {}
+    * // promise
+    * serviceRequest(key, data, opts).then((result) => {}).catch((err) => {})
+    * // callback
+    * serviceRequest(key, data, opts, (result, err) => {})
+    * // or
+    * serviceRequest(key, data, (result, err) => {})
     */
-   serviceRequest(key, data, cb) {
-      this.__Requester.request(key, data, cb);
+   async serviceRequest(...args) {
+      return await this.__Requester.request(...args);
    }
 
    /**
