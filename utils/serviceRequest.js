@@ -61,10 +61,9 @@ class ABServiceRequest extends ServiceCote {
          options.longRequest = data.longRequest;
          delete data.longRequest;
       }
-      const timeout =
-         options.timeout ??
-         (options.longRequest ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT);
-      const attempts = options.maxAttempts ?? ATTEMPT_REQUEST_MAXIMUM;
+      let countRequest = 0;
+      const longRequest = data.longRequest ?? false;
+      delete data.longRequest; // The service does not need this passed.
 
       let requestCount = 0;
 
