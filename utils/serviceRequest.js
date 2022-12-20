@@ -17,7 +17,9 @@ const ATTEMPT_REQUEST_MAXIMUM = 5;
 const domainRequesters = {
    /* domainKey : coteRequester */
 };
-
+/**
+ * @class ABServiceRequest
+ */
 class ABServiceRequest extends ServiceCote {
    /**
     * Send a request to another micro-service using the cote protocol. Accept an
@@ -25,13 +27,13 @@ class ABServiceRequest extends ServiceCote {
     * @fucntion request
     * @param {string} key the service handler's key we are sending a request to.
     * @param {json} data the data packet to send to the service.
-    * @param {object=} options optional options
-    * @param {number=5000} options.timeout ms to wait before timing out
-    * @param {number=5} options.maxAttempts how many times to try the request if
+    * @param {object} [options] optional options
+    * @param {number} [options.timeout=5000] ms to wait before timing out
+    * @param {number}[options.maxAttempts=5] how many times to try the request if
     *  it fails
-    * @param {boolean=false} options.longRequest timeout after 90 seconds, will
-    * be ignored if timeout was set
-    * @param {function=} cb optional node.js style callback(err, result) for
+    * @param {boolean} [options.longRequest=false] timeout after 90 seconds,
+    * will be ignored if timeout was set
+    * @param {function} [cb] optional node.js style callback(err, result) for
     * when the response is received.
     * @returns {Promise} resolves with the response from the service
     * @example
