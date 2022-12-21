@@ -1,14 +1,8 @@
-/*
- * dbConn
+/**
  * manage and return a connection to our DB.
  * We will currently create a single Mysql Connection Pool and share that among
  * all our running operations.
- * @param {reqService} req
- *        the current {reqService} object for this request
- * @param {bool} shouldCreate
- *        should we create a new DB connection if one isn't currently active?
- * @param {bool} isolate
- *        do we create a NEW connection and return that instead?
+ * @module dbConn
  */
 const Mysql = require("mysql"); // our  {DB Connection}
 var DB = null;
@@ -39,8 +33,17 @@ function newConn(req, limit = 10) {
    });
    return db;
 }
-
-module.exports = function (req, shouldCreate = true, isolate = false) {
+/**
+ * @alias module:dbConn
+ * @param {reqService} req
+ *        the current {reqService} object for this request
+ * @param {bool} shouldCreate
+ *        should we create a new DB connection if one isn't currently active?
+ * @param {bool} isolate
+ *        do we create a NEW connection and return that instead?
+ * @returns {Pool} from mysql
+ */
+const dbConn = function (req, shouldCreate = true, isolate = false) {
    if (isolate) {
       return newConn(req, 5);
    }
@@ -55,3 +58,4 @@ module.exports = function (req, shouldCreate = true, isolate = false) {
    }
    return DB;
 };
+module.exports = dbConn;

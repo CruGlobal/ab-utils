@@ -1,6 +1,9 @@
 /// reqServiceCote.js
 ///
 
+/**
+ * @class ABServiceCote
+ */
 class ABServiceCote {
    constructor(req) {
       this.req = req;

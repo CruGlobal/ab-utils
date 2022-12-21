@@ -19,12 +19,12 @@ const domainRequesters = {
 };
 /**
  * @class ABServiceRequest
+ * @extends ABServiceCote
  */
 class ABServiceRequest extends ServiceCote {
    /**
     * Send a request to another micro-service using the cote protocol. Accept an
     * optional callback, but also returns a promise.
-    * @fucntion request
     * @param {string} key the service handler's key we are sending a request to.
     * @param {json} data the data packet to send to the service.
     * @param {object} [options] optional options
@@ -116,7 +116,6 @@ class ABServiceRequest extends ServiceCote {
 
    /**
     * Gets a cached requester for the domain, creating one if needed
-    * @function getRequester
     * @param {string} domain cote domain key
     * @param {boolean} long whether the requester needs a longer timeout
     */

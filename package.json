@@ -28,7 +28,7 @@
     "sinon": "^15.0.1"
   },
   "scripts": {
-    "docs": "jsdoc2md --template README.hbs --files ./utils/*.js > README.md",
+    "docs": "jsdoc2md --template README.hbs --files ./ab-utils.js ./utils/*.js  > README.md",
     "test": "mocha test/**/*.test.js test/**/**/*.test.js",
     "lint": "eslint . --max-warnings=0 --report-unused-disable-directives && echo '✔  Your .js files look good.'",
     "custom-tests": "make test"

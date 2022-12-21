@@ -1,9 +1,7 @@
-/*
- * request
- *
+/**
  * return a modified req object that supports our typical AB functions.
- * @param {obj} req the standard request object received from the Cote service.
- * @return {ABRequest}
+ * @module request
+ * @ignore
  */
 const path = require("path");
 const DBConn = require(path.join(__dirname, "dbConn"));
@@ -83,6 +81,12 @@ var ERRORS_RETRY = [
    "ER_LOCK_WAIT_TIMEOUT",
 ];
 
+/**
+ * @alias ABRequestService
+ * @typicalname req
+ * @param {onject} req
+ * @param {ABServiceController} controller
+ */
 class ABRequestService {
    constructor(req, controller) {
       // console.log("ABRequest():", req);
@@ -162,10 +166,10 @@ class ABRequestService {
        * @method req.broadcast.inboxCreate()
        * A shortcut method for posting our "ab.inbox.create"
        * messages to our Clients.
-       * @param {array[SiteUser.uuid]} users
+       * @param {string[] | SiteUser[]} users
        *        An array of SiteUser.uuid(s) that should receive this message.
        *        Can also work with [{SiteUser}] objects.
-       * @param {array[Role]} roles
+       * @param {Role[]} roles
        *        An array of Role.uuid(s) that should receive this message.
        *        Can also work with [{Role}] objects.
        * @param {obj} item
@@ -436,7 +440,7 @@ class ABRequestService {
     *        create a new DB connection if we are not currently connected.
     * @param {bool} isolate
     *        return a unique DB connection not shared by other requests.
-    * @return {Mysql.conn || null}
+    * @return {Mysql.conn | null}
     */
    dbConnection(create = true, isolate = false) {
       return this._DBConn(this, create, isolate);
@@ -458,7 +462,7 @@ class ABRequestService {
    /**
     * log()
     * print out a log entry for the current request
-    * @param {...} allArgs
+    * @param {...*} allArgs
     *        array of possible log entries
     */
    log(...allArgs) {
@@ -487,7 +491,7 @@ class ABRequestService {
    /**
     * logError()
     * print out a log entry for the current request
-    * @param {...} allArgs
+    * @param {...*} allArgs
     *        array of possible log entries
     */
    logError(message, err) {
@@ -502,7 +506,7 @@ class ABRequestService {
     * Return a Model() instance from the model/name.js definition
     * @param {string} name
     *        name of the model/[name].js definition to return a Model for.
-    * @return {Model || null}
+    * @return {Model | null}
     */
    model(name) {
       if (this.controller.models[name]) {
@@ -524,7 +528,7 @@ class ABRequestService {
     * return the parameter value specified by the provided key
     * @param {string} key
     *        name of the req.param[key] value to return
-    * @return {... || undefined}
+    * @return {* | undefined}
     */
    param(key) {
       return this.data[key];
@@ -654,9 +658,8 @@ class ABRequestService {
     * values that correspond to the proper ordering of the condition
     * @param {obj} cond
     *        a value hash of the desired condition.
-    * @return { condition, values}
-    *        condition {string} the proper sql "WHERE ${condition}"
-    *        values {array} the values to fill in the condition placeholders
+    * @return {obj} <br>.condition {string}  the proper sql "WHERE ${condition}"
+    *               <br>.values {array} the values to fill in the condition placeholders
     */
    queryWhereCondition(cond) {
       var values = [];
@@ -742,13 +745,13 @@ class ABRequestService {
     * @fucntion serviceRequest
     * @param {string} key the service handler's key we are sending a request to.
     * @param {json} data the data packet to send to the service.
-    * @param {object=} options optional options
-    * @param {number=5000} options.timeout ms to wait before timing out
-    * @param {number=5} options.maxAttempts how many times to try the request if
+    * @param {object} [options] options
+    * @param {number} [options.timeout=5000] ms to wait before timing out
+    * @param {number} [options.maxAttempts=5] how many times to try the request if
     *  it fails
-    * @param {boolean=false} options.longRequest timeout after 90 seconds, will
+    * @param {boolean} [options.longRequest=false] timeout after 90 seconds, will
     * be ignored if timeout was set
-    * @param {function=} cb optional node.js style callback(err, result) for
+    * @param {function} [cb] node.js style callback(err, result) for
     * when the response is received.
     * @returns {Promise} resolves with the response from the service
     * @example
@@ -890,6 +893,12 @@ class ABRequestService {
    }
 }
 
+/**
+ * return a modified req object that supports our typical AB functions.
+ * @param {obj} req the standard request object received from the Cote service.
+ * @param {ABServiceController} controller
+ * @returns {ABRequestService}
+ */
 module.exports = function (...params) {
    return new ABRequestService(...params);
 };

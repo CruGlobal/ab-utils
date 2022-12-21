@@ -1,7 +1,8 @@
-//
-// Controller
-// Define a common AppBuilder Controller class for use in our micro services.
-//
+/**
+ * Define a common AppBuilder Controller class for use in our micro services.
+ * @module Controller
+ * @ignore
+ */
 const async = require("async");
 const ABRequest = require("./reqService.js");
 const cote = require("cote");
@@ -17,6 +18,12 @@ const redis = require("redis");
 const EventEmitter = require("events").EventEmitter;
 const config = require(path.join(__dirname, "config.js"));
 
+/**
+ * @alias ABServiceController
+ * @extends EventEmitter
+ * @typicalname controller
+ * @param {string} [key=ABServiceController] key
+ */
 class ABServiceController extends EventEmitter {
    constructor(key) {
       super();
@@ -97,7 +104,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * exit
     * exit this service.
     */
    exit() {
@@ -144,7 +150,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * init
     * begin this service.
     */
    init() {
@@ -234,24 +239,36 @@ class ABServiceController extends EventEmitter {
          });
    }
 
+   /**
+    * @param {function} fn
+    */
    afterShutdown(fn) {
       if (fn) {
          this._afterShutdown.push(fn);
       }
    }
 
+   /**
+    * @param {function} fn
+    */
    afterStartup(fn) {
       if (fn) {
          this._afterStartup.push(fn);
       }
    }
 
+   /**
+    * @param {function} fn
+    */
    beforeShutdown(fn) {
       if (fn) {
          this._beforeShutdown.push(fn);
       }
    }
 
+   /**
+    * @param {function} fn
+    */
    beforeStartup(fn) {
       if (fn) {
          this._beforeStartup.push(fn);
@@ -259,7 +276,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * ready
     * Send a 'ready' signal on this process. Useful for service managers
     * (like pm2) to know the process is ready.
     */
@@ -270,7 +286,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * @method requestObj()
     * return a new ABRequest() object.
     * @param {json} option
     *        any initial settings for the {ABRequest} obj
@@ -281,7 +296,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * shutdown
     * the process a service should perform to gracefully shutdown.
     */
    shutdown() {
@@ -300,7 +314,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * startup
     * the process a service should perform to startup.
     */
    startup() {
@@ -422,7 +435,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * _waitForConfig()
     * waits until the config service has posted a '.config_ready' file
     * @return {Promise}
     */
@@ -451,7 +463,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * waitForDB()
     * attempts to connect to our maria DB service before continuing.
     * @return {Promise}
     */
@@ -468,7 +479,6 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
-    * _waitForRedis()
     * attempts to connect to our redis server and then resolves() once the connection is ready.
     * @return {Promise}
     */
@@ -513,6 +523,11 @@ class ABServiceController extends EventEmitter {
    }
 }
 
+/**
+ * Get an AppBuilder Controller for use in our micro services
+ * @param {string} [key=ABServiceController]
+ * @returns {ABServiceController}
+ */
 module.exports = function controller(...params) {
    return new ABServiceController(...params);
 };
@@ -520,7 +535,6 @@ module.exports = function controller(...params) {
 /* --- Helper Functions --- */
 
 /**
- * @function tryConect()
  * continue attempting to connect to our DB using our provided dbConfig
  * until we finally succeed.  Then we call our cb();
  * @param {json} dbConfig

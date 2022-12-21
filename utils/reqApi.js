@@ -1,8 +1,9 @@
-/*
- * reqApi
+/**
  * prepare a default set of data/utilities for our api request.
  * This request is established in the Sails api_sails service and is used
  * to verify and send jobs to various micro services.
+ * @module reqApi
+ * @ignore
  */
 const shortid = require("shortid");
 // const cote = require("cote");
@@ -15,6 +16,13 @@ const ABServiceResponder = require("./reqServiceResponder.js");
 const ABServiceSubscriber = require("./reqServiceSubscriber.js");
 const ABValidator = require("./reqValidation.js");
 
+/**
+ * @alias ABRequestAPI
+ * @typicalname req
+ * @param {Object} req
+ * @param {Object} res
+ * @param {Object} [config = {}]
+ */
 class ABRequestAPI {
    constructor(req, res, config = {}) {
       this.jobID = shortid.generate();
@@ -120,9 +128,8 @@ class ABRequestAPI {
    }
 
    /**
-    * @method switcherooToUser()
     * allow the current user to impersonate the provided user.
-    * @param {json:SiteUser} u
+    * @param {json:SiteUser} user
     */
    switcherooToUser(u) {
       this.userReal = this.user;
@@ -130,7 +137,6 @@ class ABRequestAPI {
    }
 
    /**
-    * @method userDefaults()
     * return a data structure used by our ABModel.find() .create() .update()
     * .delete() operations that needs credentials for the current User
     * driving this request.
@@ -147,16 +153,15 @@ class ABRequestAPI {
 
    /**
     * tenantSet()
-    * returns {bool} value if the tenantID is set.
-    * @retun {bool}
+    * @returns {bool} value if the tenantID is set.
     */
    tenantSet() {
       return this.tenantID != "??";
    }
 
    /**
-    * log()
     * format our output logs to include our jobID with our message.
+    * @param {...*} args anything to log (will be stringified)
     */
    log(...allArgs) {
       var args = [];
@@ -442,6 +447,15 @@ class ABRequestAPI {
    }
 }
 
+/**
+ * prepare a default set of data/utilities for our api request.
+ * This request is established in the Sails api_sails service and is used
+ * to verify and send jobs to various micro services.
+ * @param {obj} req
+ * @param {obj} res
+ * @param {obj} [config = {}]
+ * @returns {ABRequestAPI}
+ */
 module.exports = function (...params) {
    return new ABRequestAPI(...params);
 };

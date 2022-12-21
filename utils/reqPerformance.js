@@ -44,7 +44,7 @@ class ABRequestPerformance {
     * dump one or more measurements to the req.log().  If some measurements
     * are provided, then just print out one for each of those.  Otherwise
     * perform a full summary dump of all the current measurements.
-    * @param {array[string]} measures
+    * @param {string[]} measures
     *       (optional) an array of the specific measurement keys to print out.
     */
    log(measures) {

@@ -1,6 +1,13 @@
-/*
- * resApi
- * prepare a default set of data/utilities for our api response.
+/**
+ *  * prepare a default set of data/utilities for our api response.
+ * @module resApi
+ * @ignore
+ */
+/**
+ * @alias ABResponseAPI
+ * @typicalname res
+ * @param {object} req
+ * @param {object} res
  */
 class ABResponseAPI {
    constructor(req, res) {
@@ -108,6 +115,12 @@ class ABResponseAPI {
    }
 }
 
+/**
+ * prepare a default set of data/utilities for our api response.
+ * @param {object} req
+ * @param {object} res
+ * @return {ABResponseAPI}
+ */
 module.exports = function (...params) {
    return new ABResponseAPI(...params);
 };
