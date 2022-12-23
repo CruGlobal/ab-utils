@@ -22,7 +22,7 @@ const config = require(path.join(__dirname, "config.js"));
  * @alias ABServiceController
  * @extends EventEmitter
  * @typicalname controller
- * @param {string} [key=ABServiceController] key
+ * @param {string} [key=ABServiceController] key to identify the contoller
  */
 class ABServiceController extends EventEmitter {
    constructor(key) {
@@ -105,6 +105,7 @@ class ABServiceController extends EventEmitter {
 
    /**
     * exit this service.
+    * @returns {Promise}
     */
    exit() {
       return Promise.resolve()
@@ -151,6 +152,7 @@ class ABServiceController extends EventEmitter {
 
    /**
     * begin this service.
+    * @returns {Promise}
     */
    init() {
       var initState = "";
@@ -287,9 +289,8 @@ class ABServiceController extends EventEmitter {
 
    /**
     * return a new ABRequest() object.
-    * @param {json} option
-    *        any initial settings for the {ABRequest} obj
-    * @return {ABRequest}
+    * @param {object} option any initial settings for the {@link ABRequestService} obj
+    * @return {ABRequestService}
     */
    requestObj(options = {}) {
       return ABRequest(options, this);

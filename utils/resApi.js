@@ -14,7 +14,11 @@ class ABResponseAPI {
       this.req = req;
       this.res = res;
    }
-
+   /**
+    * send an error
+    * @param {Error} error
+    * @param {number | string} [code=400] response code
+    */
    error(err, code) {
       // we don't send .stack data back to clients.
       delete err.stack;
@@ -56,6 +60,7 @@ class ABResponseAPI {
       }
    }
 
+   /** send 401 with a Reauthenticate message */
    reauth() {
       var packet = {
          id: 5,
@@ -67,6 +72,12 @@ class ABResponseAPI {
       this.error(packet, 401);
    }
 
+   /**
+    * send a success message with data
+    * @param {object} data
+    * @param {number} [code=200] http response code
+    * @param {boolean} [skipHeaders=false]
+    */
    success(data, code, skipHeaders) {
       if (typeof skipHeaders == "undefined") {
          skipHeaders = false;

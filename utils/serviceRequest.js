@@ -17,10 +17,8 @@ const ATTEMPT_REQUEST_MAXIMUM = 5;
 const domainRequesters = {
    /* domainKey : coteRequester */
 };
-/**
- * @class ABServiceRequest
- * @extends ABServiceCote
- */
+
+/** @extends ABServiceCote */
 class ABServiceRequest extends ServiceCote {
    /**
     * Send a request to another micro-service using the cote protocol. Accept an
