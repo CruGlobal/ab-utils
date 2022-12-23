@@ -29,7 +29,7 @@
     * [.queryWhereCondition(cond)](#ABRequestService+queryWhereCondition) ⇒ <code>obj</code>
     * [.retry(fn)](#ABRequestService+retry) ⇒ <code>Promise</code>
     * [.shouldRetry(error)](#ABRequestService+shouldRetry)
-    * [.serviceSubscribe(key, handler)](#ABRequestService+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](#ABServiceSubscriber)
+    * [.serviceSubscribe(key, handler)](#ABRequestService+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
     * [.socketKey(key)](#ABRequestService+socketKey) ⇒ <code>string</code>
     * [.tenantDB()](#ABRequestService+tenantDB) ⇒ <code>string</code>
     * [.tenantID()](#ABRequestService+tenantID) ⇒ <code>string</code>
@@ -52,7 +52,7 @@
 | Param | Type |
 | --- | --- |
 | req | <code>object</code> | 
-| controller | [<code>ABServiceController</code>](#ABServiceController) | 
+| controller | [<code>ABServiceController</code>](./ABServiceController.md#ABServiceController) | 
 
 <a name="ABRequestService+broadcast"></a>
 
@@ -342,7 +342,7 @@ the expected return data, and rejects() with the Network errors.
 
 <a name="ABRequestService+serviceSubscribe"></a>
 
-### req.serviceSubscribe(key, handler) ⇒ [<code>ABServiceSubscriber</code>](#ABServiceSubscriber)
+### req.serviceSubscribe(key, handler) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
 Create a Cote service subscriber that can parse our data interchange
 format.
 
@@ -351,7 +351,7 @@ format.
 | Param | Type | Description |
 | --- | --- | --- |
 | key | <code>string</code> | the service handler's key we are responding to. |
-| handler | <code>function</code> | a function to handle the incoming request. See [ABServiceSubscriber](#ABServiceSubscriber) constructor for details |
+| handler | <code>function</code> | a function to handle the incoming request. See [ABServiceSubscriber](./ABServiceSubscriber.md#ABServiceSubscriber) constructor for details |
 
 <a name="ABRequestService+socketKey"></a>
 

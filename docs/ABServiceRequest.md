@@ -1,13 +1,13 @@
 <a name="ABServiceRequest"></a>
 
-## ABServiceRequest ⇐ [<code>ABServiceCote</code>](#ABServiceCote)
+## ABServiceRequest ⇐ [<code>ABServiceCote</code>](./ABServiceCote.md#ABServiceCote)
 **Kind**: global class  
-**Extends**: [<code>ABServiceCote</code>](#ABServiceCote)  
+**Extends**: [<code>ABServiceCote</code>](./ABServiceCote.md#ABServiceCote)  
 
-* [ABServiceRequest](#ABServiceRequest) ⇐ [<code>ABServiceCote</code>](#ABServiceCote)
+* [ABServiceRequest](#ABServiceRequest) ⇐ [<code>ABServiceCote</code>](./ABServiceCote.md#ABServiceCote)
     * [.request(key, data, [options], [cb])](#ABServiceRequest+request) ⇒ <code>Promise</code>
     * [.getRequester(domain, long)](#ABServiceRequest+getRequester)
-    * [.toParam(key, data)](#ABServiceCote+toParam)
+    * [.toParam(key, data)](./ABServiceCote.md#ABServiceCote+toParam)
 
 <a name="ABServiceRequest+request"></a>
 

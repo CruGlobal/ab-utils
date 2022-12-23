@@ -349,7 +349,7 @@ class ABRequestAPI {
    /**
     * Verify if the current user has one of the default Builder Roles assigned
     * @param {bool} [autoRespond=true] do we auto res.ab.error() on a negative
-    * result see {@link ABRequestAPI.validUser}.
+    * result see {@link ABRequestAPI#validUser}.
     * @return {bool}
     */
    validBuilder(autoRespond = true) {
@@ -380,7 +380,7 @@ class ABRequestAPI {
    /**
     * Verify if the current user has the Switcheroo Role assigned
     * @param {bool} [autoRespond=true] do we auto res.ab.error() on a negative
-    * result see {@link ABRequestAPI.validUser}.
+    * result see {@link ABRequestAPI#validUser}.
     * @return {bool}
     */
    validSwitcheroo(autoRespond = true) {

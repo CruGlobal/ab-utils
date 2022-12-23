@@ -6,7 +6,15 @@ const data = jsdoc2md.getTemplateDataSync({
    files: ["./ab-utils.js", "./utils/*.js"],
 });
 
-console.log(data.length);
+const fixLinks = (filename, markdown, folder) => {
+   folder = folder ? `${folder}/` : "";
+   console.log(`Replacing links in ${filename}`);
+   return markdown.replace(/]\(#([^)+]+)\+?[^)]*\)/g, (match, name) => {
+      if (name == filename || name == `new_${filename}_new`) return match;
+      else return match.replace("#", `./${folder}${name}.md#`);
+   });
+};
+
 const unique = [];
 data.forEach((item) => {
    if (unique.find((u) => u.id == item.id)) {
@@ -31,7 +39,10 @@ for (const className of classNames) {
    const template = `{{#class name="${className}"}}{{>docs}}{{/class}}`;
    console.log(`rendering ${className}, template: ${template}`);
    const output = jsdoc2md.renderSync({ data: unique, template });
-   fs.writeFileSync(`${__dirname}/${className}.md`, output);
+   fs.writeFileSync(
+      `${__dirname}/${className}.md`,
+      fixLinks(className, output)
+   );
 }
 
 const abutils = jsdoc2md.renderSync({
@@ -48,4 +59,7 @@ const readme = jsdoc2md.renderSync({
  - ${classIndex.join("\n - ")}`,
 });
 
-fs.writeFileSync(path.resolve(__dirname, "../README.md"), readme);
+fs.writeFileSync(
+   path.resolve(__dirname, "../README.md"),
+   fixLinks("module_ab-utils", readme, "docs")
+);

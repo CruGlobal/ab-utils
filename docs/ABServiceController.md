@@ -13,7 +13,7 @@
     * [.beforeShutdown(fn)](#ABServiceController+beforeShutdown)
     * [.beforeStartup(fn)](#ABServiceController+beforeStartup)
     * [.ready()](#ABServiceController+ready)
-    * [.requestObj(option)](#ABServiceController+requestObj) ⇒ [<code>ABRequestService</code>](#ABRequestService)
+    * [.requestObj(option)](#ABServiceController+requestObj) ⇒ [<code>ABRequestService</code>](./ABRequestService.md#ABRequestService)
     * [.shutdown()](#ABServiceController+shutdown)
     * [.startup()](#ABServiceController+startup)
     * [._waitForConfig()](#ABServiceController+_waitForConfig) ⇒ <code>Promise</code>
@@ -85,14 +85,14 @@ Send a 'ready' signal on this process. Useful for service managers
 **Kind**: instance method of [<code>ABServiceController</code>](#ABServiceController)  
 <a name="ABServiceController+requestObj"></a>
 
-### controller.requestObj(option) ⇒ [<code>ABRequestService</code>](#ABRequestService)
+### controller.requestObj(option) ⇒ [<code>ABRequestService</code>](./ABRequestService.md#ABRequestService)
 return a new ABRequest() object.
 
 **Kind**: instance method of [<code>ABServiceController</code>](#ABServiceController)  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| option | <code>object</code> | any initial settings for the [ABRequestService](#ABRequestService) obj |
+| option | <code>object</code> | any initial settings for the [ABRequestService](./ABRequestService.md#ABRequestService) obj |
 
 <a name="ABServiceController+shutdown"></a>
 

@@ -1,12 +1,12 @@
 <a name="ABServicePublish"></a>
 
-## ABServicePublish ⇐ [<code>ABServiceCote</code>](#ABServiceCote)
+## ABServicePublish ⇐ [<code>ABServiceCote</code>](./ABServiceCote.md#ABServiceCote)
 **Kind**: global class  
-**Extends**: [<code>ABServiceCote</code>](#ABServiceCote)  
+**Extends**: [<code>ABServiceCote</code>](./ABServiceCote.md#ABServiceCote)  
 
-* [ABServicePublish](#ABServicePublish) ⇐ [<code>ABServiceCote</code>](#ABServiceCote)
+* [ABServicePublish](#ABServicePublish) ⇐ [<code>ABServiceCote</code>](./ABServiceCote.md#ABServiceCote)
     * [.publish(key, data)](#ABServicePublish+publish)
-    * [.toParam(key, data)](#ABServiceCote+toParam)
+    * [.toParam(key, data)](./ABServiceCote.md#ABServiceCote+toParam)
 
 <a name="ABServicePublish+publish"></a>
 

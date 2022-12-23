@@ -18,8 +18,8 @@ jobs to various micro services.
     * [.tenantSet()](#ABRequestAPI+tenantSet) ⇒ <code>bool</code>
     * [.log(...args)](#ABRequestAPI+log)
     * [.param(key)](#ABRequestAPI+param) ⇒ <code>string</code>
-    * [.serviceResponder(key, handler)](#ABRequestAPI+serviceResponder) ⇒ [<code>ABServiceResponder</code>](#ABServiceResponder)
-    * [.serviceSubscribe(key, handler)](#ABRequestAPI+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](#ABServiceSubscriber)
+    * [.serviceResponder(key, handler)](#ABRequestAPI+serviceResponder) ⇒ [<code>ABServiceResponder</code>](./ABServiceResponder.md#ABServiceResponder)
+    * [.serviceSubscribe(key, handler)](#ABRequestAPI+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
     * [.socketKey(key)](#ABRequestAPI+socketKey) ⇒ <code>string</code>
     * [.validateParameters(description, [autoRespond], [params])](#ABRequestAPI+validateParameters) ⇒ <code>bool</code>
     * [.validationReset()](#ABRequestAPI+validationReset)
@@ -118,7 +118,7 @@ for the value.
 
 <a name="ABRequestAPI+serviceResponder"></a>
 
-### req.serviceResponder(key, handler) ⇒ [<code>ABServiceResponder</code>](#ABServiceResponder)
+### req.serviceResponder(key, handler) ⇒ [<code>ABServiceResponder</code>](./ABServiceResponder.md#ABServiceResponder)
 Create a Cote service responder that can parse our data interchange
 format.
 
@@ -127,11 +127,11 @@ format.
 | Param | Type | Description |
 | --- | --- | --- |
 | key | <code>string</code> | the service handler's key we are responding to. |
-| handler | <code>function</code> | a function to handle the incoming request. See [ABServiceResponder](#ABServiceResponder) constructor for details |
+| handler | <code>function</code> | a function to handle the incoming request. See [ABServiceResponder](./ABServiceResponder.md#ABServiceResponder) constructor for details |
 
 <a name="ABRequestAPI+serviceSubscribe"></a>
 
-### req.serviceSubscribe(key, handler) ⇒ [<code>ABServiceSubscriber</code>](#ABServiceSubscriber)
+### req.serviceSubscribe(key, handler) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
 Create a Cote service subscriber that can parse our data interchange
 format.
 
@@ -140,7 +140,7 @@ format.
 | Param | Type | Description |
 | --- | --- | --- |
 | key | <code>string</code> | the service handler's key we are responding to. |
-| handler | <code>function</code> | a function to handle the incoming request. See [ABServiceSubscriber](#ABServiceSubscriber) constructor for details |
+| handler | <code>function</code> | a function to handle the incoming request. See [ABServiceSubscriber](./ABServiceSubscriber.md#ABServiceSubscriber) constructor for details |
 
 <a name="ABRequestAPI+socketKey"></a>
 
@@ -215,7 +215,7 @@ Verify if the current user has one of the default Builder Roles assigned
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [autoRespond] | <code>bool</code> | <code>true</code> | do we auto res.ab.error() on a negative result see [ABRequestAPI.validUser](ABRequestAPI.validUser). |
+| [autoRespond] | <code>bool</code> | <code>true</code> | do we auto res.ab.error() on a negative result see [validUser](#ABRequestAPI+validUser). |
 
 <a name="ABRequestAPI+validSwitcheroo"></a>
 
@@ -226,7 +226,7 @@ Verify if the current user has the Switcheroo Role assigned
 
 | Param | Type | Default | Description |
 | --- | --- | --- | --- |
-| [autoRespond] | <code>bool</code> | <code>true</code> | do we auto res.ab.error() on a negative result see [ABRequestAPI.validUser](ABRequestAPI.validUser). |
+| [autoRespond] | <code>bool</code> | <code>true</code> | do we auto res.ab.error() on a negative result see [validUser](#ABRequestAPI+validUser). |
 
 <a name="ABRequestAPI+validUser"></a>
 
