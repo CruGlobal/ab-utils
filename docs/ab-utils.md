@@ -105,16 +105,3 @@ prepare a default set of data/utilities for our api response.
 | req | <code>object</code> | 
 | res | <code>object</code> | 
 
-
-## Classes
- - [ABServiceController](./docs/ABServiceController.md)
- - [ABRequestAPI](./docs/ABRequestAPI.md)
- - [ABNotification](./docs/ABNotification.md)
- - [ABRequestService](./docs/ABRequestService.md)
- - [ABServiceCote](./docs/ABServiceCote.md)
- - [ABServicePublish](./docs/ABServicePublish.md)
- - [ABServiceResponder](./docs/ABServiceResponder.md)
- - [ABServiceSubscriber](./docs/ABServiceSubscriber.md)
- - [ABResponseAPI](./docs/ABResponseAPI.md)
- - [ABService](./docs/ABService.md)
- - [ABServiceRequest](./docs/ABServiceRequest.md)
