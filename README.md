@@ -5,14 +5,14 @@ a set of common utilities shared by each of our microsservices
 
 
 * [ab-utils](#module_ab-utils)
-    * [.service](./docs/module_ab-utils.service.md#module_ab-utils.service) ⇐ <code>EventEmitter</code>
-        * [new service(options)](./docs/new_module_ab-utils.service_new.md#new_module_ab-utils.service_new)
-    * [.uuid()](./docs/module_ab-utils.uuid.md#module_ab-utils.uuid) ⇒ <code>string</code>
-    * [.config(baseFile)](./docs/module_ab-utils.config.md#module_ab-utils.config) ⇒ <code>object</code>
-    * [.controller([key])](./docs/module_ab-utils.controller.md#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](./docs/ABServiceController.md#ABServiceController)
-    * [.reqApi(req, res, [config])](./docs/module_ab-utils.reqApi.md#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](./docs/ABRequestAPI.md#ABRequestAPI)
-    * [.reqService(req, controller)](./docs/module_ab-utils.reqService.md#module_ab-utils.reqService) ⇒ [<code>ABRequestService</code>](./docs/ABRequestService.md#ABRequestService)
-    * [.resApi(req, res)](./docs/module_ab-utils.resApi.md#module_ab-utils.resApi) ⇒ [<code>ABResponseAPI</code>](./docs/ABResponseAPI.md#ABResponseAPI)
+    * [.service](#module_ab-utils.service) ⇐ <code>EventEmitter</code>
+        * [new service(options)](#new_module_ab-utils.service_new)
+    * [.uuid()](#module_ab-utils.uuid) ⇒ <code>string</code>
+    * [.config(baseFile)](#module_ab-utils.config) ⇒ <code>object</code>
+    * [.controller([key])](#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](./docs/ABServiceController.md#ABServiceController)
+    * [.reqApi(req, res, [config])](#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](./docs/ABRequestAPI.md#ABRequestAPI)
+    * [.reqService(req, controller)](#module_ab-utils.reqService) ⇒ [<code>ABRequestService</code>](./docs/ABRequestService.md#ABRequestService)
+    * [.resApi(req, res)](#module_ab-utils.resApi) ⇒ [<code>ABResponseAPI</code>](./docs/ABResponseAPI.md#ABResponseAPI)
 
 <a name="module_ab-utils.service"></a>
 

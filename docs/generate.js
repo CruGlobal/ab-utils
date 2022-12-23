@@ -8,9 +8,8 @@ const data = jsdoc2md.getTemplateDataSync({
 
 const fixLinks = (filename, markdown, folder) => {
    folder = folder ? `${folder}/` : "";
-   console.log(`Replacing links in ${filename}`);
-   return markdown.replace(/]\(#([^)+]+)\+?[^)]*\)/g, (match, name) => {
-      if (name == filename || name == `new_${filename}_new`) return match;
+   return markdown.replace(/]\(#([^)+.]+)\+?\.?[^)]*\)/g, (match, name) => {
+      if (name.includes(filename)) return match;
       else return match.replace("#", `./${folder}${name}.md#`);
    });
 };
