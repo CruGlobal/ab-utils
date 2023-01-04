@@ -234,8 +234,8 @@ class ABRequestAPI {
       this.__Publisher.publish(key, data);
    }
 
-   serviceRequest(key, data, cb) {
-      this.__Requester.request(key, data, cb);
+   serviceRequest(...params) {
+      this.__Requester.request(...params);
    }
 
    /**
