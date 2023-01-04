@@ -42,9 +42,9 @@ class ABServiceRequest extends ServiceCote {
     * // promise
     * request(key, data, opts).then((result) => {}).catch((err) => {})
     * // callback
-    * request(key, data, opts, (result, err) => {})
+    * request(key, data, opts, (err, result) => {})
     * // or
-    * request(key, data, (result, err) => {})
+    * request(key, data, (err, result) => {})
     */
    async request(key, data, ...args) {
       // handle args
@@ -61,7 +61,6 @@ class ABServiceRequest extends ServiceCote {
          options.longRequest = data.longRequest;
          delete data.longRequest;
       }
-      // console.log("options", options);
       const timeout =
          options.timeout ??
          (options.longRequest ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT);

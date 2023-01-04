@@ -759,9 +759,9 @@ class ABRequestService {
     * // promise
     * serviceRequest(key, data, opts).then((result) => {}).catch((err) => {})
     * // callback
-    * serviceRequest(key, data, opts, (result, err) => {})
+    * serviceRequest(key, data, opts, (err, result) => {})
     * // or
-    * serviceRequest(key, data, (result, err) => {})
+    * serviceRequest(key, data, (err, result) => {})
     */
    async serviceRequest(...args) {
       return await this.__Requester.request(...args);
