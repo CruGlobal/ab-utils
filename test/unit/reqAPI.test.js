@@ -37,9 +37,6 @@ describe("ABRequestAPI", () => {
    });
 
    describe(".log()", () => {
-      afterEach(() => {
-         sinon.restore();
-      });
       it("includes .jobID in our console output", () => {
          const log = sinon.replace(req.__console, "log", sinon.fake());
          req.log("test");
