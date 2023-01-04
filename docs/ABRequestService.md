@@ -93,8 +93,7 @@ A shortcut method to post our "ab.inbox.create" messages to our Clients.
 <a name="ABRequestService+broadcast.dcCreate"></a>
 
 #### broadcast.dcCreate(id, newItem, [key], [cb]) ⇒ <code>Promise</code>
-A shortcut method for posting our "ab.datacollection.create" messages
-to our Clients.
+A shortcut method for posting our "ab.datacollection.create" messagesto our Clients.
 
 **Kind**: static method of [<code>broadcast</code>](#ABRequestService+broadcast)  
 
@@ -108,8 +107,7 @@ to our Clients.
 <a name="ABRequestService+broadcast.dcDelete"></a>
 
 #### broadcast.dcDelete(id, itemID, [key], [cb]) ⇒ <code>Promise</code>
-A shortcut method for posting our "ab.datacollection.delete" messages
-to our Clients.
+A shortcut method for posting our "ab.datacollection.delete" messagesto our Clients.
 
 **Kind**: static method of [<code>broadcast</code>](#ABRequestService+broadcast)  
 
@@ -123,8 +121,7 @@ to our Clients.
 <a name="ABRequestService+broadcast.dcUpdate"></a>
 
 #### broadcast.dcUpdate(id, updatedItem, [key], [cb]) ⇒ <code>Promise</code>
-A shortcut method for posting our "ab.datacollection.update" messages
-to our Clients.
+A shortcut method for posting our "ab.datacollection.update" messagesto our Clients.
 
 **Kind**: static method of [<code>broadcast</code>](#ABRequestService+broadcast)  
 **King**: function  
@@ -144,9 +141,7 @@ to our Clients.
 <a name="ABRequestService+configDB"></a>
 
 ### req.configDB()
-return the proper DB connection data for the current request.
-If the request HAS a tenantID, we return the 'appbuilder' connection,
-If no tenantID, then we return the 'site' connection.
+return the proper DB connection data for the current request.If the request HAS a tenantID, we return the 'appbuilder' connection,If no tenantID, then we return the 'site' connection.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 <a name="ABRequestService+connections"></a>
@@ -186,12 +181,7 @@ print out a log entry for the current request
 <a name="ABRequestService+log.verbose"></a>
 
 #### log.verbose(...args)
-A shortcut method for logging "verbose" messages. There needs to be
-a .verbose = true  in the config.local entry for the current service
-in order for these messages to be displayed.
-
-Now get ready to eat up all kinds of disk space with needless
-information to the console!
+A shortcut method for logging "verbose" messages. There needs to bea .verbose = true  in the config.local entry for the current servicein order for these messages to be displayed.Now get ready to eat up all kinds of disk space with needlessinformation to the console!
 
 **Kind**: static method of [<code>log</code>](#ABRequestService+log)  
 
@@ -281,21 +271,16 @@ Perform a query on it's own DB Connection. Not shared with other requests.
 <a name="ABRequestService+queryIsolateClose"></a>
 
 ### req.queryIsolateClose()
-Ensure the temporary isolated db connection is closed out properly.
-This method is intended to be used after all your desired queryIsolate()
-actions are performed.
+Ensure the temporary isolated db connection is closed out properly.This method is intended to be used after all your desired queryIsolate()actions are performed.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 <a name="ABRequestService+queryTenantDB"></a>
 
 ### req.queryTenantDB(reject) ⇒ <code>false</code> \| <code>string</code>
-return the tenantDB value for this req object.
-this is a helper function that simplifies the error handling if no
-tenantDB is found.
+return the tenantDB value for this req object.this is a helper function that simplifies the error handling if notenantDB is found.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
-**Returns**: <code>false</code> \| <code>string</code> - false if tenantDB not found, otherwise the tenantDB
-name (string).  
+**Returns**: <code>false</code> \| <code>string</code> - false if tenantDB not found, otherwise the tenantDBname (string).  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -304,13 +289,10 @@ name (string).
 <a name="ABRequestService+queryWhereCondition"></a>
 
 ### req.queryWhereCondition(cond) ⇒ <code>obj</code>
-evaluate a given {cond} hash and generate an SQL condition string from it.
-This fn() returns both the sql condition string, and an array of
-values that correspond to the proper ordering of the condition
+evaluate a given {cond} hash and generate an SQL condition string from it.This fn() returns both the sql condition string, and an array ofvalues that correspond to the proper ordering of the condition
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
-**Returns**: <code>obj</code> - <br>.condition {string}  the proper sql "WHERE ${condition}"
-              <br>.values {array} the values to fill in the condition placeholders  
+**Returns**: <code>obj</code> - <br>.condition {string}  the proper sql "WHERE ${condition}"              <br>.values {array} the values to fill in the condition placeholders  
 
 | Param | Type | Description |
 | --- | --- | --- |
@@ -319,11 +301,7 @@ values that correspond to the proper ordering of the condition
 <a name="ABRequestService+retry"></a>
 
 ### req.retry(fn) ⇒ <code>Promise</code>
-Attempt to retry the provided fn() if it results in an interrupted
-Network operation error.
-
-The provided fn() needs to return a {Promise} that resolves() with
-the expected return data, and rejects() with the Network errors.
+Attempt to retry the provided fn() if it results in an interruptedNetwork operation error.The provided fn() needs to return a {Promise} that resolves() withthe expected return data, and rejects() with the Network errors.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 
@@ -343,8 +321,7 @@ the expected return data, and rejects() with the Network errors.
 <a name="ABRequestService+serviceSubscribe"></a>
 
 ### req.serviceSubscribe(key, handler) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
-Create a Cote service subscriber that can parse our data interchange
-format.
+Create a Cote service subscriber that can parse our data interchangeformat.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 
@@ -390,13 +367,10 @@ return a simplified {obj} hash of this request's data.
 <a name="ABRequestService+userDefaults"></a>
 
 ### req.userDefaults() ⇒ <code>obj</code>
-return a data structure used by our ABModel.find() .create() .update()
-.delete() operations that needs credentials for the current User
-driving this request.
+return a data structure used by our ABModel.find() .create() .update().delete() operations that needs credentials for the current Userdriving this request.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
-**Returns**: <code>obj</code> - <br>         .languageCode: {string} the default language code of the user
-<br>         .username: {string} the .username of the user for Identification.  
+**Returns**: <code>obj</code> - <br>         .languageCode: {string} the default language code of the user<br>         .username: {string} the .username of the user for Identification.  
 <a name="ABRequestService+username"></a>
 
 ### req.username() ⇒ <code>string</code>
@@ -472,8 +446,7 @@ Publish an update to other subscribed services.
 <a name="ABRequestService+serviceRequest"></a>
 
 ### req.serviceRequest(key, data, [options], [cb]) ⇒ <code>Promise</code>
-Send a request to another micro-service using the cote protocol. Accept an
-optional callback, but also returns a promise.
+Send a request to another micro-service using the cote protocol. Accept anoptional callback, but also returns a promise.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 **Returns**: <code>Promise</code> - resolves with the response from the service  
@@ -490,14 +463,5 @@ optional callback, but also returns a promise.
 
 **Example**  
 ```js
-// async/await
-try {
-   let result = await request(key, data);
-} catch (err) {}
-// promise
-request(key, data, opts).then((result) => {}).catch((err) => {})
-// callback
-request(key, data, opts, (result, err) => {})
-// or
-request(key, data, (result, err) => {})
+// async/awaittry {   let result = await request(key, data);} catch (err) {}// promiserequest(key, data, opts).then((result) => {}).catch((err) => {})// callbackrequest(key, data, opts, (err, result) => {})// orrequest(key, data, (err, result) => {})
 ```
