@@ -16,15 +16,15 @@ var AB = require(path.join("..", "utils", "mockAB.js"));
 AB._configs = defaultConfig;
 AB._DBConn = DBConn;
 
-describe("model: conditions ", function() {
+describe("model: conditions ", function () {
    /*
     * Condition: discrete values should be generated as key = ?
     */
-   it("discrete values should be generated as key = ?", function() {
+   it("discrete values should be generated as key = ?", function () {
       var config = defaultConfig.connectionA;
       var Test = new Model(config, DBConn, AB);
       var cond = {
-         key: "value"
+         key: "value",
       };
       var result = Test._queryConditions("", cond);
       expect(result).to.exist;
@@ -36,11 +36,11 @@ describe("model: conditions ", function() {
    /*
     * Condition: array values should generate IN conditions:
     */
-   it("array values should generate IN conditions", function() {
+   it("array values should generate IN conditions", function () {
       var config = defaultConfig.connectionA;
       var Test = new Model(config, DBConn, AB);
       var cond = {
-         key: ["value"]
+         key: ["value"],
       };
       var result = Test._queryConditions("", cond);
       expect(result).to.exist;
@@ -53,11 +53,11 @@ describe("model: conditions ", function() {
    /*
     * Condition: empty array values should generate false conditions:
     */
-   it("empty array values should generate false conditions", function() {
+   it("empty array values should generate false conditions", function () {
       var config = defaultConfig.connectionA;
       var Test = new Model(config, DBConn, AB);
       var cond = {
-         key: []
+         key: [],
       };
       var result = Test._queryConditions("", cond);
       expect(result).to.exist;
@@ -69,13 +69,13 @@ describe("model: conditions ", function() {
    /*
     * Condition: multiple single obj conditions should be ANDed together:
     */
-   it("multiple single obj conditions should be ANDed together", function() {
+   it("multiple single obj conditions should be ANDed together", function () {
       var config = defaultConfig.connectionA;
       var Test = new Model(config, DBConn, AB);
       var cond = {
          key1: "value1",
          key2: ["value2"],
-         key3: []
+         key3: [],
       };
       var result = Test._queryConditions("", cond);
       expect(result).to.exist;
