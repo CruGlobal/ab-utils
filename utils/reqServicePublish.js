@@ -8,15 +8,12 @@ const ServiceCote = require("./reqServiceCote.js");
 var domainPublisher = {
    /* domainKey : cotePublisher */
 };
-
+/** @extends ABServiceCote */
 class ABServicePublish extends ServiceCote {
    /**
-    * publish()
     * Publish an update to other subscribed services.
-    * @param {string} key
-    *        the channel we are updating.
-    * @param {json} data
-    *        the data packet to send to the subscribers.
+    * @param {string} key the channel we are updating.
+    * @param {json} data the data packet to send to the subscribers.
     */
    publish(key, data) {
       var paramStack = this.toParam(key, data);

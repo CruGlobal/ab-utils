@@ -1,7 +1,5 @@
 // reqServiceResponder.js
-/*
- * ServiceResponder
- *
+/**
  * manage the responses to a ServiceRequest.
  */
 const cote = require("cote");
@@ -12,6 +10,16 @@ var domainResponder = {
    /* domainKey : coteResponder */
 };
 
+/**
+ * manage the responses to a ServiceRequest.
+ * @param {string} key the service handler's key we are responding to.
+ * @param {function} handler a function to handle the incoming request. The
+ * function will receive 2 parameters: fn(req, cb)
+ * <br> req: an instance of the ABRequest appropriate for the current context.
+ * <br> cb:  a node.js style callback(err, result) for responding to the
+ * requester.
+ * @param {object} req
+ */
 class ABServiceResponder {
    constructor(key, handler, req) {
       this.key = key;

@@ -29,7 +29,7 @@ class ABRequestValidation {
    /**
     * errors()
     * return any validation errors repackaged into an Error object.
-    * @return {Error || undefined}
+    * @return {Error | undefined}
     */
    errors() {
       if (this.__validationErrors.length > 0) {

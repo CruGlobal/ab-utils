@@ -1,8 +1,9 @@
-/*
- * reqApi
+/**
  * prepare a default set of data/utilities for our api request.
  * This request is established in the Sails api_sails service and is used
  * to verify and send jobs to various micro services.
+ * @module reqApi
+ * @ignore
  */
 const shortid = require("shortid");
 // const cote = require("cote");
@@ -15,6 +16,19 @@ const ABServiceResponder = require("./reqServiceResponder.js");
 const ABServiceSubscriber = require("./reqServiceSubscriber.js");
 const ABValidator = require("./reqValidation.js");
 
+/**
+ * @alias ABRequestAPI
+ * @typicalname req
+ * @classdesc a default set of data/utilities for our api request. This request
+ * is established in the Sails api_sails service and is used to verify and send
+ * jobs to various micro services.
+ * @param {Object} req
+ * @param {Object} res
+ * @param {Object} [config = {}]
+ * @borrows ABNotification#notify as #notify
+ * @borrows ABServicePublish#publish as #servicePublish
+ * @borrows ABServiceRequest#request as #serviceRequest
+ */
 class ABRequestAPI {
    constructor(req, res, config = {}) {
       this.jobID = shortid.generate();
@@ -75,54 +89,85 @@ class ABRequestAPI {
       };
 
       /**
-       * @method req.notifiy.builder()
        * A shortcut method for notifying builders of configuration errors.
+       * @param {Error} error
+       * @param {object} [info={}]
+       * @kind function
        */
       this.notify.builder = (...params) => {
          this.notify("builder", ...params);
       };
 
       /**
-       * @method req.notifiy.developer()
        * A shortcut method for notifying developer of operational errors.
+       * @param {Error} error
+       * @param {object} [info={}]
+       * @kind function
        */
       this.notify.developer = (...params) => {
          this.notify("developer", ...params);
       };
    }
 
+   /**
+    * tenant's id
+    * @type {string}
+    */
    get tenantID() {
       return this._tenantID;
    }
 
+   /**
+    * set the tenantID
+    * @kind function
+    * @param {string} id tenant's id
+    **/
    set tenantID(id) {
       this._tenantID = id;
    }
 
+   /**
+    * ABUser
+    * @type {obj}
+    */
    get user() {
       return this._user;
    }
 
+   /**
+    * set the user
+    * @kind function
+    * @param {object} user ABUser
+    **/
    set user(u) {
       this._user = u;
    }
 
+   /**
+    * The actual user when using Switcheroo
+    * @type {obj}
+    */
    get userReal() {
       return this._userReal;
    }
 
+   /**
+    * set the real user
+    * @kind function
+    * @param {object} user ABUser
+    **/
    set userReal(u) {
       this._userReal = u;
    }
 
+   /** @return {boolean} */
    isSwitcherood() {
       return this._userReal != null;
    }
 
    /**
-    * @method switcherooToUser()
     * allow the current user to impersonate the provided user.
-    * @param {json:SiteUser} u
+    * @param {json:SiteUser} user
     */
    switcherooToUser(u) {
       this.userReal = this.user;
@@ -130,7 +175,6 @@ class ABRequestAPI {
    }
 
    /**
-    * @method userDefaults()
     * return a data structure used by our ABModel.find() .create() .update()
     * .delete() operations that needs credentials for the current User
     * driving this request.
@@ -146,17 +190,15 @@ class ABRequestAPI {
    }
 
    /**
-    * tenantSet()
-    * returns {bool} value if the tenantID is set.
-    * @retun {bool}
+    * @returns {bool} value if the tenantID is set.
     */
    tenantSet() {
       return this.tenantID != "??";
    }
 
    /**
-    * log()
     * format our output logs to include our jobID with our message.
+    * @param {...*} args anything to log (will be stringified)
     */
    log(...allArgs) {
       var args = [];
@@ -171,13 +213,11 @@ class ABRequestAPI {
    }
 
    /**
-    * param()
     * An interface to return the requested input value.
     * If that value has already been processed by our .validateParameters()
     * we pull that value from there.  Otherwise we ask the provided req object
     * for the value.
-    * @param {string} key
-    *       The identifying parameter key
+    * @param {string} key The identifying parameter key
     * @return {string}
     */
    param(key) {
@@ -190,75 +230,41 @@ class ABRequestAPI {
       return value;
    }
 
-   /**
-    * servicePublish()
-    * Publish an update to other subscribed services.
-    * @param {string} key
-    *        the channel we are updating.
-    * @param {json} data
-    *        the data packet to send to the subscribers.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
-    */
    servicePublish(key, data) {
       this.__Publisher.publish(key, data);
    }
 
-   /**
-    * serviceRequest()
-    * Send a request to another micro-service using the cote protocol.
-    * @param {string} key
-    *        the service handler's key we are sending a request to.
-    * @param {json} data
-    *        the data packet to send to the service.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
-    */
    serviceRequest(key, data, cb) {
       this.__Requester.request(key, data, cb);
    }
 
    /**
-    * serviceResponder()
     * Create a Cote service responder that can parse our data interchange
     * format.
-    * @param {string} key
-    *        the service handler's key we are responding to.
-    * @param {fn} handler
-    *        a function to handle the incoming request. The function will
-    *        receive 2 parameters: fn(req, cb)
-    *          req: an instance of the ABRequest appropriate for the current
-    *               context.
-    *          cb:  a node.js style callback(err, result) for responding to
-    *               the requester.
+    * @param {string} key the service handler's key we are responding to.
+    * @param {function} handler a function to handle the incoming request. See
+    * {@link ABServiceResponder} constructor for details
+    * @returns {ABServiceResponder}
     */
    serviceResponder(key, handler) {
       return this.__Responder(key, handler, this);
    }
 
    /**
-    * serviceSubscribe()
     * Create a Cote service subscriber that can parse our data interchange
     * format.
-    * @param {string} key
-    *        the service handler's key we are responding to.
-    * @param {fn} handler
-    *        a function to handle the incoming request. The function will
-    *        receive 1 parameters: fn(req)
-    *          req: an instance of the ABRequest appropriate for the current
-    *               context.
+    * @param {string} key the service handler's key we are responding to.
+    * @param {function} handler a function to handle the incoming request. See
+    * {@link ABServiceSubscriber} constructor for details
+    * @returns {ABServiceSubscriber}
     */
    serviceSubscribe(key, handler) {
       return this.__Subscriber(key, handler, this);
    }
 
    /**
-    * socketKey()
     * make sure any socket related key is prefixed by our tenantID
-    * @param {string} key
-    *       The socket key we are wanting to reference.
+    * @param {string} key The socket key we are wanting to reference.
     * @return {string}
     */
    socketKey(key) {
@@ -266,21 +272,23 @@ class ABRequestAPI {
    }
 
    /**
-    * @method validateParameters()
-    * parse the {description} object and determine if the current req
-    * instance passes the tests provided.
+    * Parse the description object and determine if the current req instance
+    * passes the tests provided.
     *
-    * This fn() will first use the {description} to build a joi
-    * validator, and then evaluate the parameters using it.
+    * Will first use the description to build a joi validator, and then evaluate
+    * the parameters using it.
     *
-    * Any missed validation rules will be stored internally and an
-    * error can be retrieved using .errorValidation().
-    *
-    * This fn() returns {true} if all checks pass, or {false} otherwise.
-    * @param {hash} description
-    *        An object hash describing the validation checks to use. At
-    *        the top level the Hash is: { [paramName] : {ruleHash} }
-    *        Each {ruleHash} follows this format:
+    * Any missed validation rules will be stored internally and an error can be
+    * retrieved using .errorValidation().
+    * @param {hash} description An object hash describing the validation checks
+    * to use. At the top level the Hash is: { [paramName] : {ruleHash} }
+    * @param {bool} [autoRespond=true] if true will auto respond on errors with
+    * res.ab.error()
+    * @param {hash} [params] the parameters to evaluate in the format
+    * `{ "param" : {values} }` hash. If not provided, then will use
+    * `req.allParams()` to evaluate against all parameters.
+    * @return {bool} true if all checks pass, otherwise false.
+    * @example <caption> Each {ruleHash} follows this format: </caption>
     *        "parameterName" : {
     *           {joi.fn}  : true,  // performs: joi.{fn}();
     *            {joi.fn} : {
@@ -294,16 +302,6 @@ class ABRequestAPI {
     *            "validate" : {fn} a function(value, {allValues hash}) that
     *                           returns { error:{null || {new Error("Error Message")} }, value: {normalize(value)}}
     *         }
-    *
-    * @param {bool} autoRespond
-    *        if {true} will auto respond on errors with the {res} object.
-    * @param {hash} allParams
-    *        if you want to limit the parameters .validateParameters()
-    *        evaluates, then pass in the values as a { "param" : {value} }
-    *        hash.
-    *        if not provided, then we use the req.allParams() to retrieve
-    *        the parameters to evaluate.
-    * @return {bool}
     *
     **/
    validateParameters(description = {}, autoRespond = true, allParams) {
@@ -325,16 +323,15 @@ class ABRequestAPI {
       return true;
    }
 
+   /** @depreciated */
    validationReset() {
       console.error("DEPRECIATED: ?? who is calling this?");
       this.__Validator.reset();
    }
 
    /**
-    * @method validRoles()
     * Verify if the current user has one of the provided roleIDs assigned.
-    * @param {array} roleIDs
-    *        the {uuid} of the roles we are verifying.
+    * @param {string[]} roleIDs array containing the uuids of the roles to verify.
     * @return {bool}
     */
    validRoles(roleIDs) {
@@ -350,11 +347,9 @@ class ABRequestAPI {
    }
 
    /**
-    * @method validBuilder()
     * Verify if the current user has one of the default Builder Roles assigned
-    * @param {bool} autoRespond
-    *        do we auto res.ab.error() on a negative result
-    *        see validUser() method.
+    * @param {bool} [autoRespond=true] do we auto res.ab.error() on a negative
+    * result see {@link ABRequestAPI#validUser}.
     * @return {bool}
     */
    validBuilder(autoRespond = true) {
@@ -383,11 +378,9 @@ class ABRequestAPI {
    }
 
    /**
-    * @method validSwitcheroo()
     * Verify if the current user has the Switcheroo Role assigned
-    * @param {bool} autoRespond
-    *        do we auto res.ab.error() on a negative result
-    *        see validUser() method.
+    * @param {bool} [autoRespond=true] do we auto res.ab.error() on a negative
+    * result see {@link ABRequestAPI#validUser}.
     * @return {bool}
     */
    validSwitcheroo(autoRespond = true) {
@@ -410,16 +403,14 @@ class ABRequestAPI {
    }
 
    /**
-    * @method validUser()
-    * returns {true} if there is a valid .user set on the request
-    * or {false} if not.
+    * returns `true` if there is a valid .user set on the request, otherwise
+    * `false`
     *
-    * By default, this function will return a "E_REAUTH" error back
-    * as the response.  If you want to externally handle this situation
-    * then need to pass {false} for autoRespond.
-    *
-    * @param {bool} autoRespond
-    *        if {true} will auto respond on errors with the {res} object.
+    * By default, this function will return a "E_REAUTH" error back as the
+    * response.  If you want to externally handle this situation
+    * then need to pass `false` for autoRespond.
+    * @param {bool} [autoRespond=true] will auto respond on errors with the
+    * `res` object.
     * @return {bool}
     **/
    validUser(autoRespond = true) {
@@ -442,6 +433,15 @@ class ABRequestAPI {
    }
 }
 
+/**
+ * prepare a default set of data/utilities for our api request.
+ * This request is established in the Sails api_sails service and is used
+ * to verify and send jobs to various micro services.
+ * @param {obj} req
+ * @param {obj} res
+ * @param {obj} [config = {}]
+ * @returns {ABRequestAPI}
+ */
 module.exports = function (...params) {
    return new ABRequestAPI(...params);
 };

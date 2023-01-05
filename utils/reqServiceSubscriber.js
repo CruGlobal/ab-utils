@@ -1,5 +1,4 @@
 /**
- * reqServiceSubscriber
  * Subscribe to a Publisher's message stream.
  */
 
@@ -9,6 +8,12 @@ var domainSubscriber = {
    /* domainKey : coteSubscriber */
 };
 
+/**
+ * Subscribe to a Publisher's message stream.
+ * @param {string} key
+ * @param {?} handler
+ * @param {object} req
+ */
 class ABServiceSubscriber {
    constructor(key, handler, req) {
       this.key = key;

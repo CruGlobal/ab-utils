@@ -5,11 +5,20 @@ const UserFields = ["uuid", "username", "email", "languageCode"];
 // {array}
 // a subset of User fields that we want to include in our notification data.
 
+/**
+ * @class
+ * @param {object} req
+ */
 class ABNotification {
    constructor(req) {
       this.req = req;
    }
 
+   /**
+    * @param {string} domain Normally "builder" or "developer"
+    * @param {Error|Error[]|string|object} error
+    * @param {object} [info={}]
+    */
    notify(domain, error, info = {}) {
       var serError = this.stringifyErrors(error);
 
