@@ -16,13 +16,9 @@ const fixLinks = (filename, markdown, folder) => {
 
 const unique = [];
 data.forEach((item) => {
-   if (unique.find((u) => u.id == item.id)) {
-      console.log(`Duplicate: ${item.longname}`);
-   } else {
-      unique.push(item);
-   }
+   if (unique.find((u) => u.id == item.id)) return;
+   unique.push(item);
 });
-console.log(`removed ${data.length - unique.length} duplicates`);
 
 /* reduce templateData to an array of class names */
 const classNames = unique.reduce((classNames, identifier) => {
@@ -36,7 +32,6 @@ for (const className of classNames) {
    if (className == "service") continue; //This is ab-utils.service (already documented)
    classIndex.push(`[${className}](./docs/${className}.md)`);
    const template = `{{#class name="${className}"}}{{>docs}}{{/class}}`;
-   console.log(`rendering ${className}, template: ${template}`);
    const output = jsdoc2md.renderSync({ data: unique, template });
    fs.writeFileSync(
       `${__dirname}/${className}.md`,
@@ -50,10 +45,14 @@ const abutils = jsdoc2md.renderSync({
 });
 
 fs.writeFileSync(`${__dirname}/ab-utils.md`, abutils);
+const readmeBase = fs.readFileSync(
+   path.resolve(__dirname, "README.hbs"),
+   "utf8"
+);
 
 const readme = jsdoc2md.renderSync({
    data,
-   template: `{{#module name="ab-utils"}}{{>docs}}{{/module}}
+   template: `${readmeBase}
 ## Classes
  - ${classIndex.join("\n - ")}`,
 });

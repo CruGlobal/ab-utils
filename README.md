@@ -1,4 +1,5 @@
-<a name="module_ab-utils"></a>
+[![CodeQL](https://github.com/digi-serve/ab-utils/actions/workflows/codeql.yml/badge.svg)](https://github.com/digi-serve/ab-utils/actions/workflows/codeql.yml) [![Unit](https://github.com/digi-serve/ab-utils/actions/workflows/unit-test.yml/badge.svg)](https://github.com/digi-serve/ab-utils/actions/workflows/unit-test.yml)
+    <a name="module_ab-utils"></a>
 
 ## ab-utils
 a set of common utilities shared by each of our microsservices
