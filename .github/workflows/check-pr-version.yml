@@ -1,7 +1,7 @@
-name: Check Release Label on PR
+name: Check Release Label
 on:
   pull_request:
-    types: [opened, labeled, unlabeled]
+    types: [opened, labeled, unlabeled, synchronize]
     branches: [master]
 jobs:
   check_pr:
