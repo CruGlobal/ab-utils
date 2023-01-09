@@ -1,4 +1,4 @@
-name: PR Merge -- Version, Release & Build
+name: Publish New Version
 
 on:
   pull_request:
@@ -14,8 +14,9 @@ jobs:
       # Use a PAT here instead of the default token to ignore branch protection rules. 
       - name: Checkout Master
         uses: actions/checkout@v3
-        ref: master
-        token: ${{ secrets.PAT }}
+        with:
+          ref: master
+          token: ${{ secrets.PAT }}
 
       - name: Bump package.json Version
         id: bump_version
