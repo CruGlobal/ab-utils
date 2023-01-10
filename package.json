@@ -5,6 +5,9 @@
   "main": "ab-utils.js",
   "author": "Johnny Hausman",
   "license": "MIT",
+  "homepage": "https://github.com/digi-serve/ab-utils#readme",
+  "bugs": { "url": "https://github.com/digi-serve/ab-utils/issues" },
+  "repository": "github:digi-serve/ab-utils",
   "dependencies": {
     "async": "^3.2.2",
     "cote": "^1.0.2",
