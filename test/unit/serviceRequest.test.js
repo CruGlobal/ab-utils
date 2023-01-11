@@ -7,10 +7,11 @@ const ABServiceRequest = proxyquire("../../utils/serviceRequest.js", {
    cote: { Requester: RequesterFake },
 });
 const serviceRequest = ABServiceRequest();
+const notify = sinon.fake();
 serviceRequest.req = {
    log: sinon.stub(),
    serviceKey: "test_service",
-   notify: { developer: () => {} },
+   notify: { developer: notify },
 };
 
 const sendStub = sinon.stub();
@@ -38,6 +39,7 @@ describe("ServiceRequest tests", () => {
       });
       beforeEach(() => {
          sendStub.reset();
+         notify.resetHistory();
       });
       it("calls the callback", async () => {
          sendStub.resolves({ success: true });
@@ -68,6 +70,7 @@ describe("ServiceRequest tests", () => {
          sendStub.rejects(err);
          const callback = sinon.fake();
          await serviceRequest.request("service.test", {}, callback);
+         assert(notify.calledOnce);
          assert.equal(callback.callCount, 1);
          assert.deepEqual(callback.firstCall.args, [err]);
       });
@@ -190,6 +193,18 @@ describe("ServiceRequest tests", () => {
             },
             type: "service.test",
          });
+      });
+
+      it("failed log_manager.notification doesn't call notify", async () => {
+         sendStub.rejects();
+         try {
+            await serviceRequest.request("log_manager.notification", {
+               value: 1,
+            });
+         } catch (e) {
+            //expected
+         }
+         assert(notify.notCalled);
       });
    });
 });
