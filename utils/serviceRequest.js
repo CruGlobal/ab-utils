@@ -104,11 +104,14 @@ class ABServiceRequest extends ServiceCote {
       } catch (err) {
          err._serviceRequest = key;
          err._params = paramStack;
-         this.req.notify.developer(err, {
-            message: `Could not request (${key}) - ${JSON.stringify(
-               paramStack
-            )}`,
-         });
+         if (key != "log_manager.notification") {
+            // If there was an error requesting log_manger.notification, don't use req.notify or we can get caught in an infinite loop
+            this.req.notify.developer(err, {
+               message: `Could not request (${key}) - ${JSON.stringify(
+                  paramStack
+               )}`,
+            });
+         }
          if (callback) return callback(err);
          throw err;
       }
