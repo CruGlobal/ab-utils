@@ -47,6 +47,7 @@ class ABServiceRequest extends ServiceCote {
     * request(key, data, (err, result) => {})
     */
    async request(key, data, ...args) {
+      if (this.req.performance) this.req.performance.mark(key);
       // handle args
       const callback = args.find((arg) => typeof arg == "function");
       const options = args.find((arg) => typeof arg == "object") ?? {};
