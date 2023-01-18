@@ -71,9 +71,13 @@ class ABNotification {
       };
 
       // Also log to the console
-      if (error instanceof Error) {
+      if (typeof this.req.log == "function") {
+         this.req.log(jobData)
+      }
+      else if (error instanceof Error) {
          console.error(jobData);
-      } else {
+      } 
+      else {
          console.log(jobData);
       }
 
