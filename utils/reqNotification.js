@@ -70,6 +70,13 @@ class ABNotification {
          callStack: errStack.stack,
       };
 
+      // Also log to the console
+      if (error instanceof Error) {
+         console.error(jobData);
+      } else {
+         console.log(jobData);
+      }
+
       this.req.serviceRequest("log_manager.notification", jobData, (err) => {
          this.req.log(err);
       });
