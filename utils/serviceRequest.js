@@ -13,6 +13,7 @@ const ServiceCote = require("./reqServiceCote.js");
 const REQUEST_TIMEOUT = 5000; // 5 Seconds
 const LONG_REQUEST_TIMEOUT = 90000; // 90 Seconds
 const ATTEMPT_REQUEST_MAXIMUM = 5;
+const ATTEMPT_REQUEST_OVERTIME = ATTEMPT_REQUEST_MAXIMUM * 10;
 
 const domainRequesters = {
    /* domainKey : coteRequester */
@@ -42,22 +43,50 @@ class ABServiceRequest extends ServiceCote {
       const domain = key.split(".")[0];
       const requester = this.getRequester(domain, longRequest);
 
+      var timeoutCleanup = false;
+      // {bool}
+      // are we attempting to clean up a timedout service call?
+
       const sendRequest = () => {
          countRequest += 1;
 
          requester.send(paramStack, (err, results) => {
+            let finalTime;
             if (this.req.performance) {
-               this.req.performance.measure(key, key);
+               finalTime = this.req.performance.measure(key, key);
             }
 
             if (err) {
                // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
                if (err.message === "Request timed out.") {
                   // Retry .send
-                  if (countRequest < ATTEMPT_REQUEST_MAXIMUM) {
+                  if (
+                     !timeoutCleanup &&
+                     countRequest < ATTEMPT_REQUEST_MAXIMUM
+                  ) {
                      this.req.log(
                         `... timeout waiting for request (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_MAXIMUM}`
                      );
+
+                     sendRequest();
+                     return;
+                  }
+
+                  if (
+                     timeoutCleanup &&
+                     countRequest < ATTEMPT_REQUEST_OVERTIME
+                  ) {
+                     // Q: should we attempt to scale our timeouts?
+                     if (!paramStack.__timeout) {
+                        paramStack.__timeout = REQUEST_TIMEOUT;
+                     }
+                     // increase the timeout
+                     paramStack.__timeout *= 1.5;
+
+                     this.req.log(
+                        `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`
+                     );
+
                      sendRequest();
                      return;
                   }
@@ -72,7 +101,33 @@ class ABServiceRequest extends ServiceCote {
                err._serviceRequest = key;
                err._params = paramStack;
             }
+
+            if (timeoutCleanup) {
+               this.req.notify.developer(err, {
+                  message: `EOVERTIME: Handler response after timout`,
+                  paramStack,
+                  finalTime,
+                  err,
+                  results, // <--- Do we send this?  might be too large
+               });
+               return;
+            }
+
             cb(err, results);
+
+            // NOTE: now we make one last request to wait until the service
+            // actually responds ... if it does.
+            // if so, we calculate how long it finally took for the service to
+            // respond, and log that deliquent service.
+
+            // if err && err.message == "Request timed out."  && ! timeoutCleanup
+            if (!timeoutCleanup && err?.message == "Request timed out.") {
+               // now since we are just waiting around:
+               paramStack.__timeout = LONG_REQUEST_TIMEOUT;
+               timeoutCleanup = true;
+               countRequest = 0;
+               sendRequest();
+            }
          });
       };
       sendRequest();
