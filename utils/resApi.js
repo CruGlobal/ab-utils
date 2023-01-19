@@ -14,7 +14,7 @@ class ABResponseAPI {
 
       var packet = {
          status: "error",
-         data: err,
+         data: err.toString?.() ?? {},
       };
 
       if (err) {
