@@ -17,6 +17,7 @@ class ABNotification {
 
       info.tenantID = info.tenantID || this.req ? this.req._tenantID : "??";
       info.jobID = info.jobID || this.req ? this.req.jobID : "??";
+      info.requestID = info.requestID || this.req ? this.req.requestID : "??";
       info.serviceKey = this.req ? this.req.serviceKey : "??";
       info.user = {};
       if (this.req._user) {

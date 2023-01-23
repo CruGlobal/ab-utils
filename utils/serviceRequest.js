@@ -21,116 +21,159 @@ const domainRequesters = {
 
 class ABServiceRequest extends ServiceCote {
    /**
-    * request()
-    * Send a request to another micro-service using the cote protocol.
-    * @param {string} key
-    *        the service handler's key we are sending a request to.
-    * @param {json} data
-    *        the data packet to send to the service.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
+    * Send a request to another micro-service using the cote protocol. Accept an
+    * optional callback, but also returns a promise.
+    * @param {string} key the service handler's key we are sending a request to.
+    * @param {json} data the data packet to send to the service.
+    * @param {object} [options] optional options
+    * @param {number} [options.timeout=5000] ms to wait before timing out
+    * @param {number}[options.maxAttempts=5] how many times to try the request if
+    *  it fails
+    * @param {boolean} [options.longRequest=false] timeout after 90 seconds,
+    * will be ignored if timeout was set
+    * @param {function} [cb] optional node.js style callback(err, result) for
+    * when the response is received.
+    * @returns {Promise} resolves with the response from the service
+    * @example
+    * // async/await
+    * try {
+    *    let result = await request(key, data);
+    * } catch (err) {}
+    * // promise
+    * request(key, data, opts).then((result) => {}).catch((err) => {})
+    * // callback
+    * request(key, data, opts, (err, result) => {})
+    * // or
+    * request(key, data, (err, result) => {})
     */
-   request(key, data, cb) {
-      if (this.req.performance) {
-         this.req.performance.mark(key);
+   request(key, data, ...args) {
+      if (this.req.performance) this.req.performance.mark(key);
+      // handle args
+      const callback = args.find((arg) => typeof arg == "function");
+      const options = args.find((arg) => typeof arg == "object") ?? {};
+      if (data.longRequest) {
+         this.req.notify.developer(
+            "Depreciated data.longRequest passed to req.serviceRequest()",
+            {
+               details:
+                  "Warning: serviceRequest() now supports an options parameter `serviceRequest(key, data, options = {}, callback?)`. Please refactor longRequest to options",
+            }
+         );
+         options.longRequest = data.longRequest;
+         delete data.longRequest;
       }
+      var timeout =
+         options.timeout ??
+         (options.longRequest ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT);
+      var attempts = options.maxAttempts ?? ATTEMPT_REQUEST_MAXIMUM;
+
       let countRequest = 0;
-      const longRequest = data.longRequest ?? false;
-      delete data.longRequest; // The service does not need this passed.
 
       const paramStack = this.toParam(key, data);
       const domain = key.split(".")[0];
-      const requester = this.getRequester(domain, longRequest);
+      const requester = this.getRequester(domain);
 
       var timeoutCleanup = false;
       // {bool}
       // are we attempting to clean up a timedout service call?
 
-      const sendRequest = () => {
-         countRequest += 1;
+      let returnPromise = new Promise((resolve, reject) => {
+         const sendRequest = () => {
+            countRequest += 1;
 
-         requester.send(paramStack, (err, results) => {
-            let finalTime;
-            if (this.req.performance) {
-               finalTime = this.req.performance.measure(key, key);
-            }
-
-            if (err) {
-               // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
-               if (err.message === "Request timed out.") {
-                  // Retry .send
-                  if (
-                     !timeoutCleanup &&
-                     countRequest < ATTEMPT_REQUEST_MAXIMUM
-                  ) {
-                     this.req.log(
-                        `... timeout waiting for request (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_MAXIMUM}`
-                     );
-
-                     sendRequest();
-                     return;
+            requester.send(
+               {
+                  ...paramStack,
+                  __timeout: timeout,
+               },
+               (err, results) => {
+                  let finalTime;
+                  if (this.req.performance) {
+                     finalTime = this.req.performance.measure(key, key);
                   }
 
-                  if (
-                     timeoutCleanup &&
-                     countRequest < ATTEMPT_REQUEST_OVERTIME
-                  ) {
-                     // Q: should we attempt to scale our timeouts?
-                     if (!paramStack.__timeout) {
-                        paramStack.__timeout = REQUEST_TIMEOUT;
+                  if (err) {
+                     // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
+                     if (err.message === "Request timed out.") {
+                        // Retry .send
+                        if (!timeoutCleanup && countRequest < attempts) {
+                           this.req.log(
+                              `... timeout waiting for request (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_MAXIMUM}`
+                           );
+
+                           sendRequest();
+                           return;
+                        }
+
+                        if (timeoutCleanup && countRequest < attempts) {
+                           // Q: should we attempt to scale our timeouts?
+                           timeout *= 1.5;
+
+                           this.req.log(
+                              `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`
+                           );
+
+                           sendRequest();
+                           return;
+                        }
+
+                        this.req.notify.developer(err, {
+                           message: `Could not request (${key}) - ${JSON.stringify(
+                              paramStack
+                           )}`,
+                        });
                      }
-                     // increase the timeout
-                     paramStack.__timeout *= 1.5;
 
-                     this.req.log(
-                        `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`
-                     );
+                     err._serviceRequest = key;
+                     err._params = paramStack;
+                  }
 
-                     sendRequest();
+                  if (timeoutCleanup) {
+                     this.req.notify.developer(err, {
+                        message: `EOVERTIME: Handler response after timout`,
+                        paramStack: JSON.stringify(paramStack, null, 3),
+                        finalTime,
+                        err,
+                        results, // <--- Do we send this?  might be too large
+                     });
                      return;
                   }
 
-                  this.req.notify.developer(err, {
-                     message: `Could not request (${key}) - ${JSON.stringify(
-                        paramStack
-                     )}`,
-                  });
+                  // now complete the Promise (or reject if timeout or err)
+                  callback?.(err, results);
+                  if (err) {
+                     reject(err);
+                  } else {
+                     resolve(results);
+                  }
+
+                  // NOTE: now we make one last request to wait until the service
+                  // actually responds ... if it does.
+                  // if so, we calculate how long it finally took for the service to
+                  // respond, and log that deliquent service.
+
+                  // if err && err.message == "Request timed out."  && ! timeoutCleanup
+                  if (!timeoutCleanup && err?.message == "Request timed out.") {
+                     // now since we are just waiting around:
+                     timeout = LONG_REQUEST_TIMEOUT;
+                     attempts = ATTEMPT_REQUEST_OVERTIME;
+                     timeoutCleanup = true;
+                     countRequest = 0;
+                     sendRequest();
+                  }
                }
+            );
+         };
+         sendRequest();
+      });
 
-               err._serviceRequest = key;
-               err._params = paramStack;
-            }
+      // NOTE: this is to prevent ERR_UNHANDLED_REJECTION errors when using the
+      // callback form of the API.
+      returnPromise.catch(() => {});
 
-            if (timeoutCleanup) {
-               this.req.notify.developer(err, {
-                  message: `EOVERTIME: Handler response after timout`,
-                  paramStack,
-                  finalTime,
-                  err,
-                  results, // <--- Do we send this?  might be too large
-               });
-               return;
-            }
-
-            cb(err, results);
-
-            // NOTE: now we make one last request to wait until the service
-            // actually responds ... if it does.
-            // if so, we calculate how long it finally took for the service to
-            // respond, and log that deliquent service.
-
-            // if err && err.message == "Request timed out."  && ! timeoutCleanup
-            if (!timeoutCleanup && err?.message == "Request timed out.") {
-               // now since we are just waiting around:
-               paramStack.__timeout = LONG_REQUEST_TIMEOUT;
-               timeoutCleanup = true;
-               countRequest = 0;
-               sendRequest();
-            }
-         });
-      };
-      sendRequest();
+      // NOTE: we are returning the original promise, so the user can still
+      // provide their own .catch() and get the error as well:
+      return returnPromise;
    }
 
    /**

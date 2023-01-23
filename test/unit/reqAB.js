@@ -65,7 +65,13 @@ describe("reqAB: toParam", function() {
       expect(param).to.exist;
       expect(param).to.be.an("object");
       expect(param).to.have.all.keys("type", "param");
-      expect(param.param).to.have.all.keys("jobID", "tenantID", "user", "data");
+      expect(param.param).to.have.all.keys(
+         "jobID",
+         "requestID",
+         "tenantID",
+         "user",
+         "data"
+      );
       expect(param.param.data.value).to.equal("here");
    });
 });
