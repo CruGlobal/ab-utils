@@ -1,9 +1,7 @@
-/*
- * request
- *
+/**
  * return a modified req object that supports our typical AB functions.
- * @param {obj} req the standard request object received from the Cote service.
- * @return {ABRequest}
+ * @module request
+ * @ignore
  */
 const path = require("path");
 const DBConn = require(path.join(__dirname, "dbConn"));
@@ -83,6 +81,15 @@ var ERRORS_RETRY = [
    "ER_LOCK_WAIT_TIMEOUT",
 ];
 
+/**
+ * @alias ABRequestService
+ * @typicalname req
+ * @param {object} req
+ * @param {ABServiceController} controller
+ * @borrows ABNotification#notify
+ * @borrows ABServicePublish#publish as #servicePublish
+ * @borrows ABServiceRequest#request as #serviceRequest
+ */
 class ABRequestService {
    constructor(req, controller) {
       // console.log("ABRequest():", req);
@@ -133,13 +140,14 @@ class ABRequestService {
       // extend
 
       /**
-       * @method req.log.verbose()
        * A shortcut method for logging "verbose" messages. There needs to be
        * a .verbose = true  in the config.local entry for the current service
        * in order for these messages to be displayed.
        *
        * Now get ready to eat up all kinds of disk space with needless
        * information to the console!
+       * @kind function
+       * @param {...*} args anything to log
        */
       this.log.verbose = (...params) => {
          if ((this.config() || {}).verbose) {
@@ -148,37 +156,34 @@ class ABRequestService {
       };
 
       /**
-       * @method req.notifiy.builder()
        * A shortcut method for notifying builders of configuration errors.
+       * @kind function
+       * @param {...*} params see {@link ABRequestService.notify}
        */
       this.notify.builder = (...params) => {
          this.notify("builder", ...params);
       };
 
       /**
-       * @method req.notifiy.developer()
        * A shortcut method for notifying developer of operational errors.
+       * @kind function
+       * @param {...*} params see {@link ABRequestService.notify}
        */
       this.notify.developer = (...params) => {
          this.notify("developer", ...params);
       };
 
       /**
-       * @method req.broadcast.inboxCreate()
-       * A shortcut method for posting our "ab.inbox.create"
-       * messages to our Clients.
-       * @param {array[SiteUser.uuid]} users
-       *        An array of SiteUser.uuid(s) that should receive this message.
-       *        Can also work with [{SiteUser}] objects.
-       * @param {array[Role]} roles
-       *        An array of Role.uuid(s) that should receive this message.
-       *        Can also work with [{Role}] objects.
-       * @param {obj} item
-       *        The newly created Inbox Item definition.
-       * @param {fn} cb
-       *        (optional) for legacy code api, a node style callback(error)
-       *        can be provided for the response.
+       * A shortcut method to post our "ab.inbox.create" messages to our Clients.
+       * @param {string[] | SiteUser[]} users An array of SiteUser.uuid(s) that
+       * should receive this message. Can also work with [{SiteUser}] objects.
+       * @param {string[] | Role[]} roles An array of Role.uuid(s) that should
+       * receive this message. Can also work with [{Role}] objects.
+       * @param {obj} item The newly created Inbox Item definition.
+       * @param {fn} [cb] (optional) for legacy code api, a node style
+       * callback(error) can be provided for the response.
        * @return {Promise}
+       * @kind function
        */
       this.broadcast.inboxCreate = (users, roles, item, cb) => {
          return new Promise((resolve, reject) => {
@@ -214,23 +219,20 @@ class ABRequestService {
       };
 
       /**
-       * @method req.broadcast.dcCreate()
-       * A shortcut method for posting our "ab.datacollection.create"
-       * messages to our Clients.
-       * @param {string} id
-       *       The {ABObject.id} of the ABObject definition that we are going
-       *       to post an update for. The incoming newItem should be data
-       *       managed by this ABObject.
-       * @param {obj} newItem
-       *       The row data of the new Item that was created. Usually
-       *       fully populated so the clients can work with them as usual.
-       * @param {string} key
-       *       (optional) a specific internal performance marker key
-       *       for tracking how long this broadcast operation took.
-       * @param {fn} cb
-       *       (optional) for legacy code api, a node style callback(error)
-       *       can be provided for the response.
+       * A shortcut method for posting our "ab.datacollection.create" messages
+       * to our Clients.
+       * @param {string} id The {ABObject.id} of the ABObject definition that we
+       * are going to post an update for. The incoming newItem should be data
+       * managed by this ABObject.
+       * @param {obj} newItem The row data of the new Item that was created.
+       * Usually fully populated so the clients can work with them as usual.
+       * @param {string} [key=broadcast.dc.create.id] a specific internal
+       * performance marker key for tracking how long this broadcast operation
+       * took.
+       * @param {function} [cb] (optional) for legacy code api, a node style
+       * callback(error) can be provided for the response.
        * @return {Promise}
+       * @kind function
        */
       this.broadcast.dcCreate = (id, newItem, key, cb) => {
          return new Promise((resolve, reject) => {
@@ -263,22 +265,19 @@ class ABRequestService {
       };
 
       /**
-       * @method req.broadcast.dcDelete()
-       * A shortcut method for posting our "ab.datacollection.delete"
-       * messages to our Clients.
-       * @param {string:uuid} id
-       *       The {ABObject.id} of the ABObject definition that we are going
-       *       to post a delete for. The deleted item should be data
-       *       managed by this ABObject.
-       * @param {string:uuid} itemID
-       *       The uuid of the row being deleted..
-       * @param {string} key
-       *       (optional) a specific internal performance marker key
-       *       for tracking how long this broadcast operation took.
-       * @param {fn} cb
-       *       (optional) for legacy code api, a node style callback(error)
-       *       can be provided for the response.
+       * A shortcut method for posting our "ab.datacollection.delete" messages
+       * to our Clients.
+       * @param {string} id The {ABObject.id} of the ABObject definition
+       * that we are going to post a delete for. The deleted item should be data
+       * managed by this ABObject.
+       * @param {string} itemID The uuid of the row being deleted.
+       * @param {string} [key=broadcast.dc.delete.id] a specific internal
+       * performance marker key for tracking how long this broadcast operation
+       * took.
+       * @param {function} [cb] for legacy code api, a node style
+       * callback(error) can be provided for the response.
        * @return {Promise}
+       * @kind function
        */
       this.broadcast.dcDelete = (id, itemID, key, cb) => {
          return new Promise((resolve, reject) => {
@@ -311,23 +310,20 @@ class ABRequestService {
       };
 
       /**
-       * @method req.broadcast.dcUpdate()
-       * A shortcut method for posting our "ab.datacollection.update"
-       * messages to our Clients.
-       * @param {string} id
-       *       The {ABObject.id} of the ABObject definition that we are going
-       *       to post an update for. The incoming newItem should be data
-       *       managed by this ABObject.
-       * @param {obj} updatedItem
-       *       The row data of the new Item that was updated. Can be fully
-       *       populated, or just the updated values.
-       * @param {string} key
-       *       (optional) a specific internal performance marker key
-       *       for tracking how long this broadcast operation took.
-       * @param {fn} cb
-       *       (optional) for legacy code api, a node style callback(error)
-       *       can be provided for the response.
+       * A shortcut method for posting our "ab.datacollection.update" messages
+       * to our Clients.
+       * @param {string} id The {ABObject.id} of the ABObject definition that we
+       * are going to post an update for. The incoming newItem should be data
+       * managed by this ABObject.
+       * @param {obj} updatedItem The row data of the new Item that was updated.
+       * Can be fully populated, or just the updated values.
+       * @param {string} [key=broadcast.dc.update.id] a specific internal
+       * performance marker key for tracking how long this broadcast operation
+       * took.
+       * @param {function} [cb] for legacy code api, a node style
+       * callback(error) can be provided for the response.
        * @return {Promise}
+       * @king function
        */
       this.broadcast.dcUpdate = (id, updatedItem, key, cb) => {
          return new Promise((resolve, reject) => {
@@ -369,22 +365,17 @@ class ABRequestService {
    }
 
    /**
-    * @method req.broadcast()
     * An interface for communicating real time data updates to our clients.
-    * @param {array} packets
-    *       An array of broadcast packets to post to our clients.  Each
-    *       packet has the following information:
-    *       .room: {string} A unique identifier of the group of clients
-    *              to receive the notifications.  Usually this is a
-    *              multi-tenant identified id, generated by:
-    *              req.socketKey(id)
-    *       .event: {string} a unique "key" that tells the client what data
-    *              they are receiving.
-    *       .data: {json} the data delivery for the .event
-    *
-    * @param {fn} cb
-    *       a node style callback(error, results) can be provided to notify
-    *       when the packet has been sent.
+    * @param {object[]} packets An array of broadcast packets to post to our
+    * clients.
+    * @param {string} packets[].room A unique identifier of the group of clients
+    * to receive the notifications. Usually this is a multi-tenant identified
+    * id, generated by: req.socketKey(id)
+    * @param {string} packets[].event a unique "key" that tells the client what
+    * data they are receiving.
+    * @param {json} packets[].data the data delivery for the .event
+    * @param {fn} cb a node style callback(error, results) can be provided to
+    * notify when the packet has been sent.
     */
    broadcast(packets, cb) {
       this.serviceRequest("api.broadcast", packets, (err, results) => {
@@ -401,12 +392,12 @@ class ABRequestService {
       });
    }
 
+   /** @returns {object} config from the controller */
    config() {
       return this.controller.config;
    }
 
    /**
-    * configDB()
     * return the proper DB connection data for the current request.
     * If the request HAS a tenantID, we return the 'appbuilder' connection,
     * If no tenantID, then we return the 'site' connection.
@@ -430,25 +421,24 @@ class ABRequestService {
       }
    }
 
+   /** @returns {object} connections from the controller */
    connections() {
       return this.controller.connections;
    }
 
    /**
-    * dbConnection()
-    * return a connection to our mysql DB for the current request:
-    * @param {bool} create
-    *        create a new DB connection if we are not currently connected.
-    * @param {bool} isolate
-    *        return a unique DB connection not shared by other requests.
-    * @return {Mysql.conn || null}
+    * return a connection to our mysql DB for the current request
+    * @param {bool} create create a new DB connection if we are not currently
+    * connected.
+    * @param {bool} isolate return a unique DB connection not shared by other
+    * requests.
+    * @return {Mysql.conn | null}
     */
    dbConnection(create = true, isolate = false) {
       return this._DBConn(this, create, isolate);
    }
 
    /**
-    * languageCode()
     * return the current language settings for this request.
     * @return {string}
     */
@@ -461,10 +451,8 @@ class ABRequestService {
    }
 
    /**
-    * log()
     * print out a log entry for the current request
-    * @param {...} allArgs
-    *        array of possible log entries
+    * @param {...*} args array of possible log entries
     */
    log(...allArgs) {
       var args = [];
@@ -490,10 +478,8 @@ class ABRequestService {
    }
 
    /**
-    * logError()
-    * print out a log entry for the current request
-    * @param {...} allArgs
-    *        array of possible log entries
+    * @param {string} message
+    * @param {Error} error
     */
    logError(message, err) {
       this.log(message, serializeError(err));
@@ -503,11 +489,10 @@ class ABRequestService {
    }
 
    /**
-    * model(name)
     * Return a Model() instance from the model/name.js definition
-    * @param {string} name
-    *        name of the model/[name].js definition to return a Model for.
-    * @return {Model || null}
+    * @param {string} name name of the model/[name].js definition to return a
+    * Model for.
+    * @return {Model | null}
     */
    model(name) {
       if (this.controller.models[name]) {
@@ -525,20 +510,26 @@ class ABRequestService {
    }
 
    /**
-    * param(key)
     * return the parameter value specified by the provided key
-    * @param {string} key
-    *        name of the req.param[key] value to return
-    * @return {... || undefined}
+    * @param {string} key name of the req.param[key] value to return
+    * @return {* | undefined}
     */
    param(key) {
       return this.data[key];
    }
 
+   /**
+    * @param {...string} params any number of parameters to ignore
+    * @returns {object} `{ paramName: value }`
+    */
    allParams(...params) {
       return this.params(...params);
    }
 
+   /**
+    * @param {string[]} [ignoreList = []] parameters to ignore
+    * @returns {object} `{ paramName: value }`
+    */
    params(ignoreList = []) {
       var result = {};
       (Object.keys(this.data) || []).forEach((k) => {
@@ -550,18 +541,15 @@ class ABRequestService {
    }
 
    /**
-    * query()
     * perform an sql query directly on our dbConn.
-    * @param {string} query
-    *        the sql query to perform.  Use "?" for placeholders.
-    * @param {array} values
-    *        the array of values that correspond to the placeholders in the sql
-    * @param {fn} cb
-    *        a node style callback with 3 paramaters (error, results, fields)
-    *        these are the same values as returned by the mysql library .query()
-    * @param {MySQL} dbConn [optional]
-    *        the DB Connection to use for this request. If not provided the
-    *        common dbConnection() will be used.
+    * @param {string} query the sql query to perform.  Use "?" for placeholders.
+    * @param {array} values the array of values that correspond to the
+    * placeholders in the sql
+    * @param {fn} cb a node style callback with 3 paramaters
+    * (error, results, fields) these are the same values as returned by the
+    * mysql library .query()
+    * @param {MySQL} [dbConn] the DB Connection to use for this request. If not
+    * provided the common dbConnection() will be used.
     */
    query(query, values, cb, dbConn) {
       if (!dbConn) {
@@ -597,16 +585,12 @@ class ABRequestService {
    }
 
    /**
-    * @method queryIsolate()
-    * Perform a query on it's own DB Connection. Not shared with other
-    * requests.
-    * @param {string} query
-    *        the sql query to perform.  Use "?" for placeholders.
-    * @param {array} values
-    *        the array of values that correspond to the placeholders in the sql
-    * @param {fn} cb
-    *        a node style callback with 3 paramaters (error, results, fields)
-    *        these are the same values as returned by the mysql library .query()
+    * Perform a query on it's own DB Connection. Not shared with other requests.
+    * @param {string} query the sql query to perform. Use "?" for placeholders.
+    * @param {array} values the array of values that correspond to the
+    * placeholders in the sql
+    * @param {fn} cb a node style callback with 3 paramaters (error, results,
+    * fields) these are the same values as returned by the mysql library .query()
     */
    queryIsolate(query, values, cb) {
       if (!this.___isoDB) {
@@ -616,7 +600,6 @@ class ABRequestService {
    }
 
    /**
-    * @method queryIsolateClose()
     * Ensure the temporary isolated db connection is closed out properly.
     * This method is intended to be used after all your desired queryIsolate()
     * actions are performed.
@@ -628,15 +611,13 @@ class ABRequestService {
    }
 
    /**
-    * queryTenantDB()
     * return the tenantDB value for this req object.
     * this is a helper function that simplifies the error handling if no
     * tenantDB is found.
-    * @param {Promise.reject} reject
-    *        a reject() handler to be called if a tenantDB is not found.
-    * @return {false|string}
-    *        false : if not tenantDB is found
-    *        string: the tenantDB name.
+    * @param {Promise.reject} reject a reject() handler to be called if a
+    * tenantDB is not found.
+    * @return {false|string} false if tenantDB not found, otherwise the tenantDB
+    * name (string).
     */
    queryTenantDB(reject) {
       let tenantDB = this.tenantDB();
@@ -652,16 +633,12 @@ class ABRequestService {
    }
 
    /**
-    * queryWhereCondition(cond)
-    * evaluate a given {cond} hash and generate an SQL condition string
-    * from it.
+    * evaluate a given {cond} hash and generate an SQL condition string from it.
     * This fn() returns both the sql condition string, and an array of
     * values that correspond to the proper ordering of the condition
-    * @param {obj} cond
-    *        a value hash of the desired condition.
-    * @return { condition, values}
-    *        condition {string} the proper sql "WHERE ${condition}"
-    *        values {array} the values to fill in the condition placeholders
+    * @param {obj} cond a value hash of the desired condition.
+    * @return {obj} <br>.condition {string}  the proper sql "WHERE ${condition}"
+    *               <br>.values {array} the values to fill in the condition placeholders
     */
    queryWhereCondition(cond) {
       var values = [];
@@ -689,15 +666,13 @@ class ABRequestService {
    }
 
    /**
-    * @method retry()
     * Attempt to retry the provided fn() if it results in an interrupted
     * Network operation error.
     *
     * The provided fn() needs to return a {Promise} that resolves() with
     * the expected return data, and rejects() with the Network errors.
     *
-    * @param {fn} fn
-    *        The promise based network operation
+    * @param {function} fn The promise based network operation
     * @return {Promise}
     */
    retry(fn) {
@@ -714,6 +689,7 @@ class ABRequestService {
       });
    }
 
+   /** @param {Error} error */
    shouldRetry(error) {
       var strErr = `${error.code}:${error.toString()}`;
       var isRetry = false;
@@ -726,57 +702,29 @@ class ABRequestService {
       return isRetry;
    }
 
-   /**
-    * servicePublish()
-    * Publish an update to other subscribed services.
-    * @param {string} key
-    *        the channel we are updating.
-    * @param {json} data
-    *        the data packet to send to the subscribers.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
-    */
    servicePublish(key, data) {
       this.__Publisher.publish(key, data);
    }
 
-   /**
-    * serviceRequest()
-    * Send a request to another micro-service using the cote protocol.
-    * @param {string} key
-    *        the service handler's key we are sending a request to.
-    * @param {json} data
-    *        the data packet to send to the service.
-    * @param {fn} cb
-    *        a node.js style callback(err, result) for when the response
-    *        is received.
-    */
-   serviceRequest(key, data, cb) {
-      this.__Requester.request(key, data, cb);
+   async serviceRequest(...args) {
+      return await this.__Requester.request(...args);
    }
 
    /**
-    * serviceSubscribe()
     * Create a Cote service subscriber that can parse our data interchange
     * format.
-    * @param {string} key
-    *        the service handler's key we are responding to.
-    * @param {fn} handler
-    *        a function to handle the incoming request. The function will
-    *        receive 1 parameters: fn(req)
-    *          req: an instance of the ABRequest appropriate for the current
-    *               context.
+    * @param {string} key the service handler's key we are responding to.
+    * @param {function} handler a function to handle the incoming request. See
+    * {@link ABServiceSubscriber} constructor for details
+    * @returns {ABServiceSubscriber}
     */
    serviceSubscribe(key, handler) {
       return this.__Subscriber(key, handler, this);
    }
 
    /**
-    * socketKey()
     * make sure any socket related key is prefixed by our tenantID
-    * @param {string} key
-    *       The socket key we are wanting to reference.
+    * @param {string} key The socket key we are wanting to reference.
     * @return {string}
     */
    socketKey(key) {
@@ -784,7 +732,6 @@ class ABRequestService {
    }
 
    /**
-    * tenantDB()
     * return the database reference for the current Tenant
     * @return {string}
     */
@@ -804,7 +751,6 @@ class ABRequestService {
    }
 
    /**
-    * tenantID()
     * return the tenantID of the current request
     * @return {string}
     */
@@ -815,6 +761,7 @@ class ABRequestService {
       return this._tenantID;
    }
 
+   /** @returns {ABRequestService} new instance */
    toABFactoryReq() {
       var ABReq = new ABRequestService(
          {
@@ -829,7 +776,6 @@ class ABRequestService {
    }
 
    /**
-    * @method toObj()
     * return a simplified {obj} hash of this request's data.
     * @return {obj}
     */
@@ -844,13 +790,12 @@ class ABRequestService {
    }
 
    /**
-    * @method userDefaults()
     * return a data structure used by our ABModel.find() .create() .update()
     * .delete() operations that needs credentials for the current User
     * driving this request.
     * @return {obj}
-    *          .languageCode: {string} the default language code of the user
-    *          .usernam: {string} the .username of the user for Identification.
+    * <br>         .languageCode: {string} the default language code of the user
+    * <br>         .username: {string} the .username of the user for Identification.
     */
    userDefaults() {
       return {
@@ -859,6 +804,7 @@ class ABRequestService {
       };
    }
 
+   /** @returns {string} the req user's username or "_system_" */
    username() {
       if (this._user && this._user.username) {
          return this._user.username;
@@ -866,6 +812,7 @@ class ABRequestService {
       return "_system_";
    }
 
+   /** @returns {string | null} the req userReal's username or null */
    usernameReal() {
       if (this._userReal && this._userReal.username) {
          return this._userReal.username;
@@ -873,12 +820,23 @@ class ABRequestService {
       return null;
    }
 
+   /**
+    * validate the req data and return any errors
+    * @param {object} description see {@link ABRequestValidation.validate}
+    * @returns {undefined | Error} see {@link ABRequestValidation.errors}
+    */
    validateData(description) {
       this.__Validator.validate(description, this.data);
       return this.__Validator.errors();
    }
 }
 
+/**
+ * return a modified req object that supports our typical AB functions.
+ * @param {obj} req the standard request object received from the Cote service.
+ * @param {ABServiceController} controller
+ * @returns {ABRequestService}
+ */
 module.exports = function (...params) {
    return new ABRequestService(...params);
 };

@@ -1,6 +1,10 @@
 /// reqServiceCote.js
 ///
 const shortid = require("shortid");
+
+/**
+ * @class ABServiceCote
+ */
 class ABServiceCote {
    constructor(req) {
       this.req = req;

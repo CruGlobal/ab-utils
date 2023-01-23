@@ -19,6 +19,7 @@ const domainRequesters = {
    /* domainKey : coteRequester */
 };
 
+/** @extends ABServiceCote */
 class ABServiceRequest extends ServiceCote {
    /**
     * Send a request to another micro-service using the cote protocol. Accept an
@@ -178,22 +179,20 @@ class ABServiceRequest extends ServiceCote {
 
    /**
     * Gets a cached requester for the domain, creating one if needed
-    * @function getRequester
     * @param {string} domain cote domain key
     * @param {boolean} long whether the requester needs a longer timeout
     */
-   getRequester(domain, long) {
-      const key = `${domain}${long ? "_long" : ""}`;
-      if (!domainRequesters[key]) {
-         this.req.log(`... creating clientRequester(${key})`);
-         domainRequesters[key] = new cote.Requester({
-            name: `${this.req.serviceKey} > requester > ${key}`,
+   getRequester(domain) {
+      if (!domainRequesters[domain]) {
+         this.req.log(`... creating clientRequester(${domain})`);
+         domainRequesters[domain] = new cote.Requester({
+            name: `${this.req.serviceKey} > requester > ${domain}`,
             key: domain,
             // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
-            timeout: long ? LONG_REQUEST_TIMEOUT : REQUEST_TIMEOUT,
+            timeout: REQUEST_TIMEOUT,
          });
       }
-      return domainRequesters[key];
+      return domainRequesters[domain];
    }
 }
 

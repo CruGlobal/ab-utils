@@ -1,5 +1,4 @@
-[![CodeQL](https://github.com/digi-serve/ab-utils/actions/workflows/codeql.yml/badge.svg)](https://github.com/digi-serve/ab-utils/actions/workflows/codeql.yml) [![Unit](https://github.com/digi-serve/ab-utils/actions/workflows/unit-test.yml/badge.svg)](https://github.com/digi-serve/ab-utils/actions/workflows/unit-test.yml) [![npm (scoped)](https://img.shields.io/npm/v/@digiserve/ab-utils)](https://www.npmjs.com/package/@digiserve/ab-utils)
-    <a name="module_ab-utils"></a>
+<a name="module_ab-utils"></a>
 
 ## ab-utils
 a set of common utilities shared by each of our microsservices
@@ -10,10 +9,10 @@ a set of common utilities shared by each of our microsservices
         * [new service(options)](#new_module_ab-utils.service_new)
     * [.uuid()](#module_ab-utils.uuid) ⇒ <code>string</code>
     * [.config(baseFile)](#module_ab-utils.config) ⇒ <code>object</code>
-    * [.controller([key])](#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](./docs/ABServiceController.md#ABServiceController)
-    * [.reqApi(req, res, [config])](#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](./docs/ABRequestAPI.md#ABRequestAPI)
-    * [.reqService(req, controller)](#module_ab-utils.reqService) ⇒ [<code>ABRequestService</code>](./docs/ABRequestService.md#ABRequestService)
-    * [.resApi(req, res)](#module_ab-utils.resApi) ⇒ [<code>ABResponseAPI</code>](./docs/ABResponseAPI.md#ABResponseAPI)
+    * [.controller([key])](#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](#ABServiceController)
+    * [.reqApi(req, res, [config])](#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](#ABRequestAPI)
+    * [.reqService(req, controller)](#module_ab-utils.reqService) ⇒ [<code>ABRequestService</code>](#ABRequestService)
+    * [.resApi(req, res)](#module_ab-utils.resApi) ⇒ [<code>ABResponseAPI</code>](#ABResponseAPI)
 
 <a name="module_ab-utils.service"></a>
 
@@ -22,7 +21,7 @@ Our ABService class
 
 **Kind**: static class of [<code>ab-utils</code>](#module_ab-utils)  
 **Extends**: <code>EventEmitter</code>  
-**See**: [ABService](./docs/ABService.md#ABService)  
+**See**: [ABService](#ABService)  
 <a name="new_module_ab-utils.service_new"></a>
 
 #### new service(options)
@@ -58,7 +57,7 @@ This is an alias for uuid.v4()
 
 <a name="module_ab-utils.controller"></a>
 
-### ab-utils.controller([key]) ⇒ [<code>ABServiceController</code>](./docs/ABServiceController.md#ABServiceController)
+### ab-utils.controller([key]) ⇒ [<code>ABServiceController</code>](#ABServiceController)
 Get an AppBuilder Controller for use in our micro services
 
 **Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
@@ -69,7 +68,7 @@ Get an AppBuilder Controller for use in our micro services
 
 <a name="module_ab-utils.reqApi"></a>
 
-### ab-utils.reqApi(req, res, [config]) ⇒ [<code>ABRequestAPI</code>](./docs/ABRequestAPI.md#ABRequestAPI)
+### ab-utils.reqApi(req, res, [config]) ⇒ [<code>ABRequestAPI</code>](#ABRequestAPI)
 prepare a default set of data/utilities for our api request.
 This request is established in the Sails api_sails service and is used
 to verify and send jobs to various micro services.
@@ -84,7 +83,7 @@ to verify and send jobs to various micro services.
 
 <a name="module_ab-utils.reqService"></a>
 
-### ab-utils.reqService(req, controller) ⇒ [<code>ABRequestService</code>](./docs/ABRequestService.md#ABRequestService)
+### ab-utils.reqService(req, controller) ⇒ [<code>ABRequestService</code>](#ABRequestService)
 return a modified req object that supports our typical AB functions.
 
 **Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
@@ -92,11 +91,11 @@ return a modified req object that supports our typical AB functions.
 | Param | Type | Description |
 | --- | --- | --- |
 | req | <code>obj</code> | the standard request object received from the Cote service. |
-| controller | [<code>ABServiceController</code>](./docs/ABServiceController.md#ABServiceController) |  |
+| controller | [<code>ABServiceController</code>](#ABServiceController) |  |
 
 <a name="module_ab-utils.resApi"></a>
 
-### ab-utils.resApi(req, res) ⇒ [<code>ABResponseAPI</code>](./docs/ABResponseAPI.md#ABResponseAPI)
+### ab-utils.resApi(req, res) ⇒ [<code>ABResponseAPI</code>](#ABResponseAPI)
 prepare a default set of data/utilities for our api response.
 
 **Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
@@ -106,16 +105,3 @@ prepare a default set of data/utilities for our api response.
 | req | <code>object</code> | 
 | res | <code>object</code> | 
 
-
-## Classes
- - [ABServiceController](./docs/ABServiceController.md)
- - [ABRequestAPI](./docs/ABRequestAPI.md)
- - [ABNotification](./docs/ABNotification.md)
- - [ABRequestService](./docs/ABRequestService.md)
- - [ABServiceCote](./docs/ABServiceCote.md)
- - [ABServicePublish](./docs/ABServicePublish.md)
- - [ABServiceResponder](./docs/ABServiceResponder.md)
- - [ABServiceSubscriber](./docs/ABServiceSubscriber.md)
- - [ABResponseAPI](./docs/ABResponseAPI.md)
- - [ABService](./docs/ABService.md)
- - [ABServiceRequest](./docs/ABServiceRequest.md)

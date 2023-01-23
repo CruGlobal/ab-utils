@@ -1,7 +1,11 @@
-//
-// service
-// Define a common AppBuilder Service class for use in our micro services.
-//
+/**
+ * Define a common AppBuilder Service class for use in our micro services.
+ * @module service
+ * @class ABService
+ * @extends EventEmitter
+ * @param {obj} options
+ * @param {string} [options.name=ABService]
+ */
 // var path = require("path");
 // var _ = require("lodash");
 var EventEmitter = require("events").EventEmitter;
@@ -74,4 +78,5 @@ class ABService extends EventEmitter {
       this.emit("ready");
    }
 }
+
 module.exports = ABService;

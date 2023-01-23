@@ -1,9 +1,15 @@
-//
-// config
-// read in this service's config file, merge it with the settings in the common
-// local.js file, and return those values.
+/**
+ * read in this service's config file, merge it with the settings in the common
+ * local.js file, and return those values
+ * @module config
+ * @ignore
+ */
 var path = require("path");
 var _ = require("lodash");
+/**
+ * @param {string} baseFile should be included as part of the project
+ * @returns {object} baseConfig
+ */
 module.exports = (baseFile) => {
    // baseConfig should be included as part of the project
    var baseConfig = {};

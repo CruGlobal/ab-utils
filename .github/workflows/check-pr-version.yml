@@ -1,0 +1,26 @@
+name: Check Release Label
+on:
+  pull_request:
+    types: [opened, labeled, unlabeled, synchronize]
+    branches: [master]
+jobs:
+  check_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Label
+        id: check_label
+        run: echo "LABEL_FOUND=${{contains(github.event.pull_request.labels.*.name, 'major') || contains(github.event.pull_request.labels.*.name, 'minor')  || contains(github.event.pull_request.labels.*.name, 'patch') || contains(github.event.pull_request.labels.*.name, 'no_release')}}" >> $GITHUB_OUTPUT
+
+      - name: No Label Found
+        run: | 
+          echo "::error::missing release label"
+          exit 1
+        if: steps.check_label.outputs.LABEL_FOUND != 'true'
+
+      - name: Add Comment
+        uses: NejcZdovc/comment-pr@v2
+        if: failure()
+        with:
+          message: "**Please add a release label:**<br>**`major`** (for breaking changes), **`minor`** (for new features), **`patch`** (for bug fixes) or **`no_release`** (to skip the auto release process)."
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
