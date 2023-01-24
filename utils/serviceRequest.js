@@ -99,14 +99,17 @@ class ABServiceRequest extends ServiceCote {
                         // Retry .send
                         if (!timeoutCleanup && countRequest < attempts) {
                            this.req.log(
-                              `... timeout waiting for request (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_MAXIMUM}`
+                              `... timeout waiting for request (${key}), retrying ${countRequest}/${attempts}`
                            );
 
                            sendRequest();
                            return;
                         }
 
-                        if (timeoutCleanup && countRequest < attempts) {
+                        if (
+                           timeoutCleanup &&
+                           countRequest < ATTEMPT_REQUEST_OVERTIME
+                        ) {
                            // Q: should we attempt to scale our timeouts?
                            timeout *= 1.5;
 
@@ -118,11 +121,13 @@ class ABServiceRequest extends ServiceCote {
                            return;
                         }
 
-                        this.req.notify.developer(err, {
-                           message: `Could not request (${key}) - ${JSON.stringify(
-                              paramStack
-                           )}`,
-                        });
+                        if (key !== "log_manager.notification") {
+                           this.req.notify.developer(err, {
+                              message: `Could not request (${key}) - ${JSON.stringify(
+                                 paramStack
+                              )}`,
+                           });
+                        }
                      }
 
                      err._serviceRequest = key;
