@@ -6,6 +6,7 @@ const req = {
    serviceRequest: sinon.fake(),
    _tenantID: "tenant",
    jobID: "job",
+   requestID: "request",
    serviceKey: "key",
 };
 const notification = reqNotification(req);
@@ -35,6 +36,7 @@ describe("ABNotification", () => {
             error: "stringified error",
             info: {
                jobID: "job",
+               requestID: "request",
                serviceKey: "key",
                tenantID: "tenant",
                user: {},

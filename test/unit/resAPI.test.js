@@ -22,12 +22,14 @@ describe("ABResponseAPI", () => {
 
    describe(".error()", () => {
       it("sends code 400 by default", () => {
-         res.error(new Error("test"));
+         let err = new Error("test");
+         let strErr = err.toString(); // Error data is now stringified.
+         res.error(err);
          assert(sailsRes.status.calledOnceWith(400));
          assert(sailsRes.send.calledOnce);
          assert.equal(
             sailsRes.send.firstCall.firstArg,
-            '{"status":"error","data":{},"message":"test"}'
+            `{"status":"error","data":"${strErr}","message":"test"}`
          );
       });
 

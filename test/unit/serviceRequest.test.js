@@ -57,6 +57,7 @@ describe("ServiceRequest tests", () => {
             param: {
                data,
                jobID: undefined,
+               requestID: undefined,
                tenantID: undefined,
                user: undefined,
                userReal: undefined,
@@ -88,6 +89,7 @@ describe("ServiceRequest tests", () => {
             param: {
                data,
                jobID: undefined,
+               requestID: undefined,
                tenantID: undefined,
                user: undefined,
                userReal: undefined,
@@ -142,6 +144,7 @@ describe("ServiceRequest tests", () => {
             param: {
                data: {},
                jobID: undefined,
+               requestID: undefined,
                tenantID: undefined,
                user: undefined,
                userReal: undefined,
@@ -166,6 +169,7 @@ describe("ServiceRequest tests", () => {
             param: {
                data: {},
                jobID: undefined,
+               requestID: undefined,
                tenantID: undefined,
                user: undefined,
                userReal: undefined,
@@ -187,6 +191,7 @@ describe("ServiceRequest tests", () => {
             param: {
                data: { value: 1 },
                jobID: undefined,
+               requestID: undefined,
                tenantID: undefined,
                user: undefined,
                userReal: undefined,
