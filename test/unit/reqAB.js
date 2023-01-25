@@ -9,22 +9,22 @@ var expect = require("chai").expect;
 // Our service handler:
 var REQAB = require(path.join(__dirname, "..", "..", "utils", "reqAB.js"));
 
-describe("reqAB: jobID", function() {
+describe("reqAB: jobID", function () {
    /*
     * initializes a default jobID when created
     */
-   it("initializes a default jobID when created", function() {
+   it("initializes a default jobID when created", function () {
       var ab = REQAB({}, {});
       expect(ab.jobID).to.exist;
       expect(typeof ab.jobID).to.equal("string");
    });
 });
 
-describe("reqAB: tenantSet", function() {
+describe("reqAB: tenantSet", function () {
    /*
     * properly respond when a tenant is registered:
     */
-   it("properly respond when a tenant is registered", function() {
+   it("properly respond when a tenant is registered", function () {
       var ab = REQAB({}, {});
       expect(ab.tenantSet()).to.be.false;
       ab.tenantID = "tenant";
@@ -32,22 +32,22 @@ describe("reqAB: tenantSet", function() {
    });
 });
 
-describe("reqAB: log", function() {
+describe("reqAB: log", function () {
    /*
     * always includes .jobID in our console output:
     */
-   it("always includes .jobID in our console output:", function() {
+   it("always includes .jobID in our console output:", function () {
       var ab = REQAB({}, {});
       ab.__console = {
          log: (out) => {
             expect(out).to.contain(ab.jobID);
-         }
+         },
       };
       ab.log("test");
    });
 });
 
-describe("reqAB: toParam", function() {
+describe("reqAB: toParam", function () {
    /*
     * creates expected format:
     *   {
@@ -59,7 +59,7 @@ describe("reqAB: toParam", function() {
     *     }
     *  };
     */
-   it("creates expected format::", function() {
+   it("creates expected format::", function () {
       var ab = REQAB({}, {});
       var param = ab.toParam("key", { value: "here" });
       expect(param).to.exist;
@@ -76,11 +76,11 @@ describe("reqAB: toParam", function() {
    });
 });
 
-describe("reqAB: validateParameters", function() {
+describe("reqAB: validateParameters", function () {
    /*
     * call res.ab.error() if an error is detected && autoRespond == true
     */
-   it("call res.ab.error() if an error is detected && autoRespond == true", function() {
+   it("call res.ab.error() if an error is detected && autoRespond == true", function () {
       var ab = REQAB(
          {},
          {
@@ -89,13 +89,13 @@ describe("reqAB: validateParameters", function() {
                   expect(err).to.exist;
                   expect(err.code).to.equal(422);
                   expect(err.key).to.equal("E_VALIDATION");
-               }
-            }
+               },
+            },
          }
       );
       // don't display output
       ab.__console = {
-         log: () => {}
+         log: () => {},
       };
       ab.__validationErrors.push({ error: true });
       if (ab.validateParameters({}, true)) {
@@ -107,7 +107,7 @@ describe("reqAB: validateParameters", function() {
    /*
     * Don't call res.ab.error() if an error is detected && autoRespond == false
     */
-   it("Don't call res.ab.error() if an error is detected && autoRespond == false", function() {
+   it("Don't call res.ab.error() if an error is detected && autoRespond == false", function () {
       var ab = REQAB(
          {},
          {
@@ -115,13 +115,13 @@ describe("reqAB: validateParameters", function() {
                error: () => {
                   // this should not be called:
                   expect(true).to.be.false;
-               }
-            }
+               },
+            },
          }
       );
       // don't display output
       ab.__console = {
-         log: () => {}
+         log: () => {},
       };
       ab.__validationErrors.push({ error: true });
       if (ab.validateParameters({}, false)) {
@@ -131,14 +131,14 @@ describe("reqAB: validateParameters", function() {
    });
 });
 
-describe("reqAB: serviceRequest", function() {
+describe("reqAB: serviceRequest", function () {
    /*
     * should create a new Request on 1st call, but not second
     */
-   it("should create a new Request on 1st call, but not second", function() {
+   it("should create a new Request on 1st call, but not second", function () {
       var ab = REQAB({}, {});
       ab.__console = {
-         log: () => {}
+         log: () => {},
       };
 
       // 1st time we expect this to be called:
@@ -169,7 +169,7 @@ class RequestCalled {
       return {
          send: (param, cb) => {
             cb();
-         }
+         },
       };
    }
    send(param, cb) {
@@ -183,7 +183,7 @@ class RequestNotCalled {
       return {
          send: (param, cb) => {
             cb();
-         }
+         },
       };
    }
    send(param, cb) {
