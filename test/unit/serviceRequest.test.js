@@ -31,7 +31,7 @@ describe("ServiceRequest tests", () => {
       });
    });
 
-   describe.only(".request()", () => {
+   describe(".request()", () => {
       before(() => {
          sinon.stub(serviceRequest, "getRequester").returns({
             send: sendStub,
@@ -77,7 +77,10 @@ describe("ServiceRequest tests", () => {
          } catch (err) {
             //expected
          }
-         assert(notify.calledOnce, ".notify.developer() not called once");
+         assert.isFalse(
+            notify.calledOnce,
+            ".notify.developer() not called once"
+         );
          assert.equal(callback.callCount, 1);
          assert.instanceOf(callback.firstCall.firstArg, Error);
          assert.include(callback.firstCall.firstArg, {

@@ -135,13 +135,18 @@ class ABServiceRequest extends ServiceCote {
                   }
 
                   if (timeoutCleanup) {
-                     this.req.notify.developer(err, {
-                        message: `EOVERTIME: Handler response after timout`,
+                     let meta = {
+                        message: `EOVERTIME:[${key}] Handler response after timout`,
                         paramStack: JSON.stringify(paramStack, null, 3),
                         finalTime,
                         err,
                         results, // <--- Do we send this?  might be too large
-                     });
+                     };
+                     if (key !== "log_manager.notification") {
+                        this.req.notify.developer(err, meta);
+                     } else {
+                        this.req.log(meta.message, meta);
+                     }
                      return;
                   }
 
