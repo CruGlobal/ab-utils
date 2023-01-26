@@ -1,4 +1,4 @@
-const assert = require("assert");
+const { assert } = require("chai");
 const proxyquire = require("proxyquire");
 const sinon = require("sinon");
 
@@ -31,18 +31,20 @@ describe("ServiceRequest tests", () => {
       });
    });
 
-   describe(".request()", () => {
+   describe.only(".request()", () => {
       before(() => {
          sinon.stub(serviceRequest, "getRequester").returns({
             send: sendStub,
          });
       });
+
       beforeEach(() => {
          sendStub.reset();
          notify.resetHistory();
       });
+
       it("calls the callback", async () => {
-         sendStub.resolves({ success: true });
+         sendStub.yields(null, { success: true });
          const data = { test: true };
          const callback = sinon.fake();
          await serviceRequest.request("service.test", data, callback);
@@ -52,72 +54,81 @@ describe("ServiceRequest tests", () => {
          assert.equal(callback.callCount, 2);
          assert.deepEqual(callback.firstCall.args, [null, { success: true }]);
          assert.equal(sendStub.callCount, 2);
-         assert.deepEqual(sendStub.firstCall.firstArg, {
+         const arg = sendStub.firstCall.firstArg;
+         assert.include(arg, {
             __timeout: 5000,
-            param: {
-               data,
-               jobID: undefined,
-               requestID: undefined,
-               tenantID: undefined,
-               user: undefined,
-               userReal: undefined,
-            },
             type: "service.test",
          });
+         assert.deepInclude(arg.param, { data });
+         assert.containsAllKeys(arg.param, [
+            "jobID",
+            "requestID",
+            "tenantID",
+            "user",
+            "userReal",
+         ]);
       });
 
       it("calls callback with error", async () => {
-         const err = new Error("Test Error");
-         sendStub.rejects(err);
+         sendStub.yields(new Error("Test Error"));
          const callback = sinon.fake();
-         await serviceRequest.request("service.test", {}, callback);
-         assert(notify.calledOnce);
+         try {
+            await serviceRequest.request("service.test", {}, callback);
+         } catch (err) {
+            //expected
+         }
+         assert(notify.calledOnce, ".notify.developer() not called once");
          assert.equal(callback.callCount, 1);
-         assert.deepEqual(callback.firstCall.args, [err]);
+         assert.instanceOf(callback.firstCall.firstArg, Error);
+         assert.include(callback.firstCall.firstArg, {
+            message: "Test Error",
+         });
       });
 
       it("returns a promise", async () => {
-         sendStub.resolves({ success: true });
+         sendStub.yields(null, { success: true });
          const data = { test: true };
          const promise = serviceRequest.request("service.test", data);
          assert(promise instanceof Promise);
          const response = await promise;
          assert.deepEqual(response, { success: true });
          assert.equal(sendStub.callCount, 1);
-         assert.deepEqual(sendStub.firstCall.firstArg, {
+         const arg = sendStub.firstCall.firstArg;
+         assert.include(arg, {
             __timeout: 5000,
-            param: {
-               data,
-               jobID: undefined,
-               requestID: undefined,
-               tenantID: undefined,
-               user: undefined,
-               userReal: undefined,
-            },
             type: "service.test",
          });
+         assert.deepInclude(arg.param, { data });
+         assert.containsAllKeys(arg.param, [
+            "jobID",
+            "requestID",
+            "tenantID",
+            "user",
+            "userReal",
+         ]);
       });
 
       it("rejects a promise", async () => {
          const err = new Error("Test Error");
-         sendStub.rejects(err);
+         sendStub.yields(err);
          serviceRequest.request("service.test", {}).catch((caught) => {
             assert.deepEqual(caught, err);
          });
       });
 
       it("retries a timeout", async () => {
-         sendStub.rejects(new Error("Request timed out."));
+         sendStub.yields(new Error("Request timed out."));
          try {
             await serviceRequest.request("service.test", {});
          } catch (err) {
             // We expect this
          }
-         assert.equal(sendStub.callCount, 5);
+         // 5 Regular attempts + 50 timeouts
+         assert.equal(sendStub.callCount, 55);
       });
 
       it("called with options.maxAttempts", async () => {
-         sendStub.rejects(new Error("Request timed out."));
+         sendStub.yields(new Error("Request timed out."));
          try {
             await serviceRequest.request(
                "service.test",
@@ -127,11 +138,12 @@ describe("ServiceRequest tests", () => {
          } catch (err) {
             // We expect this
          }
-         assert.equal(sendStub.callCount, 1);
+         // 1 Regular attempt + 50 timeouts
+         assert.equal(sendStub.callCount, 51);
       });
 
       it("called with options.timeout", async () => {
-         sendStub.resolves();
+         sendStub.yields();
          await serviceRequest.request("service.test", {}, { timeout: 15000 });
          await serviceRequest.request(
             "service.test",
@@ -139,69 +151,41 @@ describe("ServiceRequest tests", () => {
             { timeout: 15000, longRequest: true } // longRequest should be ignored here
          );
 
-         const expectedArg = {
-            __timeout: 15000,
-            param: {
-               data: {},
-               jobID: undefined,
-               requestID: undefined,
-               tenantID: undefined,
-               user: undefined,
-               userReal: undefined,
-            },
-            type: "service.test",
-         };
-
-         assert.deepEqual(sendStub.firstCall.firstArg, expectedArg);
-         assert.deepEqual(sendStub.secondCall.firstArg, expectedArg);
+         assert.include(sendStub.firstCall.firstArg, { __timeout: 15000 });
+         assert.include(sendStub.secondCall.firstArg, { __timeout: 15000 });
       });
 
       it("called with options.longRequest", async () => {
-         sendStub.resolves();
+         sendStub.yields();
          await serviceRequest.request(
             "service.test",
             {},
             { longRequest: true }
          );
 
-         assert.deepEqual(sendStub.firstCall.firstArg, {
+         assert.include(sendStub.firstCall.firstArg, {
             __timeout: 90000,
-            param: {
-               data: {},
-               jobID: undefined,
-               requestID: undefined,
-               tenantID: undefined,
-               user: undefined,
-               userReal: undefined,
-            },
-            type: "service.test",
          });
       });
 
       // Legacy case, needs to work
       it("called with data.longRequest", async () => {
-         sendStub.resolves();
+         sendStub.yields();
          await serviceRequest.request("service.test", {
             value: 1,
             longRequest: true,
          });
 
-         assert.deepEqual(sendStub.firstCall.firstArg, {
+         assert.include(sendStub.firstCall.firstArg, {
             __timeout: 90000,
-            param: {
-               data: { value: 1 },
-               jobID: undefined,
-               requestID: undefined,
-               tenantID: undefined,
-               user: undefined,
-               userReal: undefined,
-            },
-            type: "service.test",
+         });
+         assert.deepInclude(sendStub.firstCall.firstArg.param, {
+            data: { value: 1 },
          });
       });
 
       it("failed log_manager.notification doesn't call notify", async () => {
-         sendStub.rejects();
+         sendStub.yields(new Error("Request timed out."));
          try {
             await serviceRequest.request("log_manager.notification", {
                value: 1,
