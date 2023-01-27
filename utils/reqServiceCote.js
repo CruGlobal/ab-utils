@@ -1,5 +1,6 @@
 /// reqServiceCote.js
 ///
+const shortid = require("shortid");
 
 /**
  * @class ABServiceCote
@@ -24,6 +25,7 @@ class ABServiceCote {
          type: key,
          param: {
             jobID: this.req.jobID,
+            requestID: shortid.generate(),
             tenantID: this.req._tenantID,
             user: this.req._user,
             userReal: this.req._userReal,

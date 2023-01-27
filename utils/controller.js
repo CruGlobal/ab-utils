@@ -18,6 +18,15 @@ const redis = require("redis");
 const EventEmitter = require("events").EventEmitter;
 const config = require(path.join(__dirname, "config.js"));
 
+const _PendingRequests = {
+   /* requestID: cb() */
+};
+// the incoming requests by their requestID.
+// It is possible timeouts will happen, and the calling request will be repeated.
+// Instead of passing it to the handler to be run again, we update our stored cb
+// with the new one, so that the latest cb() is called when the handler is
+// resolved.
+
 /**
  * @alias ABServiceController
  * @extends EventEmitter
@@ -229,7 +238,7 @@ class ABServiceController extends EventEmitter {
             });
          })
          .then(() => {
-            initState = "5.controller.ready";
+            initState = "6.controller.ready";
             this.ready();
          })
          .catch((err) => {
@@ -406,23 +415,53 @@ class ABServiceController extends EventEmitter {
                // }
             }
 
-            // so far so good, now pass on to handler:
-            handler.fn(abReq, (err, data) => {
-               // do our own conditioning of the err data:
-               var cbErr = null;
-               if (err) {
-                  cbErr = err;
-                  if (err instanceof Error) {
-                     cbErr = {
-                        code: err.code,
-                        message: err.toString(),
-                        stack: err.stack,
-                     };
+            // check for duplicate Requests:
+            if (_PendingRequests[abReq.requestID]) {
+               // this is a duplicate:
+               abReq.log("... preventing duplicate request");
+
+               // update the stored cb()
+               _PendingRequests[abReq.requestID] = cb;
+               return;
+            }
+
+            // store the original cb for this requestID
+            _PendingRequests[abReq.requestID] = cb;
+
+            try {
+               // so far so good, now pass on to handler:
+               handler.fn(abReq, (err, data) => {
+                  // do our own conditioning of the err data:
+                  var cbErr = null;
+                  if (err) {
+                     cbErr = err;
+                     if (err instanceof Error) {
+                        cbErr = {
+                           code: err.code,
+                           message: err.toString(),
+                           stack: err.stack,
+                        };
+                     }
                   }
-               }
+                  abReq.performance.log();
+
+                  // cb(cbErr, data);
+                  // send back the data on the latest _PendingRequest
+                  _PendingRequests[abReq.requestID](cbErr, data);
+                  delete _PendingRequests[abReq.requestID];
+               });
+            } catch (e) {
+               abReq.notify.developer(e, {
+                  message: "unhandled Error in service handler",
+                  req: abReq,
+               });
                abReq.performance.log();
-               cb(cbErr, data);
-            });
+
+               // cb(cbErr, data);
+               // send back the data on the latest _PendingRequest
+               _PendingRequests[abReq.requestID](e);
+               delete _PendingRequests[abReq.requestID];
+            }
          };
          this.serviceResponder.on(handler.key, handler._cFN);
       });

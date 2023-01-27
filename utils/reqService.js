@@ -98,6 +98,11 @@ class ABRequestService {
       // the unique id of this job.  It helps track actions for a particular
       // Job across service calls.
 
+      this.requestID = req.requestID || "??";
+      // {string}
+      // the unique id of a specific req.serviceRequest(key, data, cb);
+      // this is used to determine if a repeated request is being made.
+
       this._tenantID = req.tenantID || "??";
       // {string}
       // which tenant is this request for.
