@@ -187,6 +187,7 @@ class ABServiceController extends EventEmitter {
                this.serviceResponder = new cote.Responder({
                   name: this.key,
                   key: this.key,
+                  port: 9000,
                });
             });
          })
