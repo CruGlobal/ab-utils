@@ -17,6 +17,7 @@ const redis = require("redis");
 // var _ = require("lodash");
 const EventEmitter = require("events").EventEmitter;
 const config = require(path.join(__dirname, "config.js"));
+const DefaultHealthcheck = require("./defaultHealthcheck.js");
 
 const _PendingRequests = {
    /* requestID: cb() */
@@ -71,6 +72,10 @@ class ABServiceController extends EventEmitter {
                }
             }
          });
+      }
+      if (!this.handlers.find(h => h.key.match(/\.healthcheck$/))) {
+         // If no .healthcheck handler was provided, use the default.
+         this.handlers.push(new DefaultHealthcheck(key));
       }
 
       // scan our [ /models, /models/shared ] directories and load our model
