@@ -93,6 +93,17 @@ class ABServiceRequest extends ServiceCote {
                      finalTime = this.req.performance.measure(key, key);
                   }
 
+                  // Convert .paramStack to a string
+                  let strParamStack;
+                  try {
+                     strParamStack = JSON.stringify(paramStack, null, 3);
+                  }
+                  catch(err) {
+                     strParamStack = "This [paramStack] has error when calls JSON.stringify. It might be too large to convert";
+                     console.error(err);
+                     console.info(strParamStack, paramStack);
+                  }
+
                   if (err) {
                      // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L132
                      if (err.message === "Request timed out.") {
@@ -123,9 +134,7 @@ class ABServiceRequest extends ServiceCote {
 
                         if (key !== "log_manager.notification") {
                            this.req.notify.developer(err, {
-                              message: `Could not request (${key}) - ${JSON.stringify(
-                                 paramStack
-                              )}`,
+                              message: `Could not request (${key}) - ${strParamStack}`,
                            });
                         }
                      }
@@ -137,7 +146,7 @@ class ABServiceRequest extends ServiceCote {
                   if (timeoutCleanup) {
                      let meta = {
                         message: `EOVERTIME:[${key}] Handler response after timout`,
-                        paramStack: JSON.stringify(paramStack, null, 3),
+                        paramStack: strParamStack,
                         finalTime,
                         err,
                         results, // <--- Do we send this?  might be too large
