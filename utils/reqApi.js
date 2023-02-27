@@ -235,7 +235,7 @@ class ABRequestAPI {
    }
 
    serviceRequest(...params) {
-      this.__Requester.request(...params);
+      return this.__Requester.request(...params);
    }
 
    /**
