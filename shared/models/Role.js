@@ -2,7 +2,7 @@
  * Tenant.js
  * define our DB operations.
  */
-const AB = require("ab-utils");
+const { v4: uuid } = require("uuid");
 
 module.exports = {
    table_name: "site_role",
@@ -12,19 +12,19 @@ module.exports = {
       name: "string",
       users: {
          collection: "User",
-         via: "roles"
+         via: "roles",
       },
 
       userForms: {
          collection: "UserForm",
          via: "roles",
-         dominant: true
-      }
+         dominant: true,
+      },
    },
-   beforeCreate: function(values, cb) {
+   beforeCreate: function (values, cb) {
       if (!values.uuid) {
-         values.uuid = AB.uuid();
+         values.uuid = uuid();
       }
       cb();
-   }
+   },
 };

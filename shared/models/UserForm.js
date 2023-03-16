@@ -4,7 +4,7 @@
  *
  * A UserForm is a request for a User to View some data, and respond to it.
  */
-const AB = require("ab-utils");
+const { v4: uuid } = require("uuid");
 
 module.exports = {
    table_name: "process_userform",
@@ -32,7 +32,7 @@ module.exports = {
       // {json} : the Form.io ui data to be presented as the Form for the user
       //    to interact with.
 
-      data: "json", 
+      data: "json",
       // {json} : the associated data that goes with the Form.io ui
 
       response: "string",
@@ -53,19 +53,19 @@ module.exports = {
 
       roles: {
          collection: "Role",
-         via: "userForms"
+         via: "userForms",
       },
 
       users: {
          collection: "User",
-         via: "userForms"
-      }
+         via: "userForms",
+      },
    },
-   beforeCreate: function(values, cb) {
+   beforeCreate: function (values, cb) {
       if (!values.uuid) {
-         values.uuid = AB.uuid();
+         values.uuid = uuid();
       }
 
       cb();
-   }
+   },
 };

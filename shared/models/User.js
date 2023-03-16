@@ -2,7 +2,7 @@
  * Tenant.js
  * define our DB operations.
  */
-const AB = require("ab-utils");
+const { v4: uuid } = require("uuid");
 const nanoid = require("nanoid");
 const path = require("path");
 const utils = require(path.join(__dirname, "..", "utils", "utils.js"));
@@ -36,7 +36,7 @@ module.exports = {
    },
    beforeCreate: function (values, cb) {
       if (!values.uuid) {
-         values.uuid = AB.uuid();
+         values.uuid = uuid();
       }
 
       // we generate .token
