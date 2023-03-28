@@ -12,7 +12,8 @@
 <a name="ABServiceRequest+request"></a>
 
 ### abServiceRequest.request(key, data, [options], [cb]) ⇒ <code>Promise</code>
-Send a request to another micro-service using the cote protocol. Accept anoptional callback, but also returns a promise.
+Send a request to another micro-service using the cote protocol. Accept an
+optional callback, but also returns a promise.
 
 **Kind**: instance method of [<code>ABServiceRequest</code>](#ABServiceRequest)  
 **Returns**: <code>Promise</code> - resolves with the response from the service  
@@ -29,7 +30,16 @@ Send a request to another micro-service using the cote protocol. Accept anoptio
 
 **Example**  
 ```js
-// async/awaittry {   let result = await request(key, data);} catch (err) {}// promiserequest(key, data, opts).then((result) => {}).catch((err) => {})// callbackrequest(key, data, opts, (err, result) => {})// orrequest(key, data, (err, result) => {})
+// async/await
+try {
+   let result = await request(key, data);
+} catch (err) {}
+// promise
+request(key, data, opts).then((result) => {}).catch((err) => {})
+// callback
+request(key, data, opts, (err, result) => {})
+// or
+request(key, data, (err, result) => {})
 ```
 <a name="ABServiceRequest+getRequester"></a>
 
@@ -46,7 +56,8 @@ Gets a cached requester for the domain, creating one if needed
 <a name="ABServiceCote+toParam"></a>
 
 ### abServiceRequest.toParam(key, data)
-toParam()repackage the current data into a common format between our services
+toParam()
+repackage the current data into a common format between our services
 
 **Kind**: instance method of [<code>ABServiceRequest</code>](#ABServiceRequest)  
 

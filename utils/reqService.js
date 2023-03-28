@@ -219,6 +219,54 @@ class ABRequestService {
       };
 
       /**
+       * A shortcut method to post our "ab.inbox.update" messages to our Clients.
+       * @param {string[] | SiteUser[]} users An array of SiteUser.uuid(s) that
+       * should receive this message. Can also work with [{SiteUser}] objects.
+       * @param {string[] | Role[]} roles An array of Role.uuid(s) that should
+       * receive this message. Can also work with [{Role}] objects.
+       * @param {obj} item The newly created Inbox Item definition.
+       * @param {fn} [cb] (optional) for legacy code api, a node style
+       * callback(error) can be provided for the response.
+       * @return {Promise}
+       * @kind function
+       */
+      this.broadcast.inboxUpdate = (users =[], roles = [], item, cb) => {
+         return new Promise((resolve, reject) => {
+            const key = "broadcast.inbox.update";
+
+            this.performance.mark(key);
+
+            const packets = [];
+
+            (users || []).forEach((u) => {
+               packets.push({
+                  room: this.socketKey(u.uuid || u.username || u),
+                  event: "ab.inbox.update",
+                  data: item,
+               });
+            });
+            (roles || []).forEach((r) => {
+               packets.push({
+                  room: this.socketKey(r.uuid || r),
+                  event: "ab.inbox.update",
+                  data: item,
+               });
+            });
+            this.broadcast(packets, (err) => {
+               this.performance.measure(key);
+               if (cb) {
+                  cb(err);
+               }
+               if (err) {
+                  reject(err);
+                  return;
+               }
+               resolve();
+            });
+         });
+      };
+
+      /**
        * A shortcut method for posting our "ab.datacollection.create" messages
        * to our Clients.
        * @param {string} id The {ABObject.id} of the ABObject definition that we
