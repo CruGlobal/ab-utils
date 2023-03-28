@@ -1,7 +1,9 @@
 <a name="ABRequestAPI"></a>
 
 ## ABRequestAPI
-a default set of data/utilities for our api request. This requestis established in the Sails api_sails service and is used to verify and sendjobs to various micro services.
+a default set of data/utilities for our api request. This request
+is established in the Sails api_sails service and is used to verify and send
+jobs to various micro services.
 
 **Kind**: global class  
 
@@ -77,10 +79,13 @@ allow the current user to impersonate the provided user.
 <a name="ABRequestAPI+userDefaults"></a>
 
 ### req.userDefaults() ⇒ <code>obj</code>
-return a data structure used by our ABModel.find() .create() .update().delete() operations that needs credentials for the current Userdriving this request.
+return a data structure used by our ABModel.find() .create() .update()
+.delete() operations that needs credentials for the current User
+driving this request.
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
-**Returns**: <code>obj</code> - .languageCode: {string} the default language code of the user         .usernam: {string} the .username of the user for Identification.  
+**Returns**: <code>obj</code> - .languageCode: {string} the default language code of the user
+         .usernam: {string} the .username of the user for Identification.  
 <a name="ABRequestAPI+tenantSet"></a>
 
 ### req.tenantSet() ⇒ <code>bool</code>
@@ -100,7 +105,10 @@ format our output logs to include our jobID with our message.
 <a name="ABRequestAPI+param"></a>
 
 ### req.param(key) ⇒ <code>string</code>
-An interface to return the requested input value.If that value has already been processed by our .validateParameters()we pull that value from there.  Otherwise we ask the provided req objectfor the value.
+An interface to return the requested input value.
+If that value has already been processed by our .validateParameters()
+we pull that value from there.  Otherwise we ask the provided req object
+for the value.
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 
@@ -111,7 +119,8 @@ An interface to return the requested input value.If that value has already been
 <a name="ABRequestAPI+serviceResponder"></a>
 
 ### req.serviceResponder(key, handler) ⇒ [<code>ABServiceResponder</code>](./ABServiceResponder.md#ABServiceResponder)
-Create a Cote service responder that can parse our data interchangeformat.
+Create a Cote service responder that can parse our data interchange
+format.
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 
@@ -123,7 +132,8 @@ Create a Cote service responder that can parse our data interchangeformat.
 <a name="ABRequestAPI+serviceSubscribe"></a>
 
 ### req.serviceSubscribe(key, handler) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
-Create a Cote service subscriber that can parse our data interchangeformat.
+Create a Cote service subscriber that can parse our data interchange
+format.
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 
@@ -146,7 +156,14 @@ make sure any socket related key is prefixed by our tenantID
 <a name="ABRequestAPI+validateParameters"></a>
 
 ### req.validateParameters(description, [autoRespond], [params]) ⇒ <code>bool</code>
-Parse the description object and determine if the current req instancepasses the tests provided.Will first use the description to build a joi validator, and then evaluatethe parameters using it.Any missed validation rules will be stored internally and an error can beretrieved using .errorValidation().
+Parse the description object and determine if the current req instance
+passes the tests provided.
+
+Will first use the description to build a joi validator, and then evaluate
+the parameters using it.
+
+Any missed validation rules will be stored internally and an error can be
+retrieved using .errorValidation().
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 **Returns**: <code>bool</code> - true if all checks pass, otherwise false.  
@@ -214,7 +231,12 @@ Verify if the current user has the Switcheroo Role assigned
 <a name="ABRequestAPI+validUser"></a>
 
 ### req.validUser([autoRespond]) ⇒ <code>bool</code>
-returns `true` if there is a valid .user set on the request, otherwise`false`By default, this function will return a "E_REAUTH" error back as theresponse.  If you want to externally handle this situationthen need to pass `false` for autoRespond.
+returns `true` if there is a valid .user set on the request, otherwise
+`false`
+
+By default, this function will return a "E_REAUTH" error back as the
+response.  If you want to externally handle this situation
+then need to pass `false` for autoRespond.
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 
@@ -277,7 +299,8 @@ Publish an update to other subscribed services.
 <a name="ABRequestAPI+serviceRequest"></a>
 
 ### req.serviceRequest(key, data, [options], [cb]) ⇒ <code>Promise</code>
-Send a request to another micro-service using the cote protocol. Accept anoptional callback, but also returns a promise.
+Send a request to another micro-service using the cote protocol. Accept an
+optional callback, but also returns a promise.
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 **Returns**: <code>Promise</code> - resolves with the response from the service  
@@ -294,5 +317,14 @@ Send a request to another micro-service using the cote protocol. Accept anoptio
 
 **Example**  
 ```js
-// async/awaittry {   let result = await request(key, data);} catch (err) {}// promiserequest(key, data, opts).then((result) => {}).catch((err) => {})// callbackrequest(key, data, opts, (err, result) => {})// orrequest(key, data, (err, result) => {})
+// async/await
+try {
+   let result = await request(key, data);
+} catch (err) {}
+// promise
+request(key, data, opts).then((result) => {}).catch((err) => {})
+// callback
+request(key, data, opts, (err, result) => {})
+// or
+request(key, data, (err, result) => {})
 ```

@@ -219,7 +219,7 @@ class ABRequestService {
       };
 
       /**
-       * A shortcut method to post our "ab.inbox.create" messages to our Clients.
+       * A shortcut method to post our "ab.inbox.update" messages to our Clients.
        * @param {string[] | SiteUser[]} users An array of SiteUser.uuid(s) that
        * should receive this message. Can also work with [{SiteUser}] objects.
        * @param {string[] | Role[]} roles An array of Role.uuid(s) that should
