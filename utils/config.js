@@ -10,7 +10,16 @@ var _ = require("lodash");
  * @param {string} baseFile should be included as part of the project
  * @returns {object} baseConfig
  */
-module.exports = (baseFile) => {
+module.exports = () => {
+   try {
+      return require(path.join(process.cwd(), "config", "local.js"));
+   } catch (e) {
+      console.error(e);
+      return {};
+   }
+
+   /*
+
    // baseConfig should be included as part of the project
    var baseConfig = {};
    try {
@@ -47,4 +56,5 @@ module.exports = (baseFile) => {
    }
 
    return baseConfig;
+   */
 };

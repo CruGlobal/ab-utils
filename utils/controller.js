@@ -73,7 +73,7 @@ class ABServiceController extends EventEmitter {
             }
          });
       }
-      if (!this.handlers.find(h => h.key.match(/\.healthcheck$/))) {
+      if (!this.handlers.find((h) => h.key.match(/\.healthcheck$/))) {
          // If no .healthcheck handler was provided, use the default.
          this.handlers.push(new DefaultHealthcheck(key));
       }
@@ -178,10 +178,11 @@ class ABServiceController extends EventEmitter {
          .then(() => {
             initState = "1.wait_config_complete";
             // make sure the config service has completed:
-            return this._waitForConfig().then(() => {
-               this.config = config(this.key);
-               this.connections = config("datastores");
-            });
+            // return this._waitForConfig().then(() => {
+            let configData = config();
+            this.config = configData[this.key];
+            this.connections = configData["datastores"];
+            // });
          })
          .then(() => {
             initState = "2.wait_redis_ready";
@@ -485,7 +486,10 @@ class ABServiceController extends EventEmitter {
     * @return {Promise}
     */
    _waitForConfig() {
-      return new Promise((resolve /* , reject */) => {
+      return Promise.resolve();
+
+      /*
+      return new Promise((resolve /* , reject * /) => {
          var delay = 500; // ms
          var countTimeout = 40;
          var count = 0;
@@ -506,6 +510,7 @@ class ABServiceController extends EventEmitter {
          }
          setTimeout(waitConfig, delay);
       });
+      */
    }
 
    /**

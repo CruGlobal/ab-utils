@@ -36,7 +36,7 @@ class ABRequestValidation {
          this.__validationErrors.forEach((e) => {
             e.details.forEach((d) => {
                this.req.log(
-                  `... validation error: ${d.message} (${
+                  `... validation error [${this.req.jobID}]: ${d.message} (${
                      d.context.label
                   } : ${JSON.stringify(d.context.value)})`
                );
