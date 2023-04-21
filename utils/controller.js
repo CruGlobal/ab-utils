@@ -609,6 +609,7 @@ function tryConnect(dbConfig, cb, count = 0) {
    //    DB.destroy();
    // });
    DB.connect(function (err) {
+      DB.destroy();
       if (err) {
          if (count == 0) {
             console.log("mysql not ready ... waiting.");
@@ -621,7 +622,6 @@ function tryConnect(dbConfig, cb, count = 0) {
          return;
       }
       console.log("successful connection to mysql, continuing");
-      DB.destroy();
       cb();
    });
 }
