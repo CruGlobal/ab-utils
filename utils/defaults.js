@@ -19,7 +19,7 @@ function env(envKey, defaultValue) {
       return JSON.parse(process.env[envKey]);
    } catch (e) {
       console.log(e);
-      console.log(process.env[envKey]);
+      console.log(`process.env[${envKey}]=[${process.env[envKey]}]`);
       return process.env[envKey];
    }
 }
