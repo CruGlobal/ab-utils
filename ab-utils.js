@@ -10,6 +10,7 @@
 
 const config = require("./utils/config.js");
 const controller = require("./utils/controller.js");
+const defaults = require("./utils/defaults.js");
 const reqApi = require("./utils/reqApi.js");
 const reqService = require("./utils/reqService.js");
 const resApi = require("./utils/resApi.js");
@@ -21,6 +22,7 @@ const { v4: uuid } = require("uuid");
 module.exports = {
    config,
    controller,
+   defaults,
    reqApi,
    reqService,
    resApi,
