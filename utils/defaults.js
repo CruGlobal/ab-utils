@@ -12,7 +12,7 @@
  * @returns {multi}
  */
 function env(envKey, defaultValue) {
-   if (typeof process.env[envKey] == "undefined") {
+   if (typeof process.env[envKey] == "undefined" || process.env[envKey] == "") {
       return defaultValue;
    }
    try {
