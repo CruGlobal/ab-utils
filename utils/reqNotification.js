@@ -19,7 +19,7 @@ class ABNotification {
     * @param {Error|Error[]|string|object} error
     * @param {object} [info={}]
     */
-   notify(domain, error, info = {}) {
+   async notify(domain, error, info = {}) {
       var serError = this.stringifyErrors(error);
 
       var errStack = new Error("just getting my stack");
@@ -74,17 +74,18 @@ class ABNotification {
       // Also log to the console
       if (typeof this.req.log == "function") {
          this.req.log(jobData);
-      }
-      else if (error instanceof Error) {
+      } else if (error instanceof Error) {
          console.error(jobData);
-      } 
-      else {
+      } else {
          console.log(jobData);
       }
 
-      this.req.serviceRequest("log_manager.notification", jobData, (err) => {
+      try {
+         await this.req.serviceRequest("log_manager.notification", jobData);
+      } catch (err) {
+         this.req.log("Error posting notification:");
          this.req.log(err);
-      });
+      }
    }
 
    stringifyErrors(param) {
