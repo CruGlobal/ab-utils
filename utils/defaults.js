@@ -18,8 +18,22 @@ function env(envKey, defaultValue) {
    try {
       return JSON.parse(process.env[envKey]);
    } catch (e) {
-      console.log(e);
-      console.log(`process.env[${envKey}]=[${process.env[envKey]}]`);
+      // NOT all of our env variables can be JSON.parsed()
+      // we expect some of these values to error out
+      // no need to report them:
+      let expectedValues = ["http"];
+      let isExpected = false;
+      expectedValues.forEach((v) => {
+         if (process.env[envKey].indexOf("http") == -1) {
+            isExpected = true;
+         }
+      });
+      if (!isExpected) {
+         // let's report this just in case:
+         console.log(e);
+         console.log(`process.env[${envKey}]=[${process.env[envKey]}]`);
+      }
+
       return process.env[envKey];
    }
 }
