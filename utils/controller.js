@@ -10,7 +10,7 @@ const cote = require("cote");
 const fs = require("fs");
 const Mysql = require("mysql");
 const path = require("path");
-const prettyTime = require("pretty-time");
+// const prettyTime = require("pretty-time");
 
 const redis = require("redis");
 
@@ -73,7 +73,7 @@ class ABServiceController extends EventEmitter {
             }
          });
       }
-      if (!this.handlers.find(h => h.key.match(/\.healthcheck$/))) {
+      if (!this.handlers.find((h) => h.key.match(/\.healthcheck$/))) {
          // If no .healthcheck handler was provided, use the default.
          this.handlers.push(new DefaultHealthcheck(key));
       }
@@ -115,6 +115,21 @@ class ABServiceController extends EventEmitter {
          console.info("SIGTERM signal received.");
          this.exit();
       });
+
+      // Setup default error handling for common process errors:
+      this.reqError = this.requestObj({ jobID: `${this.key}.error_handling` });
+      ["unhandledRejection", "uncaughtException", "multipleResolves"].forEach(
+         (type) => {
+            process.on(type, (reason /*, promise */) => {
+               this.reqError.log(`Error: ${type}:`);
+               this.reqError.log(reason.stack);
+               this.reqError.log(reason);
+
+               // Do we exit()?
+               // this.exit();
+            });
+         }
+      );
    }
 
    /**
