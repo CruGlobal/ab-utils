@@ -24,7 +24,7 @@ function env(envKey, defaultValue) {
       let expectedValues = ["http"];
       let isExpected = false;
       expectedValues.forEach((v) => {
-         if (process.env[envKey].indexOf("http") == -1) {
+         if (process.env[envKey].indexOf("http") != -1) {
             isExpected = true;
          }
       });
