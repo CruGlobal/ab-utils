@@ -5,6 +5,7 @@
  */
 const async = require("async");
 const ABRequest = require("./reqService.js");
+const bfj = require("bfj");
 const cote = require("cote");
 
 const fs = require("fs");
@@ -464,12 +465,34 @@ class ABServiceController extends EventEmitter {
                         };
                      }
                   }
-                  abReq.performance.log();
 
-                  // cb(cbErr, data);
-                  // send back the data on the latest _PendingRequest
-                  _PendingRequests[abReq.requestID](cbErr, data);
-                  delete _PendingRequests[abReq.requestID];
+                  // Prevent Big JSON data structures from making us unresponsive:
+                  // The underlying cote library uses generic JSON.stringify() to
+                  // prepare the data for sending across the network.  This can cause
+                  // our service to hang and be unresponsive.  So we will first use
+                  // an async friendly bfj.stringify() to encode our data as a string
+                  // and then send it off to cote.
+                  // This will be slightly slower, but be non blocking for the
+                  // incoming requests and as a result will not cause us to crash
+                  // or loose subsequent requests.
+                  abReq.performance.mark("bfj.stringify");
+                  bfj.stringify(data, {
+                     /* options */
+                  })
+                     .then((strResponse) => {
+                        abReq.performance.measure("bfj.stringify");
+                        abReq.performance.log();
+
+                        _PendingRequests[abReq.requestID](cbErr, strResponse);
+                        delete _PendingRequests[abReq.requestID];
+                     })
+                     .catch((error) => {
+                        // :(
+                        abReq.log("ERROR bfj.stringify()", error);
+                        abReq.performance.log();
+                        _PendingRequests[abReq.requestID](cbErr, data);
+                        delete _PendingRequests[abReq.requestID];
+                     });
                });
             } catch (e) {
                abReq.notify.developer(e, {
