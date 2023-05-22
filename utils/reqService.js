@@ -79,6 +79,8 @@ var ERRORS_RETRY = [
    "ER_LOCK_DEADLOCK",
    "Lock deadlock; Retry transaction", // shows up in embedded sql error
    "ER_LOCK_WAIT_TIMEOUT",
+
+   "KnexTimeoutError",
 ];
 
 /**
@@ -230,7 +232,7 @@ class ABRequestService {
        * @return {Promise}
        * @kind function
        */
-      this.broadcast.inboxUpdate = (users =[], roles = [], item, cb) => {
+      this.broadcast.inboxUpdate = (users = [], roles = [], item, cb) => {
          return new Promise((resolve, reject) => {
             const key = "broadcast.inbox.update";
 
