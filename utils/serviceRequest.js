@@ -163,7 +163,7 @@ class ABServiceRequest extends ServiceCote {
 
                   // NOTE: our responses are now JSON.stringify()-ed before being
                   // sent, so now we need to .parse() the results
-                  if (typeof results === "string") {
+                  if (typeof results === "string" && results.length > 0) {
                      try {
                         results = JSON.parse(results);
                      } catch (e) {
