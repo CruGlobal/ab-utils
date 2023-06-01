@@ -1,6 +1,6 @@
 {
   "name": "@digiserve/ab-utils",
-  "version": "1.4.1",
+  "version": "1.4.3",
   "description": "A common set of utility functions shared by our AppBuilder services",
   "main": "ab-utils.js",
   "author": "Johnny Hausman",
@@ -12,6 +12,7 @@
   "repository": "github:digi-serve/ab-utils",
   "dependencies": {
     "async": "^3.2.2",
+    "bfj": "^7.0.2",
     "cote": "^1.0.2",
     "joi": "^17.3.0",
     "lodash": "^4.17.21",

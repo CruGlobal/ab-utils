@@ -97,9 +97,9 @@ class ABServiceRequest extends ServiceCote {
                   let strParamStack;
                   try {
                      strParamStack = JSON.stringify(paramStack, null, 3);
-                  }
-                  catch(err) {
-                     strParamStack = "This [paramStack] has error when calls JSON.stringify. It might be too large to convert";
+                  } catch (err) {
+                     strParamStack =
+                        "This [paramStack] has error when calls JSON.stringify. It might be too large to convert";
                      console.error(err);
                      console.info(strParamStack, paramStack);
                   }
@@ -160,6 +160,20 @@ class ABServiceRequest extends ServiceCote {
                   }
 
                   // now complete the Promise (or reject if timeout or err)
+
+                  // NOTE: our responses are now JSON.stringify()-ed before being
+                  // sent, so now we need to .parse() the results
+                  if (typeof results === "string" && results.length > 0) {
+                     try {
+                        results = JSON.parse(results);
+                     } catch (e) {
+                        console.log("+++++++++++++++++++++++++++++++");
+                        console.error(e);
+                        console.log(results);
+                        console.log("+++++++++++++++++++++++++++++++");
+                     }
+                  }
+
                   callback?.(err, results);
                   if (err) {
                      reject(err);
