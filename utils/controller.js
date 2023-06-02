@@ -194,10 +194,11 @@ class ABServiceController extends EventEmitter {
          .then(() => {
             initState = "1.wait_config_complete";
             // make sure the config service has completed:
-            return this._waitForConfig().then(() => {
-               this.config = config(this.key);
-               this.connections = config("datastores");
-            });
+            // return this._waitForConfig().then(() => {
+            let configData = config();
+            this.config = configData[this.key];
+            this.connections = configData["datastores"];
+            // });
          })
          .then(() => {
             initState = "2.wait_redis_ready";
@@ -523,7 +524,10 @@ class ABServiceController extends EventEmitter {
     * @return {Promise}
     */
    _waitForConfig() {
-      return new Promise((resolve /* , reject */) => {
+      return Promise.resolve();
+
+      /*
+      return new Promise((resolve /* , reject * /) => {
          var delay = 500; // ms
          var countTimeout = 40;
          var count = 0;
@@ -544,6 +548,7 @@ class ABServiceController extends EventEmitter {
          }
          setTimeout(waitConfig, delay);
       });
+      */
    }
 
    /**
@@ -642,6 +647,7 @@ function tryConnect(dbConfig, cb, count = 0) {
    //    DB.destroy();
    // });
    DB.connect(function (err) {
+      DB.destroy();
       if (err) {
          if (count == 0) {
             console.log("mysql not ready ... waiting.");
@@ -654,7 +660,6 @@ function tryConnect(dbConfig, cb, count = 0) {
          return;
       }
       console.log("successful connection to mysql, continuing");
-      DB.destroy();
       cb();
    });
 }

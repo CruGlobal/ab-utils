@@ -7,10 +7,23 @@
 var path = require("path");
 var _ = require("lodash");
 /**
- * @param {string} baseFile should be included as part of the project
+ * @param {string} key [optional] a subportion of the configs specified
  * @returns {object} baseConfig
  */
-module.exports = (baseFile) => {
+module.exports = (key) => {
+   try {
+      var config = require(path.join(process.cwd(), "config", "local.js"));
+      if (key) {
+         return config[key];
+      }
+      return config;
+   } catch (e) {
+      console.error(e);
+      return {};
+   }
+
+   /*
+
    // baseConfig should be included as part of the project
    var baseConfig = {};
    try {
@@ -47,4 +60,5 @@ module.exports = (baseFile) => {
    }
 
    return baseConfig;
+   */
 };
