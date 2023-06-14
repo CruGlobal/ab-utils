@@ -307,6 +307,23 @@ class ABRequestAPI {
    validateParameters(description = {}, autoRespond = true, allParams) {
       allParams = allParams || this.__req.allParams();
 
+      // FIX: In some GET requests that are performed outside the socket
+      // interface, the querystring values are not being .parsed() for
+      // values that should be objects/arrays/numbers.  So we are going to
+      // perform a pre-check for those values and attempt to parse them
+      Object.keys(description).forEach((k) => {
+         let rule = description[k];
+         if (rule.object || rule.array || rule.number) {
+            if ("string" === typeof allParams[k]) {
+               try {
+                  allParams[k] = JSON.parse(allParams[k]);
+               } catch (e) {
+                  /* do nothing */
+               }
+            }
+         }
+      });
+
       this.__Validator.validate(description, allParams);
 
       var validationError = this.__Validator.errors();
