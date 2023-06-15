@@ -11,11 +11,11 @@ const config = proxyquire("../../utils/config.js", {
 describe("config", () => {
    it("returns a config", () => {
       const one = config("one");
-      const two = config("two");
+      const two = config();
       assert.deepEqual(one, { example: "config" });
       assert.deepEqual(two, { one: { example: "config" } });
-      assert.equal(pathJoinFake.callCount, 4);
-      assert.equal(pathJoinFake.firstCall.args[2], "one.js");
+      assert.equal(pathJoinFake.callCount, 2);
+      assert.equal(pathJoinFake.firstCall.args[2], "local.js");
       assert.equal(pathJoinFake.secondCall.args[2], "local.js");
    });
 });
