@@ -203,7 +203,13 @@ class ABRequestAPI {
    log(...allArgs) {
       var args = [];
       allArgs.forEach((a) => {
-         args.push(JSON.stringify(a));
+         // FIX: use replacer fn to allow stringify() to handle bigint values:
+         // https://stackoverflow.com/questions/65152373/typescript-serialize-bigint-in-json
+         args.push(
+            JSON.stringify(a, (k, v) =>
+               typeof v === "bigint" ? v.toString() : v
+            )
+         );
       });
       this.__console.log(`${this.jobID}::${args.join(" ")}`);
    }
