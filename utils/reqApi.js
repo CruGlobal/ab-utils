@@ -203,7 +203,13 @@ class ABRequestAPI {
    log(...allArgs) {
       var args = [];
       allArgs.forEach((a) => {
-         args.push(JSON.stringify(a));
+         // FIX: use replacer fn to allow stringify() to handle bigint values:
+         // https://stackoverflow.com/questions/65152373/typescript-serialize-bigint-in-json
+         args.push(
+            JSON.stringify(a, (k, v) =>
+               typeof v === "bigint" ? v.toString() : v
+            )
+         );
       });
       this.__console.log(`${this.jobID}::${args.join(" ")}`);
    }
@@ -306,6 +312,23 @@ class ABRequestAPI {
     **/
    validateParameters(description = {}, autoRespond = true, allParams) {
       allParams = allParams || this.__req.allParams();
+
+      // FIX: In some GET requests that are performed outside the socket
+      // interface, the querystring values are not being .parsed() for
+      // values that should be objects/arrays/numbers.  So we are going to
+      // perform a pre-check for those values and attempt to parse them
+      Object.keys(description).forEach((k) => {
+         let rule = description[k];
+         if (rule.object || rule.array || rule.number) {
+            if ("string" === typeof allParams[k]) {
+               try {
+                  allParams[k] = JSON.parse(allParams[k]);
+               } catch (e) {
+                  /* do nothing */
+               }
+            }
+         }
+      });
 
       this.__Validator.validate(description, allParams);
 
