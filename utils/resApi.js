@@ -29,7 +29,7 @@ class ABResponseAPI {
       };
 
       if (err) {
-         // add in optional properties: id, message, code, mlKey
+         // add in optional properties: id, message, code, mlKey, errors ...
          var properties = ["id", "message", "code", "mlKey", "errors"];
          properties.forEach(function (prop) {
             if (err[prop]) {
