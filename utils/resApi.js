@@ -30,7 +30,7 @@ class ABResponseAPI {
 
       if (err) {
          // add in optional properties: id, message, code, mlKey
-         var properties = ["id", "message", "code", "mlKey"];
+         var properties = ["id", "message", "code", "mlKey", "errors"];
          properties.forEach(function (prop) {
             if (err[prop]) {
                packet[prop] = err[prop];
