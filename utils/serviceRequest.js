@@ -226,7 +226,7 @@ class ABServiceRequest extends ServiceCote {
          });
 
          // attempt to enable Socket Reconnections:
-         domainRequesters[domain].sock.set("retry timeout", 100);
+         domainRequesters[domain].sock?.set("retry timeout", 100);
       }
       return domainRequesters[domain];
    }
