@@ -29,6 +29,50 @@ const _PendingRequests = {
 // with the new one, so that the latest cb() is called when the handler is
 // resolved.
 
+const _JobStatus = {
+   /* requestID: { jobID, currentStatus:"status string" } */
+};
+// Keep track of the current Jobs being run, and any current status
+
+// Setup a Monitor for reporting the Job Statuses
+setInterval(() => {
+   var keys = Object.keys(_JobStatus);
+   if (keys.length > 0) {
+      var entries = [];
+
+      // pull out any entries that are > 1s in the Job
+      keys.forEach((rID) => {
+         let e = _JobStatus[rID];
+         let timeInProcess = parseInt(performance.now() - e.timeStarted);
+         if (timeInProcess > 1000) {
+            entries.push(
+               `[${e.jobID}]: [${
+                  e.label || e.handler
+               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`
+            );
+         }
+      });
+
+      if (entries.length > 0) {
+         console.log("---Job Status---");
+         entries.forEach((e) => {
+            console.log(e);
+         });
+         console.log("----------------");
+      }
+   }
+}, 1000);
+
+function endRequest(rID, cbErr, strResponse) {
+   _PendingRequests[rID](cbErr, strResponse);
+   delete _PendingRequests[rID];
+
+   (_JobStatus[rID]?.duplicates || []).forEach((d) => {
+      d(cbErr, strResponse);
+   });
+   delete _JobStatus[rID];
+}
+
 /**
  * @alias ABServiceController
  * @extends EventEmitter
@@ -332,6 +376,11 @@ class ABServiceController extends EventEmitter {
     * the process a service should perform to gracefully shutdown.
     */
    shutdown() {
+      var errShutdown = new Error("Service Shutdown");
+      Object.keys(_PendingRequests).forEach((k) => {
+         endRequest(k, errShutdown, "");
+      });
+
       this.handlers.forEach((handler) => {
          if (handler._cFN) {
             this.serviceResponder.off(handler.key, handler._cFN);
@@ -444,12 +493,32 @@ class ABServiceController extends EventEmitter {
                abReq.log("... preventing duplicate request");
 
                // update the stored cb()
+               _JobStatus[abReq.requestID].duplicates.push(
+                  _PendingRequests[abReq.requestID]
+               );
                _PendingRequests[abReq.requestID] = cb;
                return;
             }
 
             // store the original cb for this requestID
             _PendingRequests[abReq.requestID] = cb;
+
+            // setup a Job Status object for this requestID
+            _JobStatus[abReq.requestID] = {
+               jobID: abReq.jobID,
+               label: null,
+               handler: handler.key,
+               status: "started",
+               duplicates: [],
+               timeStarted: performance.now(),
+            };
+            abReq.on("status", (status) => {
+               _JobStatus[abReq.requestID].status = status;
+               abReq.log(`jobstatus: ${status}`);
+            });
+            abReq.on("status.label", (label) => {
+               _JobStatus[abReq.requestID].label = label;
+            });
 
             try {
                // so far so good, now pass on to handler:
@@ -477,6 +546,7 @@ class ABServiceController extends EventEmitter {
                   // incoming requests and as a result will not cause us to crash
                   // or loose subsequent requests.
                   abReq.performance.mark("bfj.stringify");
+                  abReq.emit("status", "stringifying response");
                   bfj.stringify(data, {
                      /* options */
                   })
@@ -484,15 +554,14 @@ class ABServiceController extends EventEmitter {
                         abReq.performance.measure("bfj.stringify");
                         abReq.performance.log();
 
-                        _PendingRequests[abReq.requestID](cbErr, strResponse);
-                        delete _PendingRequests[abReq.requestID];
+                        endRequest(abReq.requestID, cbErr, strResponse);
                      })
                      .catch((error) => {
                         // :(
                         abReq.log("ERROR bfj.stringify()", error);
                         abReq.performance.log();
-                        _PendingRequests[abReq.requestID](cbErr, data);
-                        delete _PendingRequests[abReq.requestID];
+
+                        endRequest(abReq.requestID, cbErr, data);
                      });
                });
             } catch (e) {
@@ -504,8 +573,7 @@ class ABServiceController extends EventEmitter {
 
                // cb(cbErr, data);
                // send back the data on the latest _PendingRequest
-               _PendingRequests[abReq.requestID](e);
-               delete _PendingRequests[abReq.requestID];
+               endRequest(abReq.requestID, e, "");
             }
          };
          this.serviceResponder.on(handler.key, handler._cFN);

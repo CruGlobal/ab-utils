@@ -13,6 +13,7 @@ const ServiceRequest = require("./serviceRequest.js");
 const ServiceSubscriber = require("./reqServiceSubscriber.js");
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 const ABValidator = require("./reqValidation.js");
+const EventEmitter = require("events").EventEmitter;
 
 /**
  * @function deCircular()
@@ -92,8 +93,10 @@ var ERRORS_RETRY = [
  * @borrows ABServicePublish#publish as #servicePublish
  * @borrows ABServiceRequest#request as #serviceRequest
  */
-class ABRequestService {
+class ABRequestService extends EventEmitter {
    constructor(req, controller) {
+      super();
+
       // console.log("ABRequest():", req);
       this.jobID = req.jobID || "??";
       // {string}
