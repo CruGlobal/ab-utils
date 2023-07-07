@@ -224,6 +224,9 @@ class ABServiceRequest extends ServiceCote {
             // https://github.com/dashersw/cote/blob/master/src/components/requester.js#L16
             timeout: REQUEST_TIMEOUT,
          });
+
+         // attempt to enable Socket Reconnections:
+         domainRequesters[domain].sock.set("retry timeout", 100);
       }
       return domainRequesters[domain];
    }
