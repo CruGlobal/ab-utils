@@ -417,7 +417,7 @@ class ABServiceController extends EventEmitter {
             // {reqService}
             // This is the handler.fn(req, ...) object being passed into our
             // handlers.
-
+            abReq.sentryTransaction({ name: handler.key, op: "websocket.server" });
             //
             // perform basic error checking here:
             //
@@ -545,6 +545,7 @@ class ABServiceController extends EventEmitter {
                   // This will be slightly slower, but be non blocking for the
                   // incoming requests and as a result will not cause us to crash
                   // or loose subsequent requests.
+                  const bjfPerformance = abReq.sentryChild({ name: "bjf.stringify", op: "serialize"})
                   abReq.performance.mark("bfj.stringify");
                   abReq.emit("status", "stringifying response");
                   bfj.stringify(data, {
@@ -553,7 +554,8 @@ class ABServiceController extends EventEmitter {
                      .then((strResponse) => {
                         abReq.performance.measure("bfj.stringify");
                         abReq.performance.log();
-
+                        bjfPerformance.finish();
+                        abReq.sentryTransaction().finish();
                         endRequest(abReq.requestID, cbErr, strResponse);
                      })
                      .catch((error) => {

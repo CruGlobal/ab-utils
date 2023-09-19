@@ -771,6 +771,24 @@ class ABRequestService extends EventEmitter {
       return isRetry;
    }
 
+   /**
+    * Creates a sentry child span based in the req._sentryTransaction
+    * @param  {...any} args as expected by Sentry.startChild
+    * @returns {Sentry.span}
+    */
+   sentryChild(...args) { return this.sentryTransaction()?.startChild(...args) ?? Sentry.startChild(...args) }
+   /**
+    * Creates or gets the Transaction for the current Request
+    * @param  {...any} args as expected by Sentry.startTransaction
+    * @returns {Sentry.Transaction}
+    */
+   sentryTransaction(...args) {
+      if (args.length > 0){
+         this._sentryTransaction = Sentry.startTransaction(...args);
+      } 
+      return this._sentryTransaction;
+   }
+
    servicePublish(key, data) {
       this.__Publisher.publish(key, data);
    }
