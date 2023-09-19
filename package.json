@@ -11,6 +11,7 @@
   },
   "repository": "github:digi-serve/ab-utils",
   "dependencies": {
+    "@sentry/node": "^7.69.0",
     "async": "^3.2.2",
     "bfj": "^7.0.2",
     "cote": "^1.0.2",
