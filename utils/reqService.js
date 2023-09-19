@@ -4,6 +4,7 @@
  * @ignore
  */
 const path = require("path");
+const Sentry = require('@sentry/node');
 const DBConn = require(path.join(__dirname, "dbConn"));
 const Model = require(path.join(__dirname, "model"));
 const ABPerformance = require("./reqPerformance.js");
@@ -141,6 +142,21 @@ class ABRequestService extends EventEmitter {
       this._Model = Model;
 
       this.debug = false;
+
+      // Add context for Sentry
+      Sentry.setContext("Job Data", {
+         jobID: this.jobID,
+         requestID: this.requestID,
+         serviceKey: this.serviceKey,
+         tenantID: this.tenantID(),
+         data: this.data,
+      });
+      Sentry.setTags({
+         tenant: this.tenantID(),
+      });
+      const user = { username: this.username() }
+      if(this.usernameReal()) user.real = this.usernameReal();
+      Sentry.setUser(user);
 
       // extend
 

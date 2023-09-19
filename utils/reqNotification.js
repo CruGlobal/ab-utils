@@ -1,5 +1,6 @@
 // reqNotification.js
 const { serializeError /*, deserializeError */ } = require("serialize-error");
+const Sentry = require('@sentry/node');
 
 const UserFields = ["uuid", "username", "email", "languageCode"];
 // {array}
@@ -44,26 +45,6 @@ class ABNotification {
          delete info.AB;
          info = AB._notifyInfo(info);
       }
-
-      // We need to remove circular data from info, because it get's stringified later
-      try {
-         JSON.stringify(info);
-      } catch (err) {
-         // Source: https://stackoverflow.com/questions/11616630/how-can-i-print-a-circular-structure-in-a-json-like-format
-         const cache = [];
-         const infoStr = JSON.stringify(info, (key, value) => {
-            if (typeof value === "object" && value !== null) {
-               // Duplicate reference found, discard key
-               if (cache.includes(value)) return;
-               // Store value in our collection
-               cache.push(value);
-            }
-            if (typeof value === "bigint") value = value.toString();
-            return value;
-         });
-         info = JSON.parse(infoStr);
-      }
-
       var jobData = {
          domain,
          error: serError,
@@ -80,12 +61,16 @@ class ABNotification {
          console.log(jobData);
       }
 
-      try {
-         await this.req.serviceRequest("log_manager.notification", jobData);
-      } catch (err) {
-         this.req.log("Error posting notification:");
-         this.req.log(err);
-      }
+      const scope = new Sentry.Scope();
+      // Consider builder errors as warnings
+      if (domain == "builder") scope.setLevel("warning");
+
+      scope.setUser(info.user);
+      scope.setTag("domain", domain);
+      scope.setContext("info", info);
+      scope.setTag("tenant", info.tenantID);
+
+      Sentry.captureException(error, scope);
    }
 
    stringifyErrors(param) {

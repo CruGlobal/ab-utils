@@ -57,6 +57,13 @@ class ABRequestAPI {
       // since ABRequestAPI is created on the api_sails service, we can
       // fix that value here.
 
+      // Add context for Sentry
+      Sentry.setContext("Job Data", {
+         jobID: this.jobID,
+         serviceKey: this.serviceKey,
+      });
+      Sentry.setTag("tenant", this.tenantID());
+
       // expose the performance operator directly:
       this.performance = ABPerformance(this);
 
@@ -124,6 +131,7 @@ class ABRequestAPI {
     **/
    set tenantID(id) {
       this._tenantID = id;
+      Sentry.setTag("tenant", id);
    }
 
    /**
@@ -141,6 +149,7 @@ class ABRequestAPI {
     **/
    set user(u) {
       this._user = u;
+      this.setSentryUser();
    }
 
    /**
@@ -158,6 +167,7 @@ class ABRequestAPI {
     **/
    set userReal(u) {
       this._userReal = u;
+      this.setSentryUser();
    }
 
    /** @return {boolean} */
@@ -172,6 +182,7 @@ class ABRequestAPI {
    switcherooToUser(u) {
       this.userReal = this.user;
       this.user = u;
+      this.setSentryUser();
    }
 
    /**
@@ -254,6 +265,12 @@ class ABRequestAPI {
     */
    serviceResponder(key, handler) {
       return this.__Responder(key, handler, this);
+   }
+
+   setSentryUser() {
+      const user = { username: this._user?.username }
+      if(this.isSwitcherood()) user.real = this.userReal.username;
+      Sentry.setUser(user);
    }
 
    /**
