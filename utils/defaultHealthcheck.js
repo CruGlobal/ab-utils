@@ -2,9 +2,11 @@
  * This will be used to create the default healthcheck request handler for
  * each AB service. It can be overridden by manually adding a *.healthcheck 
  * handler to the service.
+ * @module
+ * @ignore
  */
 
-module.exports = class DefaultHealthcheck {
+class DefaultHealthcheck {
 
    /**
     *  @param {string} serviceName
@@ -32,3 +34,5 @@ module.exports = class DefaultHealthcheck {
    }
 
 };
+
+module.exports = DefaultHealthcheck;

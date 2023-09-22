@@ -3,6 +3,7 @@
  * @module ab-utils
  * @borrows module:config as config
  * @borrows module:Controller as controller
+ * @borrows module:initSentry as initSentry
  * @borrows module:reqApi as reqApi
  * @borrows module:request as reqService
  * @borrows module:resApi as resApi

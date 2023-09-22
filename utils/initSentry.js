@@ -1,6 +1,15 @@
+/**
+ * @module initSentry
+ * @ignore
+ */
 const Sentry = require('@sentry/node');
- 
-function initSentry(config) {
+
+/**
+ * Initializes sentry. This should be called by the service on start up if
+ * we want to track it in Sentry.
+ * @param {Sentry.NodeOptions} options options for Sentry. Expects a DSN.
+ */
+module.exports = (config) => {
    const defaults = { 
       sampleRate: 0.1,
       tracesSampleRate: 0.1,
@@ -8,4 +17,3 @@ function initSentry(config) {
    };
    Sentry.init(Object.assign({}, defaults, config));
 }
-module.exports = initSentry;

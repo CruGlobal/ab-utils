@@ -30,6 +30,8 @@
     * [.queryWhereCondition(cond)](#ABRequestService+queryWhereCondition) ⇒ <code>obj</code>
     * [.retry(fn)](#ABRequestService+retry) ⇒ <code>Promise</code>
     * [.shouldRetry(error)](#ABRequestService+shouldRetry)
+    * [.sentryChild(...args)](#ABRequestService+sentryChild) ⇒ <code>Sentry.span</code>
+    * [.sentryTransaction(...args)](#ABRequestService+sentryTransaction) ⇒ <code>Sentry.Transaction</code>
     * [.serviceSubscribe(key, handler)](#ABRequestService+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
     * [.socketKey(key)](#ABRequestService+socketKey) ⇒ <code>string</code>
     * [.tenantDB()](#ABRequestService+tenantDB) ⇒ <code>string</code>
@@ -355,6 +357,28 @@ the expected return data, and rejects() with the Network errors.
 | Param | Type |
 | --- | --- |
 | error | <code>Error</code> | 
+
+<a name="ABRequestService+sentryChild"></a>
+
+### req.sentryChild(...args) ⇒ <code>Sentry.span</code>
+Creates a sentry child span based in the req._sentryTransaction
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>any</code> | as expected by Sentry.startChild |
+
+<a name="ABRequestService+sentryTransaction"></a>
+
+### req.sentryTransaction(...args) ⇒ <code>Sentry.Transaction</code>
+Creates or gets the Transaction for the current Request
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| ...args | <code>any</code> | as expected by Sentry.startTransaction |
 
 <a name="ABRequestService+serviceSubscribe"></a>
 
