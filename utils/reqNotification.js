@@ -45,7 +45,7 @@ class ABNotification {
          delete info.AB;
          info = AB._notifyInfo(info);
       }
-      var jobData = {
+      var errorData = {
          domain,
          error: serError,
          info,
@@ -54,23 +54,32 @@ class ABNotification {
 
       // Also log to the console
       if (typeof this.req.log == "function") {
-         this.req.log(jobData);
+         this.req.log(errorData);
       } else if (error instanceof Error) {
-         console.error(jobData);
+         console.error(errorData);
       } else {
-         console.log(jobData);
+         console.log(errorData);
       }
-
-      const scope = new Sentry.Scope();
-      // Consider builder errors as warnings
-      if (domain == "builder") scope.setLevel("warning");
-
-      scope.setUser(info.user);
-      scope.setTag("domain", domain);
-      scope.setContext("info", info);
-      scope.setTag("tenant", info.tenantID);
-
-      Sentry.captureException(error, scope);
+      const sentryError =
+         error instanceof Error
+            ? error
+            : typeof error == "string"
+            ? new Error(error)
+            : serError;
+      /** 
+       * @const sentryError {Error|string} error to send to sentry
+       * If we recieved an Error use that, if we recieved a string
+       * ceate an Error from that. For more complex inputs use the
+       * result of stringifyErrors. 
+      */
+      Sentry.captureException(sentryError, scope => {
+         // Consider builder errors as warnings
+         if (domain == "builder") scope.setLevel("warning");
+         scope.setContext("info", info);
+         scope.setUser(info.user);
+         scope.setTag("domain", domain);
+         scope.setTag("tenant", info?.tenantID);
+      });
    }
 
    stringifyErrors(param) {

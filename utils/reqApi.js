@@ -5,6 +5,7 @@
  * @module reqApi
  * @ignore
  */
+const Sentry = require('@sentry/node');
 const shortid = require("shortid");
 // const cote = require("cote");
 
@@ -62,7 +63,7 @@ class ABRequestAPI {
          jobID: this.jobID,
          serviceKey: this.serviceKey,
       });
-      Sentry.setTag("tenant", this.tenantID());
+      Sentry.setTag("tenant", this.tenantID);
 
       // expose the performance operator directly:
       this.performance = ABPerformance(this);
