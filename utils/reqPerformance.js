@@ -70,7 +70,7 @@ class ABRequestPerformance {
 
       // and perform a total response time measure:
       var durTotal = this.toLegacyFormat(
-         this.measure("__totalTime", "__start")
+         this.measure("__totalTime", "__start"),
       );
       this.req.log(`response time: ${prettyTime(durTotal)}`);
    }
@@ -85,7 +85,7 @@ class ABRequestPerformance {
       if (key) {
          if (this.marks[key]) {
             this.req.log(
-               `performance.mark() is overwriting existing key [${key}]`
+               `performance.mark() is overwriting existing key [${key}]`,
             );
          }
          this.marks[key] = process.hrtime.bigint();

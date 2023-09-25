@@ -5,7 +5,7 @@
  * @module reqApi
  * @ignore
  */
-const Sentry = require('@sentry/node');
+const Sentry = require("@sentry/node");
 const shortid = require("shortid");
 // const cote = require("cote");
 
@@ -219,8 +219,8 @@ class ABRequestAPI {
          // https://stackoverflow.com/questions/65152373/typescript-serialize-bigint-in-json
          args.push(
             JSON.stringify(a, (k, v) =>
-               typeof v === "bigint" ? v.toString() : v
-            )
+               typeof v === "bigint" ? v.toString() : v,
+            ),
          );
       });
       this.__console.log(`${this.jobID}::${args.join(" ")}`);
@@ -269,8 +269,8 @@ class ABRequestAPI {
    }
 
    setSentryUser() {
-      const user = { username: this._user?.username }
-      if(this.isSwitcherood()) user.real = this.userReal.username;
+      const user = { username: this._user?.username };
+      if (this.isSwitcherood()) user.real = this.userReal.username;
       Sentry.setUser(user);
    }
 
@@ -378,7 +378,7 @@ class ABRequestAPI {
    validRoles(roleIDs) {
       if (this._user && this._user.SITE_ROLE) {
          var found = this._user.SITE_ROLE.filter(
-            (r) => roleIDs.indexOf(r.uuid) > -1
+            (r) => roleIDs.indexOf(r.uuid) > -1,
          );
          if (found.length > 0) {
             return true;

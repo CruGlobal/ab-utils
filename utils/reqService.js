@@ -4,7 +4,7 @@
  * @ignore
  */
 const path = require("path");
-const Sentry = require('@sentry/node');
+const Sentry = require("@sentry/node");
 const DBConn = require(path.join(__dirname, "dbConn"));
 const Model = require(path.join(__dirname, "model"));
 const ABPerformance = require("./reqPerformance.js");
@@ -45,7 +45,7 @@ function deCircular(args, o, context, level = 1) {
             args.push(
                `${context ? context : ""}${
                   context ? "." : ""
-               }${k}: ${JSON.stringify(o[k].toObj())}`
+               }${k}: ${JSON.stringify(o[k].toObj())}`,
             );
          } else {
             if (!o[k].____deCircular) {
@@ -54,14 +54,14 @@ function deCircular(args, o, context, level = 1) {
                   args,
                   o[k],
                   (context ? context + "->" : "") + k,
-                  level + 1
+                  level + 1,
                );
             }
          }
       } else {
          if (typeof o[k] != "function") {
             args.push(
-               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
+               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`,
             );
          }
       }
@@ -154,8 +154,8 @@ class ABRequestService extends EventEmitter {
       Sentry.setTags({
          tenant: this.tenantID(),
       });
-      const user = { username: this.username() }
-      if(this.usernameReal()) user.real = this.usernameReal();
+      const user = { username: this.username() };
+      if (this.usernameReal()) user.real = this.usernameReal();
       Sentry.setUser(user);
 
       // extend
@@ -328,7 +328,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -373,7 +373,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -420,7 +420,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -692,7 +692,7 @@ class ABRequestService extends EventEmitter {
       let tenantDB = this.tenantDB();
       if (tenantDB == "") {
          let errorNoTenant = new Error(
-            `Unable to find tenant information for tenantID[${this.tenantID()}]`
+            `Unable to find tenant information for tenantID[${this.tenantID()}]`,
          );
          errorNoTenant.code = "ENOTENANT";
          reject(errorNoTenant);
@@ -776,16 +776,21 @@ class ABRequestService extends EventEmitter {
     * @param  {...any} args as expected by Sentry.startChild
     * @returns {Sentry.span}
     */
-   sentryChild(...args) { return this.sentryTransaction()?.startChild(...args) ?? Sentry.startChild(...args) }
+   sentryChild(...args) {
+      return (
+         this.sentryTransaction()?.startChild(...args) ??
+         Sentry.startChild(...args)
+      );
+   }
    /**
     * Creates or gets the Transaction for the current Request
     * @param  {...any} args as expected by Sentry.startTransaction
     * @returns {Sentry.Transaction}
     */
    sentryTransaction(...args) {
-      if (args.length > 0){
+      if (args.length > 0) {
          this._sentryTransaction = Sentry.startTransaction(...args);
-      } 
+      }
       return this._sentryTransaction;
    }
 
@@ -855,7 +860,7 @@ class ABRequestService extends EventEmitter {
             jobID: `ABFactory(${this._tenantID})`,
             tenantID: this._tenantID,
          },
-         this.controller
+         this.controller,
       );
       ABReq._DBConn = this._DBConn;
       ABReq._Model = this._Model;
@@ -871,7 +876,7 @@ class ABRequestService extends EventEmitter {
       ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
          (f) => {
             obj[f] = this[f];
-         }
+         },
       );
       return obj;
    }

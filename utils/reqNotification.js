@@ -1,6 +1,6 @@
 // reqNotification.js
 const { serializeError /*, deserializeError */ } = require("serialize-error");
-const Sentry = require('@sentry/node');
+const Sentry = require("@sentry/node");
 
 const UserFields = ["uuid", "username", "email", "languageCode"];
 // {array}
@@ -66,13 +66,13 @@ class ABNotification {
             : typeof error == "string"
             ? new Error(error)
             : serError;
-      /** 
+      /**
        * @const sentryError {Error|string} error to send to sentry
        * If we recieved an Error use that, if we recieved a string
        * ceate an Error from that. For more complex inputs use the
-       * result of stringifyErrors. 
-      */
-      Sentry.captureException(sentryError, scope => {
+       * result of stringifyErrors.
+       */
+      Sentry.captureException(sentryError, (scope) => {
          // Consider builder errors as warnings
          if (domain == "builder") scope.setLevel("warning");
          scope.setContext("info", info);

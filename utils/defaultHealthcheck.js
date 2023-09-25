@@ -1,13 +1,12 @@
 /**
  * This will be used to create the default healthcheck request handler for
- * each AB service. It can be overridden by manually adding a *.healthcheck 
+ * each AB service. It can be overridden by manually adding a *.healthcheck
  * handler to the service.
  * @module
  * @ignore
  */
 
 class DefaultHealthcheck {
-
    /**
     *  @param {string} serviceName
     *     The name/key of the service.
@@ -30,9 +29,7 @@ class DefaultHealthcheck {
       } catch (err) {
          cb(err);
       }
-
    }
-
-};
+}
 
 module.exports = DefaultHealthcheck;
