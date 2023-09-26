@@ -14,6 +14,7 @@ module.exports = (config) => {
       sampleRate: 0.1,
       tracesSampleRate: 0.1,
       profilesSampleRate: 0.1,
+      normalizeDepth: 5,
    };
    Sentry.init(Object.assign({}, defaults, config));
 };
