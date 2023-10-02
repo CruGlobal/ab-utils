@@ -64,7 +64,7 @@ class ABService extends EventEmitter {
     */
    shutdown() {
       console.info(
-         `service ${this.name} has not defined a shutdown() routine.`,
+         `service ${this.name} has not defined a shutdown() routine.`
       );
       process.exit(0);
    }

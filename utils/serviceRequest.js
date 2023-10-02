@@ -58,7 +58,7 @@ class ABServiceRequest extends ServiceCote {
             {
                details:
                   "Warning: serviceRequest() now supports an options parameter `serviceRequest(key, data, options = {}, callback?)`. Please refactor longRequest to options",
-            },
+            }
          );
          options.longRequest = data.longRequest;
          delete data.longRequest;
@@ -110,7 +110,7 @@ class ABServiceRequest extends ServiceCote {
                         // Retry .send
                         if (!timeoutCleanup && countRequest < attempts) {
                            this.req.log(
-                              `... timeout waiting for request (${key}), retrying ${countRequest}/${attempts}`,
+                              `... timeout waiting for request (${key}), retrying ${countRequest}/${attempts}`
                            );
 
                            sendRequest();
@@ -125,7 +125,7 @@ class ABServiceRequest extends ServiceCote {
                            timeout *= 1.5;
 
                            this.req.log(
-                              `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`,
+                              `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`
                            );
 
                            sendRequest();
@@ -195,7 +195,7 @@ class ABServiceRequest extends ServiceCote {
                      countRequest = 0;
                      sendRequest();
                   }
-               },
+               }
             );
          };
          sendRequest();

@@ -23,6 +23,7 @@ module.exports = {
             endOfLine: "lf",
             printWidth: 80,
             tabWidth: 3,
+            trailingComma: "es5",
          },
       ],
       "no-console": 0, // "off",

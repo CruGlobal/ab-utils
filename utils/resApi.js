@@ -109,13 +109,13 @@ class ABResponseAPI {
             .send(
                JSON.stringify(packet)
                   .replace('"false"', "false")
-                  .replace('"true"', "true"),
+                  .replace('"true"', "true")
             );
       } else {
          this.res.write(
             JSON.stringify(packet)
                .replace('"false"', "false")
-               .replace('"true"', "true"),
+               .replace('"true"', "true")
          );
          this.res.end();
       }

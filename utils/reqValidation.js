@@ -38,7 +38,7 @@ class ABRequestValidation {
                this.req.log(
                   `... validation error [${this.req.jobID}]: ${d.message} (${
                      d.context.label
-                  } : ${JSON.stringify(d.context.value)})`,
+                  } : ${JSON.stringify(d.context.value)})`
                );
             });
          });
@@ -202,7 +202,7 @@ class ABRequestValidation {
 
                      case "type":
                         console.error(
-                           "reqAB.validateParameters(): .type param is depreciated.",
+                           "reqAB.validateParameters(): .type param is depreciated."
                         );
 
                         // include "string" in email types:
@@ -358,7 +358,7 @@ class ABRequestValidation {
                if (description[p] && description[p].validate) {
                   if (typeof description[p].validate != "function") {
                      var err = new Error(
-                        `req.ab.validateParameters(): ${p}.validate() is not a function.  Not sure what your attempting here.`,
+                        `req.ab.validateParameters(): ${p}.validate() is not a function.  Not sure what your attempting here.`
                      );
                      console.error(err);
                      return;
@@ -367,7 +367,7 @@ class ABRequestValidation {
                   // Run the provided .validation()
                   var r = description[p].validate(
                      results.value[p],
-                     results.value,
+                     results.value
                   );
 
                   // if this resulted in an error, record it
