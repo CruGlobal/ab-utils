@@ -78,10 +78,10 @@ class ABRequestPerformance {
    /**
     * mark()
     * capture the current process.hrtime.bigint() and store it under key.
-    * @param {string} key
-    *		a unique reference for this timing.
+    * @param {string} key a unique reference for this timing.
+    * @param {object} attributes optional attribute to pass on to telemetry
     */
-   mark(key) {
+   mark(key, attributes) {
       if (key) {
          if (this.marks[key]) {
             this.req.log(
@@ -89,6 +89,8 @@ class ABRequestPerformance {
             );
          }
          this.marks[key] = process.hrtime.bigint();
+         // Start a telemetry span
+         if (key !== "__start" ) this.req.spanCreateChild?.(key, attributes);
       }
    }
 
@@ -113,6 +115,8 @@ class ABRequestPerformance {
    measure(key, keyFrom, keyTo = null) {
       if (!keyFrom) {
          keyFrom = key;
+         // End the telemetry span;
+         if (key) this.req.spanEnd(key);
       }
       var timeFrom = this.marks[keyFrom];
       var timeTo = this.marks[keyTo] || process.hrtime.bigint();

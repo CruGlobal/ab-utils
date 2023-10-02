@@ -3,7 +3,7 @@
  * @module ab-utils
  * @borrows module:config as config
  * @borrows module:Controller as controller
- * @borrows module:initSentry as initSentry
+ * @borrows module:telemetry as telemetry
  * @borrows module:reqApi as reqApi
  * @borrows module:request as reqService
  * @borrows module:resApi as resApi
@@ -12,7 +12,7 @@
 const config = require("./utils/config.js");
 const controller = require("./utils/controller.js");
 const defaults = require("./utils/defaults.js");
-const initSentry = require("./utils/initSentry.js");
+const telemetry = require("./utils/telemetry.js");
 const reqApi = require("./utils/reqApi.js");
 const reqService = require("./utils/reqService.js");
 const resApi = require("./utils/resApi.js");
@@ -23,7 +23,6 @@ module.exports = {
    config,
    controller,
    defaults,
-   initSentry,
    reqApi,
    reqService,
    resApi,
@@ -49,5 +48,6 @@ module.exports = {
     * @see [uuid - npm]{@link https://www.npmjs.com/package/uuid}
     * @returns {string} uuid
     */
+   telemetry,
    uuid,
 };

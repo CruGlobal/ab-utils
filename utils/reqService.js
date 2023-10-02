@@ -4,7 +4,6 @@
  * @ignore
  */
 const path = require("path");
-const Sentry = require("@sentry/node");
 const DBConn = require(path.join(__dirname, "dbConn"));
 const Model = require(path.join(__dirname, "model"));
 const ABPerformance = require("./reqPerformance.js");
@@ -12,6 +11,7 @@ const ABNotification = require("./reqNotification.js");
 const ServicePublish = require("./reqServicePublish.js");
 const ServiceRequest = require("./serviceRequest.js");
 const ServiceSubscriber = require("./reqServiceSubscriber.js");
+const telemetry = require("./telemetry")();
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 const ABValidator = require("./reqValidation.js");
 const EventEmitter = require("events").EventEmitter;
@@ -144,19 +144,19 @@ class ABRequestService extends EventEmitter {
       this.debug = false;
 
       // Add context for Sentry
-      Sentry.setContext("Job Data", {
+      telemetry.setContext?.("Job Data", {
          jobID: this.jobID,
          requestID: this.requestID,
          serviceKey: this.serviceKey,
          tenantID: this.tenantID(),
          data: this.data,
       });
-      Sentry.setTags({
+      telemetry.setContext?.("tags", {
          tenant: this.tenantID(),
       });
       const user = { username: this.username() };
       if (this.usernameReal()) user.real = this.usernameReal();
-      Sentry.setUser(user);
+      telemetry.setContext?.("user", user);
 
       // extend
 
@@ -772,26 +772,37 @@ class ABRequestService extends EventEmitter {
    }
 
    /**
-    * Creates a sentry child span based in the req._sentryTransaction
-    * @param  {...any} args as expected by Sentry.startChild
-    * @returns {Sentry.span}
+    * Creates a telemetry child span based on the req._telemetrySpan
+    * @param {string} key identifier for the span
+    * @param {object} attributes any data to add to the span
+    * @returns {object} the span
     */
-   sentryChild(...args) {
-      return (
-         this.sentryTransaction()?.startChild(...args) ??
-         Sentry.startChild(...args)
-      );
+   spanCreateChild(key, attributes) {
+      const parent = this.spanRequest();
+      return parent
+         ? telemetry.startChildSpan(parent, key, attributes)
+         : telemetry.startSpan(key, attributes);
    }
+
    /**
-    * Creates or gets the Transaction for the current Request
-    * @param  {...any} args as expected by Sentry.startTransaction
-    * @returns {Sentry.Transaction}
+    * Creates or gets the telemetry span for the current Request
+    * @param {string} key identifier for the span
+    * @param {object} attributes any data to add to the span
+    * @returns {object} the span
     */
-   sentryTransaction(...args) {
-      if (args.length > 0) {
-         this._sentryTransaction = Sentry.startTransaction(...args);
+   spanRequest(key, attributes) {
+      if (key) {
+         this._telemetrySpan = telemetry.startSpan(key, attributes);
       }
-      return this._sentryTransaction;
+      return this._telemetrySpan;
+   }
+
+   /**
+    * Ends the given telemetry span
+    * @param {string} key identifier for the span
+    */
+   spanEnd(key) {
+      telemetry.endSpan(key);
    }
 
    servicePublish(key, data) {
