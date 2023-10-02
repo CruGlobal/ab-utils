@@ -10,7 +10,7 @@ a set of common utilities shared by each of our microsservices
     * [.uuid()](#module_ab-utils.uuid) ⇒ <code>string</code>
     * [.config(key)](#module_ab-utils.config) ⇒ <code>object</code>
     * [.controller([key])](#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](#ABServiceController)
-    * [.initSentry(options)](#module_ab-utils.initSentry)
+    * [.telemetry()](#module_ab-utils.telemetry) ⇒ [<code>Telemetry</code>](#Telemetry)
     * [.reqApi(req, res, [config])](#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](#ABRequestAPI)
     * [.reqService(req, controller)](#module_ab-utils.reqService) ⇒ [<code>ABRequestService</code>](#ABRequestService)
     * [.resApi(req, res)](#module_ab-utils.resApi) ⇒ [<code>ABResponseAPI</code>](#ABResponseAPI)
@@ -67,18 +67,12 @@ Get an AppBuilder Controller for use in our micro services
 | --- | --- | --- |
 | [key] | <code>string</code> | <code>&quot;ABServiceController&quot;</code> | 
 
-<a name="module_ab-utils.initSentry"></a>
+<a name="module_ab-utils.telemetry"></a>
 
-### ab-utils.initSentry(options)
-Initializes sentry. This should be called by the service on start up if
-we want to track it in Sentry.
+### ab-utils.telemetry() ⇒ [<code>Telemetry</code>](#Telemetry)
+Get the telemetry interface
 
 **Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
-
-| Param | Type | Description |
-| --- | --- | --- |
-| options | <code>Sentry.NodeOptions</code> | options for Sentry. Expects a DSN. |
-
 <a name="module_ab-utils.reqApi"></a>
 
 ### ab-utils.reqApi(req, res, [config]) ⇒ [<code>ABRequestAPI</code>](#ABRequestAPI)

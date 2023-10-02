@@ -2,15 +2,19 @@ const { assert } = require("chai");
 const sinon = require("sinon");
 const proxyquire = require("proxyquire").noCallThru();
 
-const fakeSentryStartTransaction = sinon.fake.returns("fake sentry transaction");
-const fakeSentryStartChild = sinon.fake.returns("fake sentry child");
+const fakeStartSpan = sinon.fake.returns("fake span");
+const fakeStartChild = sinon.fake.returns("fake child");
+const fakeSetContext = sinon.stub();
+const fakeEndSpan = sinon.stub();
+
 const reqService = proxyquire("../../utils/reqService.js", {
-   "@sentry/node": {
-      startTransaction: fakeSentryStartTransaction,
-      startChild: fakeSentryStartChild,
-      setContext: sinon.stub(),
-      setTags: sinon.stub(),
-      setUser: sinon.stub(),
+   "./telemetry": () => {
+      return {
+         startSpan: fakeStartSpan,
+         startChildSpan: fakeStartChild,
+         setContext: sinon.stub(),
+         endSpan: fakeEndSpan,
+      }
    }
 });
 
@@ -33,8 +37,10 @@ describe("ABRequestAPI", () => {
 
    afterEach(() => {
       sinon.restore();
-      fakeSentryStartTransaction.resetHistory();
-      fakeSentryStartChild.resetHistory();
+      fakeStartSpan.resetHistory();
+      fakeStartChild.resetHistory();
+      fakeEndSpan.resetHistory();
+      fakeSetContext.resetHistory();
    });
 
    describe("instance attributes", () => {
@@ -195,51 +201,56 @@ describe("ABRequestAPI", () => {
       });
    });
 
-   describe(".sentryChild()", () => {
-      it("creates a sentryChild based on the req transaction", () => {
-         const fakeStartChild = sinon.fake.returns("child");
-         const fakeSentryTransaction = sinon.replace(
-            req, 
-            "sentryTransaction", 
-            sinon.fake.returns({ startChild: fakeStartChild }),
+   describe(".spanCreateChild()", () => {
+      it("creates a child span based on the req span", () => {
+         const fakeSpanRequest = sinon.replace(
+            req,
+            "spanRequest",
+            sinon.fake.returns("child span")
          )
-         const args = { name: "test", op: "function" };
-         const result = req.sentryChild(args);
-         assert(fakeSentryTransaction.calledOnce);
-         assert.equal(fakeSentryTransaction.firstCall.firstArg, undefined);
-         assert(fakeStartChild.calledOnceWith(args));
-         assert.equal(result, "child");
-         assert(fakeSentryStartChild.notCalled);
+         const attributes = { op: "function" };
+         const result = req.spanCreateChild("child", attributes);
+         assert(fakeSpanRequest.calledOnce);
+         assert.equal(fakeSpanRequest.firstCall.firstArg, undefined);
+         assert(fakeStartChild.calledOnce);
+         assert.equal(fakeStartChild.firstCall.args[0], "child span");
+         assert.equal(fakeStartChild.firstCall.args[1], "child");
+         assert.equal(fakeStartChild.firstCall.args[2], attributes);
+         assert(fakeStartSpan.notCalled);
       });
 
-      it("creates a sentryChild from Sentry if req transaction not set", () => {
-         const stubSentryTransaction = sinon.replace(
-            req, 
-            "sentryTransaction", 
+      it("creates a span if req span not set", () => {
+         const stubSpanRequest = sinon.replace(
+            req,
+            "spanRequest",
             sinon.stub(),
          )
-         const args = { name: "test", op: "function" };
-         const result = req.sentryChild(args);
-         assert(stubSentryTransaction.calledOnce);
-         assert.equal(stubSentryTransaction.firstCall.firstArg, undefined);
-         assert(fakeSentryStartChild.calledOnceWith(args));
-         assert.equal(result, "fake sentry child");
+         const attributes = { op: "function" };
+         req.spanCreateChild("child", attributes);
+         assert(stubSpanRequest.calledOnce);
+         assert.equal(stubSpanRequest.firstCall.firstArg, undefined);
+         assert(fakeStartSpan.calledOnce);
+         assert.equal(fakeStartSpan.firstCall.args[0], "child");
+         assert.equal(fakeStartSpan.firstCall.args[1], attributes);
+         assert(fakeStartChild.notCalled);
       });
    });
 
-   describe(".sentryTransaction()", () => {
-      it("creates a sentry transaction with args", () => {
+   describe(".spanRequest()", () => {
+      it("creates a telemetry span with args", () => {
          const args = { name: "test", op: "function" };
-         req.sentryTransaction(args);
-         assert(fakeSentryStartTransaction.calledOnceWith(args));
-         assert.equal(req._sentryTransaction, "fake sentry transaction");
+         req.spanRequest("my span", args);
+         assert(fakeStartSpan.calledOnce);
+         assert.equal(fakeStartSpan.firstCall.args[0], "my span");
+         assert.equal(fakeStartSpan.firstCall.args[1], args);
+         assert.equal(req._telemetrySpan, "fake span");
       });
 
-      it("returns an existing sentry transaction when called without args", () => {
-         req._sentryTransaction = "exisiting sentry transaction";
-         const result = req.sentryTransaction();
-         assert(fakeSentryStartTransaction.notCalled);
-         assert.equal(result,"exisiting sentry transaction");
+      it("returns an existing telemetry span when called without args", () => {
+         req._telemetrySpan = "exisiting span";
+         const result = req.spanRequest();
+         assert(fakeStartSpan.notCalled);
+         assert.equal(result, "exisiting span");
       });
    });
 
