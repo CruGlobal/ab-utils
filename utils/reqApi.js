@@ -5,7 +5,6 @@
  * @module reqApi
  * @ignore
  */
-const Sentry = require("@sentry/node");
 const shortid = require("shortid");
 // const cote = require("cote");
 
@@ -16,7 +15,7 @@ const ABServiceRequest = require("./serviceRequest.js");
 const ABServiceResponder = require("./reqServiceResponder.js");
 const ABServiceSubscriber = require("./reqServiceSubscriber.js");
 const ABValidator = require("./reqValidation.js");
-
+const telemetry = require("./telemetry.js")();
 /**
  * @alias ABRequestAPI
  * @typicalname req
@@ -59,11 +58,11 @@ class ABRequestAPI {
       // fix that value here.
 
       // Add context for Sentry
-      Sentry.setContext("Job Data", {
+      telemetry.setContext("Job Data", {
          jobID: this.jobID,
          serviceKey: this.serviceKey,
       });
-      Sentry.setTag("tenant", this.tenantID);
+      telemetry.setContext("tags", { tenant: this.tenantID });
 
       // expose the performance operator directly:
       this.performance = ABPerformance(this);
@@ -132,7 +131,7 @@ class ABRequestAPI {
     **/
    set tenantID(id) {
       this._tenantID = id;
-      Sentry.setTag("tenant", id);
+      telemetry.setContext("tag", { tenant: id });
    }
 
    /**
@@ -150,7 +149,7 @@ class ABRequestAPI {
     **/
    set user(u) {
       this._user = u;
-      this.setSentryUser();
+      this.setTelemetryUser();
    }
 
    /**
@@ -168,7 +167,7 @@ class ABRequestAPI {
     **/
    set userReal(u) {
       this._userReal = u;
-      this.setSentryUser();
+      this.setTelemetryUser();
    }
 
    /** @return {boolean} */
@@ -183,7 +182,7 @@ class ABRequestAPI {
    switcherooToUser(u) {
       this.userReal = this.user;
       this.user = u;
-      this.setSentryUser();
+      this.setTelemetryUser();
    }
 
    /**
@@ -268,10 +267,10 @@ class ABRequestAPI {
       return this.__Responder(key, handler, this);
    }
 
-   setSentryUser() {
+   setTelemetryUser() {
       const user = { username: this._user?.username };
       if (this.isSwitcherood()) user.real = this.userReal.username;
-      Sentry.setUser(user);
+      telemetry.setContext("user", user);
    }
 
    /**
@@ -293,6 +292,24 @@ class ABRequestAPI {
     */
    socketKey(key) {
       return `${this._tenantID}-${key}`;
+   }
+
+   /**
+    * Creates a telemetry child span based on the active span
+    * @param {string} key identifier for the span
+    * @param {object} attributes any data to add to the span
+    * @returns {object} the span
+    */
+   spanCreateChild(key, attributes) {
+      return telemetry.startSpan(key, attributes);
+   }
+
+   /**
+    * Ends the given telemetry span
+    * @param {string} key identifier for the span
+    */
+   spanEnd(key) {
+      telemetry.endSpan(key);
    }
 
    /**
