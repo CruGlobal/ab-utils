@@ -115,9 +115,9 @@ class ABRequestPerformance {
    measure(key, keyFrom, keyTo = null) {
       if (!keyFrom) {
          keyFrom = key;
-         // End the telemetry span;
-         if (key) this.req.spanEnd(key);
       }
+      // End the telemetry span;
+      if (!keyTo) this.req.spanEnd(keyFrom);
       var timeFrom = this.marks[keyFrom];
       var timeTo = this.marks[keyTo] || process.hrtime.bigint();
 

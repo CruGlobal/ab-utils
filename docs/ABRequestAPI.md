@@ -22,6 +22,7 @@ jobs to various micro services.
     * [.serviceSubscribe(key, handler)](#ABRequestAPI+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
     * [.socketKey(key)](#ABRequestAPI+socketKey) ⇒ <code>string</code>
     * [.spanCreateChild(key, attributes)](#ABRequestAPI+spanCreateChild) ⇒ <code>object</code>
+    * [.spanRequest(key, attributes)](#ABRequestAPI+spanRequest) ⇒ <code>object</code>
     * [.spanEnd(key)](#ABRequestAPI+spanEnd)
     * [.validateParameters(description, [autoRespond], [params])](#ABRequestAPI+validateParameters) ⇒ <code>bool</code>
     * [.validationReset()](#ABRequestAPI+validationReset)
@@ -159,6 +160,19 @@ make sure any socket related key is prefixed by our tenantID
 
 ### req.spanCreateChild(key, attributes) ⇒ <code>object</code>
 Creates a telemetry child span based on the active span
+
+**Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
+**Returns**: <code>object</code> - the span  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>string</code> | identifier for the span |
+| attributes | <code>object</code> | any data to add to the span |
+
+<a name="ABRequestAPI+spanRequest"></a>
+
+### req.spanRequest(key, attributes) ⇒ <code>object</code>
+Creates or gets the telemetry span for the current Request
 
 **Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 **Returns**: <code>object</code> - the span  

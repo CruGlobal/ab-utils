@@ -301,7 +301,21 @@ class ABRequestAPI {
     * @returns {object} the span
     */
    spanCreateChild(key, attributes) {
-      return telemetry.startSpan(key, attributes);
+      const parent = this.spanRequest();
+      return telemetry.startChildSpan(key, attributes, parent);
+   }
+
+   /**
+    * Creates or gets the telemetry span for the current Request
+    * @param {string} key identifier for the span
+    * @param {object} attributes any data to add to the span
+    * @returns {object} the span
+    */
+   spanRequest(key, attributes) {
+      if (key) {
+         this._telemetrySpan = telemetry.startSpan(key, attributes);
+      }
+      return this._telemetrySpan;
    }
 
    /**

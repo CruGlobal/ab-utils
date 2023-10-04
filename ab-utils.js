@@ -48,6 +48,6 @@ module.exports = {
     * @see [uuid - npm]{@link https://www.npmjs.com/package/uuid}
     * @returns {string} uuid
     */
-   telemetry,
+   telemetry: telemetry(),
    uuid,
 };

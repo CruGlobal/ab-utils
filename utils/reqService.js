@@ -779,9 +779,7 @@ class ABRequestService extends EventEmitter {
     */
    spanCreateChild(key, attributes) {
       const parent = this.spanRequest();
-      return parent
-         ? telemetry.startChildSpan(parent, key, attributes)
-         : telemetry.startSpan(key, attributes);
+      return telemetry.startChildSpan(key, attributes, parent);
    }
 
    /**
