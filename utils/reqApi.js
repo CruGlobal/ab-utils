@@ -15,7 +15,7 @@ const ABServiceRequest = require("./serviceRequest.js");
 const ABServiceResponder = require("./reqServiceResponder.js");
 const ABServiceSubscriber = require("./reqServiceSubscriber.js");
 const ABValidator = require("./reqValidation.js");
-
+const telemetry = require("./telemetry.js")();
 /**
  * @alias ABRequestAPI
  * @typicalname req
@@ -56,6 +56,13 @@ class ABRequestAPI {
       // a unique string to identify this service for our service calls.
       // since ABRequestAPI is created on the api_sails service, we can
       // fix that value here.
+
+      // Add context for Sentry
+      telemetry.setContext("Job Data", {
+         jobID: this.jobID,
+         serviceKey: this.serviceKey,
+      });
+      telemetry.setContext("tags", { tenant: this.tenantID });
 
       // expose the performance operator directly:
       this.performance = ABPerformance(this);
@@ -124,6 +131,7 @@ class ABRequestAPI {
     **/
    set tenantID(id) {
       this._tenantID = id;
+      telemetry.setContext("tag", { tenant: id });
    }
 
    /**
@@ -141,6 +149,7 @@ class ABRequestAPI {
     **/
    set user(u) {
       this._user = u;
+      this.setTelemetryUser();
    }
 
    /**
@@ -158,6 +167,7 @@ class ABRequestAPI {
     **/
    set userReal(u) {
       this._userReal = u;
+      this.setTelemetryUser();
    }
 
    /** @return {boolean} */
@@ -172,6 +182,7 @@ class ABRequestAPI {
    switcherooToUser(u) {
       this.userReal = this.user;
       this.user = u;
+      this.setTelemetryUser();
    }
 
    /**
@@ -256,6 +267,12 @@ class ABRequestAPI {
       return this.__Responder(key, handler, this);
    }
 
+   setTelemetryUser() {
+      const user = { username: this._user?.username };
+      if (this.isSwitcherood()) user.real = this.userReal.username;
+      telemetry.setContext("user", user);
+   }
+
    /**
     * Create a Cote service subscriber that can parse our data interchange
     * format.
@@ -275,6 +292,38 @@ class ABRequestAPI {
     */
    socketKey(key) {
       return `${this._tenantID}-${key}`;
+   }
+
+   /**
+    * Creates a telemetry child span based on the active span
+    * @param {string} key identifier for the span
+    * @param {object} attributes any data to add to the span
+    * @returns {object} the span
+    */
+   spanCreateChild(key, attributes) {
+      const parent = this.spanRequest();
+      return telemetry.startChildSpan(key, attributes, parent);
+   }
+
+   /**
+    * Creates or gets the telemetry span for the current Request
+    * @param {string} key identifier for the span
+    * @param {object} attributes any data to add to the span
+    * @returns {object} the span
+    */
+   spanRequest(key, attributes) {
+      if (key) {
+         this._telemetrySpan = telemetry.startSpan(key, attributes);
+      }
+      return this._telemetrySpan;
+   }
+
+   /**
+    * Ends the given telemetry span
+    * @param {string} key identifier for the span
+    */
+   spanEnd(key) {
+      telemetry.endSpan(key);
    }
 
    /**

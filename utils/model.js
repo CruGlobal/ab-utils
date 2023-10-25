@@ -896,21 +896,23 @@ module.exports = class Model {
                return;
             }
 
-            this.dbConn.query(`DELETE FROM ${tableName} WHERE ?`, cond, (
-               error /* ,results, fields*/
-            ) => {
-               // error will be an Error if one occurred during the query
-               // results will contain the results of the query
-               // fields will contain information about the returned results fields (if any)
+            this.dbConn.query(
+               `DELETE FROM ${tableName} WHERE ?`,
+               cond,
+               (error /* ,results, fields*/) => {
+                  // error will be an Error if one occurred during the query
+                  // results will contain the results of the query
+                  // fields will contain information about the returned results fields (if any)
 
-               if (error) {
-                  // TODO: identify specific errors and handle them if we can.
-                  reject(error);
-                  return;
+                  if (error) {
+                     // TODO: identify specific errors and handle them if we can.
+                     reject(error);
+                     return;
+                  }
+                  // TODO: should return the updated entry
+                  resolve();
                }
-               // TODO: should return the updated entry
-               resolve();
-            });
+            );
          } catch (e) {
             reject(e);
          }
@@ -1005,29 +1007,30 @@ module.exports = class Model {
                      }]`
                   );
 
-                  this._queryIt(queryOptions.query, queryOptions.values, (
-                     error,
-                     results /*, fields */
-                  ) => {
-                     if (error) {
-                        // TODO: identify specific errors and handle them if we can.
-                        reject(error);
-                        return;
-                     }
+                  this._queryIt(
+                     queryOptions.query,
+                     queryOptions.values,
+                     (error, results /*, fields */) => {
+                        if (error) {
+                           // TODO: identify specific errors and handle them if we can.
+                           reject(error);
+                           return;
+                        }
 
-                     Promise.resolve()
-                        .then(() => {
-                           // update field values
-                           return this._normalizeResponse(results);
-                        })
-                        .then((final) => {
-                           // TODO: should return the updated entry
-                           resolve(final);
-                        })
-                        .catch((err) => {
-                           reject(err);
-                        });
-                  });
+                        Promise.resolve()
+                           .then(() => {
+                              // update field values
+                              return this._normalizeResponse(results);
+                           })
+                           .then((final) => {
+                              // TODO: should return the updated entry
+                              resolve(final);
+                           })
+                           .catch((err) => {
+                              reject(err);
+                           });
+                     }
+                  );
                })
                .catch((err) => {
                   reject(err);

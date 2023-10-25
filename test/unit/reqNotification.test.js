@@ -1,6 +1,16 @@
 const { assert } = require("chai");
+const proxyquire = require("proxyquire").noCallThru();
 const sinon = require("sinon");
-const reqNotification = require("../../utils/reqNotification.js");
+
+const stubNotify = sinon.stub();
+const reqNotification = proxyquire("../../utils/reqNotification.js",
+{
+   "./telemetry": () => {
+      return {
+         notify: stubNotify,
+      }
+   }
+});
 
 const req = {
    serviceRequest: sinon.fake(),
@@ -8,8 +18,9 @@ const req = {
    jobID: "job",
    requestID: "request",
    serviceKey: "key",
+   log: () => {},
 };
-const notification = reqNotification(req);
+
 describe("ABNotification", () => {
    beforeEach(() => {});
 
@@ -18,19 +29,18 @@ describe("ABNotification", () => {
    });
 
    describe("notify()", () => {
-      it("sends a request log_manager.notification ", function () {
-         const stringifyErrors = sinon.replace(
+      it("notify calls telemetry.notify()", async () => {
+         const notification = reqNotification(req);
+         const fakeStringifyErrors = sinon.replace(
             notification,
             "stringifyErrors",
             sinon.fake.returns("stringified error")
-         );
-         notification.notify("developer", "error message", {});
-         assert(req.serviceRequest.calledOnce);
-         assert.equal(
-            req.serviceRequest.firstCall.firstArg,
-            "log_manager.notification"
-         );
-         const jobData = req.serviceRequest.firstCall.args[1];
+         )
+         const error = new Error("test error");
+         await notification.notify("developer", error, {});
+         assert.equal(fakeStringifyErrors.callCount, 1, "stringifyErrors not called?");
+         assert(stubNotify.calledOnce);
+         const jobData = stubNotify.firstCall.firstArg;
          assert.deepOwnInclude(jobData, {
             domain: "developer",
             error: "stringified error",
@@ -40,10 +50,10 @@ describe("ABNotification", () => {
                serviceKey: "key",
                tenantID: "tenant",
                user: {},
-            },
-         });
-         assert.containsAllKeys(jobData, ["callStack"]);
-         assert(stringifyErrors.calledOnceWith("error message"));
+            }
+         }),
+         assert.equal(stubNotify.firstCall.args[1], error);
       });
    });
 });
+

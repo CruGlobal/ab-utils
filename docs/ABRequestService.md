@@ -30,6 +30,9 @@
     * [.queryWhereCondition(cond)](#ABRequestService+queryWhereCondition) ⇒ <code>obj</code>
     * [.retry(fn)](#ABRequestService+retry) ⇒ <code>Promise</code>
     * [.shouldRetry(error)](#ABRequestService+shouldRetry)
+    * [.spanCreateChild(key, attributes)](#ABRequestService+spanCreateChild) ⇒ <code>object</code>
+    * [.spanRequest(key, attributes)](#ABRequestService+spanRequest) ⇒ <code>object</code>
+    * [.spanEnd(key)](#ABRequestService+spanEnd)
     * [.serviceSubscribe(key, handler)](#ABRequestService+serviceSubscribe) ⇒ [<code>ABServiceSubscriber</code>](./ABServiceSubscriber.md#ABServiceSubscriber)
     * [.socketKey(key)](#ABRequestService+socketKey) ⇒ <code>string</code>
     * [.tenantDB()](#ABRequestService+tenantDB) ⇒ <code>string</code>
@@ -355,6 +358,43 @@ the expected return data, and rejects() with the Network errors.
 | Param | Type |
 | --- | --- |
 | error | <code>Error</code> | 
+
+<a name="ABRequestService+spanCreateChild"></a>
+
+### req.spanCreateChild(key, attributes) ⇒ <code>object</code>
+Creates a telemetry child span based on the req._telemetrySpan
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+**Returns**: <code>object</code> - the span  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>string</code> | identifier for the span |
+| attributes | <code>object</code> | any data to add to the span |
+
+<a name="ABRequestService+spanRequest"></a>
+
+### req.spanRequest(key, attributes) ⇒ <code>object</code>
+Creates or gets the telemetry span for the current Request
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+**Returns**: <code>object</code> - the span  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>string</code> | identifier for the span |
+| attributes | <code>object</code> | any data to add to the span |
+
+<a name="ABRequestService+spanEnd"></a>
+
+### req.spanEnd(key)
+Ends the given telemetry span
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| key | <code>string</code> | identifier for the span |
 
 <a name="ABRequestService+serviceSubscribe"></a>
 

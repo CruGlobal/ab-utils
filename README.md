@@ -9,8 +9,9 @@ a set of common utilities shared by each of our microsservices
     * [.service](#module_ab-utils.service) ⇐ <code>EventEmitter</code>
         * [new service(options)](#new_module_ab-utils.service_new)
     * [.uuid()](#module_ab-utils.uuid) ⇒ <code>string</code>
-    * [.config(baseFile)](#module_ab-utils.config) ⇒ <code>object</code>
+    * [.config(key)](#module_ab-utils.config) ⇒ <code>object</code>
     * [.controller([key])](#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](./docs/ABServiceController.md#ABServiceController)
+    * [.telemetry()](#module_ab-utils.telemetry) ⇒ [<code>Telemetry</code>](./docs/Telemetry.md#Telemetry)
     * [.reqApi(req, res, [config])](#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](./docs/ABRequestAPI.md#ABRequestAPI)
     * [.reqService(req, controller)](#module_ab-utils.reqService) ⇒ [<code>ABRequestService</code>](./docs/ABRequestService.md#ABRequestService)
     * [.resApi(req, res)](#module_ab-utils.resApi) ⇒ [<code>ABResponseAPI</code>](./docs/ABResponseAPI.md#ABResponseAPI)
@@ -48,13 +49,13 @@ This is an alias for uuid.v4()
 **See**: [uuid - npm](https://www.npmjs.com/package/uuid)  
 <a name="module_ab-utils.config"></a>
 
-### ab-utils.config(baseFile) ⇒ <code>object</code>
+### ab-utils.config(key) ⇒ <code>object</code>
 **Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
 **Returns**: <code>object</code> - baseConfig  
 
 | Param | Type | Description |
 | --- | --- | --- |
-| baseFile | <code>string</code> | should be included as part of the project |
+| key | <code>string</code> | [optional] a subportion of the configs specified |
 
 <a name="module_ab-utils.controller"></a>
 
@@ -67,6 +68,12 @@ Get an AppBuilder Controller for use in our micro services
 | --- | --- | --- |
 | [key] | <code>string</code> | <code>&quot;ABServiceController&quot;</code> | 
 
+<a name="module_ab-utils.telemetry"></a>
+
+### ab-utils.telemetry() ⇒ [<code>Telemetry</code>](./docs/Telemetry.md#Telemetry)
+Get the telemetry interface
+
+**Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
 <a name="module_ab-utils.reqApi"></a>
 
 ### ab-utils.reqApi(req, res, [config]) ⇒ [<code>ABRequestAPI</code>](./docs/ABRequestAPI.md#ABRequestAPI)
@@ -119,4 +126,8 @@ prepare a default set of data/utilities for our api response.
  - [ABResponseAPI](./docs/ABResponseAPI.md)
  - [ABService](./docs/ABService.md)
  - [ABServiceRequest](./docs/ABServiceRequest.md)
- - [exports](./docs/exports.md)
+ - [Telemetry](./docs/Telemetry.md)
+ - [TelemetryDefault](./docs/TelemetryDefault.md)
+ - [TelemetryOpenTelemetry](./docs/TelemetryOpenTelemetry.md)
+ - [telemetrySentry](./docs/telemetrySentry.md)
+ - [DefaultHealthcheck](./docs/DefaultHealthcheck.md)

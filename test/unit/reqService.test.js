@@ -1,6 +1,22 @@
 const { assert } = require("chai");
 const sinon = require("sinon");
-const reqService = require("../../utils/reqService.js");
+const proxyquire = require("proxyquire").noCallThru();
+
+const fakeStartSpan = sinon.fake.returns("fake span");
+const fakeStartChild = sinon.fake.returns("fake child");
+const fakeSetContext = sinon.stub();
+const fakeEndSpan = sinon.stub();
+
+const reqService = proxyquire("../../utils/reqService.js", {
+   "./telemetry": () => {
+      return {
+         startSpan: fakeStartSpan,
+         startChildSpan: fakeStartChild,
+         setContext: sinon.stub(),
+         endSpan: fakeEndSpan,
+      };
+   },
+});
 
 let req;
 const controller = {
@@ -21,6 +37,10 @@ describe("ABRequestAPI", () => {
 
    afterEach(() => {
       sinon.restore();
+      fakeStartSpan.resetHistory();
+      fakeStartChild.resetHistory();
+      fakeEndSpan.resetHistory();
+      fakeSetContext.resetHistory();
    });
 
    describe("instance attributes", () => {
@@ -178,6 +198,43 @@ describe("ABRequestAPI", () => {
          const params = [new Error("test"), {}];
          req.notify.builder(...params);
          assert(notify.calledOnceWith("builder", ...params));
+      });
+   });
+
+   describe(".spanCreateChild()", () => {
+      it("creates a child span based on the req span", () => {
+         const fakeSpanRequest = sinon.replace(
+            req,
+            "spanRequest",
+            sinon.fake.returns("child span")
+         );
+         const attributes = { op: "function" };
+         req.spanCreateChild("child", attributes);
+         assert(fakeSpanRequest.calledOnce);
+         assert.equal(fakeSpanRequest.firstCall.firstArg, undefined);
+         assert(fakeStartChild.calledOnce);
+         assert.equal(fakeStartChild.firstCall.args[0], "child");
+         assert.equal(fakeStartChild.firstCall.args[1], attributes);
+         assert.equal(fakeStartChild.firstCall.args[2], "child span");
+         assert(fakeStartSpan.notCalled);
+      });
+   });
+
+   describe(".spanRequest()", () => {
+      it("creates a telemetry span with args", () => {
+         const args = { name: "test", op: "function" };
+         req.spanRequest("my span", args);
+         assert(fakeStartSpan.calledOnce);
+         assert.equal(fakeStartSpan.firstCall.args[0], "my span");
+         assert.equal(fakeStartSpan.firstCall.args[1], args);
+         assert.equal(req._telemetrySpan, "fake span");
+      });
+
+      it("returns an existing telemetry span when called without args", () => {
+         req._telemetrySpan = "exisiting span";
+         const result = req.spanRequest();
+         assert(fakeStartSpan.notCalled);
+         assert.equal(result, "exisiting span");
       });
    });
 

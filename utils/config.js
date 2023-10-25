@@ -5,7 +5,6 @@
  * @ignore
  */
 var path = require("path");
-var _ = require("lodash");
 /**
  * @param {string} key [optional] a subportion of the configs specified
  * @returns {object} baseConfig
