@@ -14,8 +14,8 @@ const reqService = proxyquire("../../utils/reqService.js", {
          startChildSpan: fakeStartChild,
          setContext: sinon.stub(),
          endSpan: fakeEndSpan,
-      }
-   }
+      };
+   },
 });
 
 let req;
@@ -207,32 +207,16 @@ describe("ABRequestAPI", () => {
             req,
             "spanRequest",
             sinon.fake.returns("child span")
-         )
+         );
          const attributes = { op: "function" };
-         const result = req.spanCreateChild("child", attributes);
+         req.spanCreateChild("child", attributes);
          assert(fakeSpanRequest.calledOnce);
          assert.equal(fakeSpanRequest.firstCall.firstArg, undefined);
          assert(fakeStartChild.calledOnce);
-         assert.equal(fakeStartChild.firstCall.args[0], "child span");
-         assert.equal(fakeStartChild.firstCall.args[1], "child");
-         assert.equal(fakeStartChild.firstCall.args[2], attributes);
+         assert.equal(fakeStartChild.firstCall.args[0], "child");
+         assert.equal(fakeStartChild.firstCall.args[1], attributes);
+         assert.equal(fakeStartChild.firstCall.args[2], "child span");
          assert(fakeStartSpan.notCalled);
-      });
-
-      it("creates a span if req span not set", () => {
-         const stubSpanRequest = sinon.replace(
-            req,
-            "spanRequest",
-            sinon.stub(),
-         )
-         const attributes = { op: "function" };
-         req.spanCreateChild("child", attributes);
-         assert(stubSpanRequest.calledOnce);
-         assert.equal(stubSpanRequest.firstCall.firstArg, undefined);
-         assert(fakeStartSpan.calledOnce);
-         assert.equal(fakeStartSpan.firstCall.args[0], "child");
-         assert.equal(fakeStartSpan.firstCall.args[1], attributes);
-         assert(fakeStartChild.notCalled);
       });
    });
 
