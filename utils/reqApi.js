@@ -409,7 +409,7 @@ class ABRequestAPI {
    validRoles(roleIDs) {
       if (this._user && this._user.SITE_ROLE) {
          var found = this._user.SITE_ROLE.filter(
-            (r) => roleIDs.indexOf(r.uuid) > -1
+            (r) => roleIDs.indexOf(r.uuid ?? r) > -1
          );
          if (found.length > 0) {
             return true;
