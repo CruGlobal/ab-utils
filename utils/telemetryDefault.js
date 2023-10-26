@@ -10,6 +10,7 @@
 class TelemetryDefault {
    /**
     * Send the error/notification to log_manager.notification
+    * @param {ABRequestAPI | ABRequestService} req
     * @param {object} jobData
     * @param {string} jobData.domain notification domain ('developer' or
     * 'builder')
@@ -17,7 +18,7 @@ class TelemetryDefault {
     * @param {object} jobData.info
     * @param {string} jobData.callStack
     */
-   async notify(jobData) {
+   async notify(req, jobData) {
       // We need to remove circular data from info, because it get's stringified later
       try {
          JSON.stringify(jobData.info);
@@ -38,10 +39,10 @@ class TelemetryDefault {
       }
 
       try {
-         await this.req.serviceRequest("log_manager.notification", jobData);
+         await req.serviceRequest("log_manager.notification", jobData);
       } catch (err) {
-         this.req.log("Error posting notification:");
-         this.req.log(err);
+         req.log("Error posting notification:");
+         req.log(err);
       }
    }
 }

@@ -62,7 +62,7 @@ class ABNotification {
       }
 
       // Pass the error to telemetry
-      return telemetry.notify(errorData, error);
+      return telemetry.notify(this.req, errorData, error);
    }
 
    stringifyErrors(param) {
