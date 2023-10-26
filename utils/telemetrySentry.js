@@ -59,7 +59,7 @@ class TelemetrySentry extends TelemetryOpenTelemetry {
     * @param {string} jobData.callStack
     * @param {Error} error the origianl error
     */
-   async notify({ domain, info, error }, err) {
+   async notify(req, { domain, info, error }, err) {
       const sentryError =
          err instanceof Error
             ? err
