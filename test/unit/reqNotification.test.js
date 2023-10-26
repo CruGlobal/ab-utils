@@ -40,7 +40,8 @@ describe("ABNotification", () => {
          await notification.notify("developer", error, {});
          assert.equal(fakeStringifyErrors.callCount, 1, "stringifyErrors not called?");
          assert(stubNotify.calledOnce);
-         const jobData = stubNotify.firstCall.firstArg;
+         assert.deepEqual(stubNotify.firstCall.firstArg, req)
+         const jobData = stubNotify.firstCall.args[1];
          assert.deepOwnInclude(jobData, {
             domain: "developer",
             error: "stringified error",
@@ -52,7 +53,7 @@ describe("ABNotification", () => {
                user: {},
             }
          }),
-         assert.equal(stubNotify.firstCall.args[1], error);
+         assert.equal(stubNotify.firstCall.args[2], error);
       });
    });
 });
