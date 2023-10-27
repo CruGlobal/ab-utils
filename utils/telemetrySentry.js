@@ -28,8 +28,8 @@ class TelemetrySentry extends TelemetryOpenTelemetry {
          normalizeDepth: 5,
          beforeSendTransaction: (transaction) => {
             // convert open telemetry attribute ("op") to the location sentry expects it
-            transaction.contexts.trace.op = transaction.contexts.trace.data.op;
-            delete transaction.contexts.trace.data.op;
+            transaction.contexts.trace.op =
+               transaction.contexts.otel?.attributes?.op;
             transaction.spans.forEach((span) => {
                span.op = span.data.op;
                delete span.data.op;
