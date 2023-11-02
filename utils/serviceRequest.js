@@ -32,7 +32,7 @@ class ABServiceRequest extends ServiceCote {
     *  it fails
     * @param {boolean} [options.longRequest=false] timeout after 90 seconds,
     * will be ignored if timeout was set
-    * @param {number}[options.stringResult=false] Return the results as a string data type.
+    * @param {boolean}[options.stringResult=false] Return the results as a string data type.
     * @param {function} [cb] optional node.js style callback(err, result) for
     * when the response is received.
     * @returns {Promise} resolves with the response from the service

@@ -353,6 +353,7 @@ optional callback, but also returns a promise.
 | [options.timeout] | <code>number</code> | <code>5000</code> | ms to wait before timing out |
 | [options.maxAttempts] | <code>number</code> | <code>5</code> | how many times to try the request if  it fails |
 | [options.longRequest] | <code>boolean</code> | <code>false</code> | timeout after 90 seconds, will be ignored if timeout was set |
+| [options.stringResult] | <code>boolean</code> | <code>false</code> | Return the results as a string data type. |
 | [cb] | <code>function</code> |  | optional node.js style callback(err, result) for when the response is received. |
 
 **Example**  

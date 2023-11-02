@@ -79,7 +79,7 @@ describe("ServiceRequest tests", () => {
          }
          assert.isFalse(
             notify.calledOnce,
-            ".notify.developer() not called once"
+            ".notify.developer() not called once",
          );
          assert.equal(callback.callCount, 1);
          assert.instanceOf(callback.firstCall.firstArg, Error);
@@ -136,7 +136,7 @@ describe("ServiceRequest tests", () => {
             await serviceRequest.request(
                "service.test",
                {},
-               { maxAttempts: 1 }
+               { maxAttempts: 1 },
             );
          } catch (err) {
             // We expect this
@@ -151,7 +151,7 @@ describe("ServiceRequest tests", () => {
          await serviceRequest.request(
             "service.test",
             {},
-            { timeout: 15000, longRequest: true } // longRequest should be ignored here
+            { timeout: 15000, longRequest: true }, // longRequest should be ignored here
          );
 
          assert.include(sendStub.firstCall.firstArg, { __timeout: 15000 });
@@ -163,7 +163,7 @@ describe("ServiceRequest tests", () => {
          await serviceRequest.request(
             "service.test",
             {},
-            { longRequest: true }
+            { longRequest: true },
          );
 
          assert.include(sendStub.firstCall.firstArg, {
@@ -185,6 +185,28 @@ describe("ServiceRequest tests", () => {
          assert.deepInclude(sendStub.firstCall.firstArg.param, {
             data: { value: 1 },
          });
+      });
+
+      it("called with options.stringResult", async () => {
+         const data = '{"data":"test"}';
+
+         sendStub.yields(null, data);
+
+         let response = await serviceRequest.request(
+            "service.test",
+            {},
+            { stringResult: false },
+         );
+
+         assert.deepEqual(response, JSON.parse(data));
+
+         response = await serviceRequest.request(
+            "service.test",
+            {},
+            { stringResult: true },
+         );
+
+         assert.equal(response, data);
       });
 
       it("failed log_manager.notification doesn't call notify", async () => {
