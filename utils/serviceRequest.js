@@ -32,6 +32,7 @@ class ABServiceRequest extends ServiceCote {
     *  it fails
     * @param {boolean} [options.longRequest=false] timeout after 90 seconds,
     * will be ignored if timeout was set
+    * @param {boolean}[options.stringResult=false] Return the results as a string data type.
     * @param {function} [cb] optional node.js style callback(err, result) for
     * when the response is received.
     * @returns {Promise} resolves with the response from the service
@@ -163,7 +164,11 @@ class ABServiceRequest extends ServiceCote {
 
                   // NOTE: our responses are now JSON.stringify()-ed before being
                   // sent, so now we need to .parse() the results
-                  if (typeof results === "string" && results.length > 0) {
+                  if (
+                     typeof results === "string" &&
+                     results.length > 0 &&
+                     !options.stringResult
+                  ) {
                      try {
                         results = JSON.parse(results);
                      } catch (e) {
