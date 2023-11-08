@@ -15,6 +15,7 @@ const telemetry = require("./telemetry")();
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 const ABValidator = require("./reqValidation.js");
 const EventEmitter = require("events").EventEmitter;
+const workerpool = require("workerpool");
 
 /**
  * @function deCircular()
@@ -45,7 +46,7 @@ function deCircular(args, o, context, level = 1) {
             args.push(
                `${context ? context : ""}${
                   context ? "." : ""
-               }${k}: ${JSON.stringify(o[k].toObj())}`
+               }${k}: ${JSON.stringify(o[k].toObj())}`,
             );
          } else {
             if (!o[k].____deCircular) {
@@ -54,14 +55,14 @@ function deCircular(args, o, context, level = 1) {
                   args,
                   o[k],
                   (context ? context + "->" : "") + k,
-                  level + 1
+                  level + 1,
                );
             }
          }
       } else {
          if (typeof o[k] != "function") {
             args.push(
-               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
+               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`,
             );
          }
       }
@@ -328,7 +329,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -373,7 +374,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -420,7 +421,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -692,7 +693,7 @@ class ABRequestService extends EventEmitter {
       let tenantDB = this.tenantDB();
       if (tenantDB == "") {
          let errorNoTenant = new Error(
-            `Unable to find tenant information for tenantID[${this.tenantID()}]`
+            `Unable to find tenant information for tenantID[${this.tenantID()}]`,
          );
          errorNoTenant.code = "ENOTENANT";
          reject(errorNoTenant);
@@ -869,7 +870,7 @@ class ABRequestService extends EventEmitter {
             jobID: `ABFactory(${this._tenantID})`,
             tenantID: this._tenantID,
          },
-         this.controller
+         this.controller,
       );
       ABReq._DBConn = this._DBConn;
       ABReq._Model = this._Model;
@@ -885,7 +886,7 @@ class ABRequestService extends EventEmitter {
       ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
          (f) => {
             obj[f] = this[f];
-         }
+         },
       );
       return obj;
    }
@@ -929,6 +930,21 @@ class ABRequestService extends EventEmitter {
    validateData(description) {
       this.__Validator.validate(description, this.data);
       return this.__Validator.errors();
+   }
+
+   /**
+    * Split threads to perform blocking tasks.
+    * @param {function} fn The logic function for any blocking event loop tasks.
+    * @param {Array} params Array of any values.
+    * @returns {any} Any values.
+    */
+   async worker(fn, params = []) {
+      const pool = workerpool.pool();
+      const result = await pool.exec(fn, params);
+
+      pool.terminate();
+
+      return result;
    }
 }
 

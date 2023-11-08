@@ -19,7 +19,6 @@
     "@sentry/node": "^7.69.0",
     "@sentry/opentelemetry-node": "^7.72.0",
     "async": "^3.2.2",
-    "bfj": "^7.0.2",
     "cote": "^1.0.2",
     "joi": "^17.3.0",
     "lodash": "^4.17.21",
@@ -27,7 +26,8 @@
     "pretty-time": "^1.1.0",
     "serialize-error": "^8.0.1",
     "shortid": "^2.2.15",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "workerpool": "^8.0.0"
   },
   "devDependencies": {
     "chai": "^4.3.7",
