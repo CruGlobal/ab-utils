@@ -29,6 +29,7 @@ const controller = {
          database: "site",
       },
    },
+   worker: async (...params) => params[0](...params[1]),
 };
 describe("ABRequestAPI", () => {
    beforeEach(() => {

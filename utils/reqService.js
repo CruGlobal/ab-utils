@@ -15,7 +15,6 @@ const telemetry = require("./telemetry")();
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 const ABValidator = require("./reqValidation.js");
 const EventEmitter = require("events").EventEmitter;
-const workerpool = require("workerpool");
 
 /**
  * @function deCircular()
@@ -939,12 +938,7 @@ class ABRequestService extends EventEmitter {
     * @returns {any} Any values.
     */
    async worker(fn, params = []) {
-      const pool = workerpool.pool();
-      const result = await pool.exec(fn, params);
-
-      pool.terminate();
-
-      return result;
+      return await this.controller.worker(fn, params);
    }
 }
 

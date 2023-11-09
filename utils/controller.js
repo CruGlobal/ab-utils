@@ -175,6 +175,8 @@ class ABServiceController extends EventEmitter {
             });
          },
       );
+
+      this._pool = workerpool.pool();
    }
 
    /**
@@ -219,6 +221,7 @@ class ABServiceController extends EventEmitter {
                });
             });
          })
+         .then(() => this._pool.terminate())
          .then(() => {
             process.exit(0);
          });
@@ -536,8 +539,6 @@ class ABServiceController extends EventEmitter {
                      }
                   }
 
-                  const pool = workerpool.pool();
-
                   // Prevent Big JSON data structures from making us unresponsive:
                   // The underlying cote library uses generic JSON.stringify() to
                   // prepare the data for sending across the network.  This can cause
@@ -553,7 +554,7 @@ class ABServiceController extends EventEmitter {
                   abReq.emit("status", "stringifying response");
 
                   try {
-                     const strResponse = await pool.exec(
+                     const strResponse = await this.worker(
                         (json) => JSON.stringify(json),
                         [data],
                      );
@@ -569,8 +570,6 @@ class ABServiceController extends EventEmitter {
 
                      endRequest(abReq.requestID, cbErr, data);
                   }
-
-                  pool.terminate();
                });
             } catch (e) {
                abReq.notify.developer(e, {
@@ -593,6 +592,11 @@ class ABServiceController extends EventEmitter {
          var AB = ABRequest({}, this);
          AB.dbConnection();
       }
+   }
+
+   // workerpool executer for each worker thread.
+   async worker(...params) {
+      return await this._pool.exec(...params);
    }
 
    /**
