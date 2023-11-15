@@ -5,6 +5,7 @@
  */
 const async = require("async");
 const ABRequest = require("./reqService.js");
+const bfj = require("bfj");
 const workerpool = require("workerpool");
 const cote = require("cote");
 
@@ -568,7 +569,24 @@ class ABServiceController extends EventEmitter {
                      abReq.log("ERROR worker.JSON.stringify()", error);
                      abReq.performance.log();
 
-                     endRequest(abReq.requestID, cbErr, data);
+                     // Perform bfj.stringify if the worker process encounters an error.
+                     abReq.performance.mark("bfj.stringify", {
+                        op: "serialize",
+                     });
+                     abReq.emit("status", "stringifying response");
+                     try {
+                        const strResponse = await bfj.stringify(data);
+
+                        abReq.performance.measure("bfj.stringify");
+                        abReq.performance.log();
+                        abReq.spanEnd(handler.key);
+                        endRequest(abReq.requestID, cbErr, strResponse);
+                     } catch (error2) {
+                        // :(
+                        abReq.log("ERROR bfj.stringify()", error2);
+                        abReq.performance.log();
+                        endRequest(abReq.requestID, cbErr, data);
+                     }
                   }
                });
             } catch (e) {
