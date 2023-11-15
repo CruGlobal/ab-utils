@@ -43,6 +43,7 @@
     * [.username()](#ABRequestService+username) ⇒ <code>string</code>
     * [.usernameReal()](#ABRequestService+usernameReal) ⇒ <code>string</code> \| <code>null</code>
     * [.validateData(description)](#ABRequestService+validateData) ⇒ <code>undefined</code> \| <code>Error</code>
+    * [.worker(fn, params)](#ABRequestService+worker) ⇒ <code>any</code>
     * [.notify(domain, error, [info])](#ABRequestService+notify)
         * [.builder(...params)](#ABRequestService+notify.builder)
         * [.developer(...params)](#ABRequestService+notify.developer)
@@ -474,6 +475,19 @@ validate the req data and return any errors
 | Param | Type | Description |
 | --- | --- | --- |
 | description | <code>object</code> | see [ABRequestValidation.validate](ABRequestValidation.validate) |
+
+<a name="ABRequestService+worker"></a>
+
+### req.worker(fn, params) ⇒ <code>any</code>
+Split threads to perform blocking tasks.
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+**Returns**: <code>any</code> - Any values.  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| fn | <code>function</code> | The logic function for any blocking event loop tasks. |
+| params | <code>Array</code> | Array of any values. |
 
 <a name="ABRequestService+notify"></a>
 

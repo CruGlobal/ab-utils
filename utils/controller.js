@@ -6,6 +6,7 @@
 const async = require("async");
 const ABRequest = require("./reqService.js");
 const bfj = require("bfj");
+const workerpool = require("workerpool");
 const cote = require("cote");
 
 const fs = require("fs");
@@ -48,7 +49,7 @@ setInterval(() => {
             entries.push(
                `[${e.jobID}]: [${
                   e.label || e.handler
-               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`
+               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`,
             );
          }
       });
@@ -139,7 +140,7 @@ class ABServiceController extends EventEmitter {
                      this.haveModels = true;
                   } catch (e) {
                      console.log(
-                        `Error loading model[${pathModels}][${fileName}]:`
+                        `Error loading model[${pathModels}][${fileName}]:`,
                      );
                      console.log("::", e);
                   }
@@ -173,8 +174,10 @@ class ABServiceController extends EventEmitter {
                // Do we exit()?
                // this.exit();
             });
-         }
+         },
       );
+
+      this._pool = workerpool.pool();
    }
 
    /**
@@ -187,7 +190,7 @@ class ABServiceController extends EventEmitter {
             return new Promise((resolve, reject) => {
                var reqShutdown = ABRequest(
                   { jobID: `${this.key}.before_shutdown` },
-                  this
+                  this,
                );
                var allFNs = [];
                this._beforeShutdown.forEach((f) => {
@@ -219,6 +222,7 @@ class ABServiceController extends EventEmitter {
                });
             });
          })
+         .then(() => this._pool.terminate())
          .then(() => {
             process.exit(0);
          });
@@ -287,7 +291,7 @@ class ABServiceController extends EventEmitter {
             return new Promise((resolve, reject) => {
                var reqStartup = ABRequest(
                   { jobID: `${this.key}.after_startup` },
-                  this
+                  this,
                );
                var allStartups = [];
                this._afterStartup.forEach((f) => {
@@ -311,7 +315,7 @@ class ABServiceController extends EventEmitter {
          .catch((err) => {
             var reqErrorStartup = ABRequest(
                { jobID: `${this.key}.error_startup` },
-               this
+               this,
             );
             reqErrorStartup.notify.developer(err, { initState });
          });
@@ -494,7 +498,7 @@ class ABServiceController extends EventEmitter {
 
                // update the stored cb()
                _JobStatus[abReq.requestID].duplicates.push(
-                  _PendingRequests[abReq.requestID]
+                  _PendingRequests[abReq.requestID],
                );
                _PendingRequests[abReq.requestID] = cb;
                return;
@@ -522,7 +526,7 @@ class ABServiceController extends EventEmitter {
 
             try {
                // so far so good, now pass on to handler:
-               handler.fn(abReq, (err, data) => {
+               handler.fn(abReq, async (err, data) => {
                   // do our own conditioning of the err data:
                   var cbErr = null;
                   if (err) {
@@ -539,30 +543,51 @@ class ABServiceController extends EventEmitter {
                   // Prevent Big JSON data structures from making us unresponsive:
                   // The underlying cote library uses generic JSON.stringify() to
                   // prepare the data for sending across the network.  This can cause
-                  // our service to hang and be unresponsive.  So we will first use
-                  // an async friendly bfj.stringify() to encode our data as a string
+                  // our service to hang and be unresponsive. So we will first use
+                  // an async friendly JSON.stringify() in workerpool lib to encode our data as a string
                   // and then send it off to cote.
                   // This will be slightly slower, but be non blocking for the
                   // incoming requests and as a result will not cause us to crash
                   // or loose subsequent requests.
-                  abReq.performance.mark("bfj.stringify", { op: "serialize" });
+                  abReq.performance.mark("worker.JSON.stringify", {
+                     op: "serialize",
+                  });
                   abReq.emit("status", "stringifying response");
-                  bfj.stringify(data, {
-                     /* options */
-                  })
-                     .then((strResponse) => {
+
+                  try {
+                     const strResponse = await this.worker(
+                        (json) => JSON.stringify(json),
+                        [data],
+                     );
+
+                     abReq.performance.measure("worker.JSON.stringify");
+                     abReq.performance.log();
+                     abReq.spanEnd(handler.key);
+                     endRequest(abReq.requestID, cbErr, strResponse);
+                  } catch (error) {
+                     // :(
+                     abReq.log("ERROR worker.JSON.stringify()", error);
+                     abReq.performance.log();
+
+                     // Perform bfj.stringify if the worker process encounters an error.
+                     abReq.performance.mark("bfj.stringify", {
+                        op: "serialize",
+                     });
+                     abReq.emit("status", "stringifying response");
+                     try {
+                        const strResponse = await bfj.stringify(data);
+
                         abReq.performance.measure("bfj.stringify");
                         abReq.performance.log();
                         abReq.spanEnd(handler.key);
                         endRequest(abReq.requestID, cbErr, strResponse);
-                     })
-                     .catch((error) => {
+                     } catch (error2) {
                         // :(
-                        abReq.log("ERROR bfj.stringify()", error);
+                        abReq.log("ERROR bfj.stringify()", error2);
                         abReq.performance.log();
-
                         endRequest(abReq.requestID, cbErr, data);
-                     });
+                     }
+                  }
                });
             } catch (e) {
                abReq.notify.developer(e, {
@@ -585,6 +610,11 @@ class ABServiceController extends EventEmitter {
          var AB = ABRequest({}, this);
          AB.dbConnection();
       }
+   }
+
+   // workerpool executer for each worker thread.
+   async worker(...params) {
+      return await this._pool.exec(...params);
    }
 
    /**

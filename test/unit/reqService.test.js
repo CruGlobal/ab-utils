@@ -29,6 +29,7 @@ const controller = {
          database: "site",
       },
    },
+   worker: async (...params) => params[0](...params[1]),
 };
 describe("ABRequestAPI", () => {
    beforeEach(() => {
@@ -57,7 +58,7 @@ describe("ABRequestAPI", () => {
          serviceRequest = sinon.replace(
             req,
             "serviceRequest",
-            sinon.fake.yields(null, "success")
+            sinon.fake.yields(null, "success"),
          );
          cb.resetHistory();
       });
@@ -77,7 +78,7 @@ describe("ABRequestAPI", () => {
             ["admin", "test"],
             ["role1", "role2"],
             data,
-            cb
+            cb,
          );
          const packets = serviceRequest.firstCall.args[1];
          assert(serviceRequest.calledOnce);
@@ -206,7 +207,7 @@ describe("ABRequestAPI", () => {
          const fakeSpanRequest = sinon.replace(
             req,
             "spanRequest",
-            sinon.fake.returns("child span")
+            sinon.fake.returns("child span"),
          );
          const attributes = { op: "function" };
          req.spanCreateChild("child", attributes);
@@ -243,7 +244,7 @@ describe("ABRequestAPI", () => {
          const request = sinon.replace(
             req.__Requester,
             "request",
-            sinon.fake()
+            sinon.fake(),
          );
          const params = ["key", { test: "data" }, { config: "1" }, () => {}];
          req.serviceRequest(...params);
@@ -267,13 +268,13 @@ describe("ABRequestAPI", () => {
          const dbConnection = sinon.replace(
             req,
             "dbConnection",
-            sinon.fake.returns({ escapeId })
+            sinon.fake.returns({ escapeId }),
          );
          req._tenantID = "tenantX";
          assert(
             req.tenantDB(),
             "fakeResult",
-            "Expect the response from dbConn.escapeId() which is faked"
+            "Expect the response from dbConn.escapeId() which is faked",
          );
          assert(dbConnection.calledOnce);
          assert(escapeId.calledOnceWith("appbuilder-tenantX"));
@@ -287,6 +288,20 @@ describe("ABRequestAPI", () => {
       it("returns users username", () => {
          req._user = { username: "admin" };
          assert.equal(req.username(), "admin");
+      });
+   });
+
+   describe(".worker()", () => {
+      it("returns Promise and result", async () => {
+         const result = req.worker(
+            (a, b) => {
+               return a + b;
+            },
+            [1, 2],
+         );
+
+         assert.equal(result instanceof Promise, true);
+         assert.equal(await result, 3);
       });
    });
 });

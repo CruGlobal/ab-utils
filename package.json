@@ -27,7 +27,8 @@
     "pretty-time": "^1.1.0",
     "serialize-error": "^8.0.1",
     "shortid": "^2.2.15",
-    "uuid": "^8.3.2"
+    "uuid": "^8.3.2",
+    "workerpool": "^8.0.0"
   },
   "devDependencies": {
     "chai": "^4.3.7",
