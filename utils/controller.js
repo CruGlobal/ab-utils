@@ -540,6 +540,7 @@ class ABServiceController extends EventEmitter {
                      }
                   }
 
+                  // if the response is already a string we can send it now, no need to stringify.
                   if (typeof data === "string") {
                      abReq.spanEnd(handler.key);
                      endRequest(abReq.requestID, cbErr, data);
