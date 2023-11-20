@@ -540,6 +540,14 @@ class ABServiceController extends EventEmitter {
                      }
                   }
 
+                  // if the response is already a string we can send it now, no need to stringify.
+                  if (typeof data === "string") {
+                     abReq.spanEnd(handler.key);
+                     endRequest(abReq.requestID, cbErr, data);
+
+                     return;
+                  }
+
                   // Prevent Big JSON data structures from making us unresponsive:
                   // The underlying cote library uses generic JSON.stringify() to
                   // prepare the data for sending across the network.  This can cause
