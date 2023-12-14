@@ -527,7 +527,12 @@ class ABRequestService extends EventEmitter {
       var args = [];
       allArgs.forEach((a) => {
          try {
-            args.push(JSON.stringify(a));
+            args.push(
+               // FIX: TypeError: Do not know how to serialize a BigInt
+               JSON.stringify(a, (key, value) =>
+                  typeof value === "bigint" ? value.toString() + "n" : value
+               )
+            );
          } catch (e) {
             if (e.toString().indexOf("circular") > -1) {
                // var errStack = new Error(
