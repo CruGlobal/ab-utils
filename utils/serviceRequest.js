@@ -59,7 +59,7 @@ class ABServiceRequest extends ServiceCote {
             {
                details:
                   "Warning: serviceRequest() now supports an options parameter `serviceRequest(key, data, options = {}, callback?)`. Please refactor longRequest to options",
-            }
+            },
          );
          options.longRequest = data.longRequest;
          delete data.longRequest;
@@ -111,7 +111,7 @@ class ABServiceRequest extends ServiceCote {
                         // Retry .send
                         if (!timeoutCleanup && countRequest < attempts) {
                            this.req.log(
-                              `... timeout waiting for request (${key}), retrying ${countRequest}/${attempts}`
+                              `... timeout waiting for request (${key}), retrying ${countRequest}/${attempts}`,
                            );
 
                            sendRequest();
@@ -126,7 +126,7 @@ class ABServiceRequest extends ServiceCote {
                            timeout *= 1.5;
 
                            this.req.log(
-                              `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`
+                              `... OVERTIME: waiting for eventual response (${key}), retrying ${countRequest}/${ATTEMPT_REQUEST_OVERTIME}`,
                            );
 
                            sendRequest();
@@ -200,7 +200,7 @@ class ABServiceRequest extends ServiceCote {
                      countRequest = 0;
                      sendRequest();
                   }
-               }
+               },
             );
          };
          sendRequest();
@@ -232,6 +232,24 @@ class ABServiceRequest extends ServiceCote {
 
          // attempt to enable Socket Reconnections:
          domainRequesters[domain].sock?.set("retry timeout", 100);
+         // Handle Socket Errors
+         domainRequesters[domain].sock?.on("error", (err) => {
+            if (err.code === "EAI_AGAIN") {
+               // This is a DNS error, we get it when the connected service goes
+               // down. We don't need to track this error. Just add a log.
+               this.req.log(
+                  `cote requester '${domain}' lost connection to the service`,
+               );
+            } else {
+               // Report other errors
+               this.req.notify.developer(err, {
+                  context: `ABServiceRequest domainRequesters['${domain}].sock error`,
+               });
+            }
+            // Close the socket and remove the requester
+            domainRequesters[domain].sock.close();
+            delete domainRequesters[domain];
+         });
       }
       return domainRequesters[domain];
    }
