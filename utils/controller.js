@@ -19,7 +19,10 @@ const redis = require("redis");
 // var _ = require("lodash");
 const EventEmitter = require("events").EventEmitter;
 const config = require(path.join(__dirname, "config.js"));
-const DefaultHealthcheck = require("./defaultHealthcheck.js");
+const DefaultHandlers = [
+   require("./defaultHealthcheck.js"),
+   require("./handlerVersion.js"),
+];
 
 const _PendingRequests = {
    /* requestID: cb() */
@@ -74,6 +77,8 @@ function endRequest(rID, cbErr, strResponse) {
    delete _JobStatus[rID];
 }
 
+const { version } = require(path.join(process.cwd(), "package.json"));
+
 /**
  * @alias ABServiceController
  * @extends EventEmitter
@@ -84,7 +89,10 @@ class ABServiceController extends EventEmitter {
    constructor(key) {
       super();
 
+      console.log(`${key} v${version}`);
+
       this.key = key || "ABServiceController";
+      this.version = version || "??";
 
       this._beforeStartup = [];
       this._afterStartup = [];
@@ -119,10 +127,13 @@ class ABServiceController extends EventEmitter {
             }
          });
       }
-      if (!this.handlers.find((h) => h.key.match(/\.healthcheck$/))) {
-         // If no .healthcheck handler was provided, use the default.
-         this.handlers.push(new DefaultHealthcheck(key));
-      }
+
+      DefaultHandlers.forEach((H) => {
+         if (!this.handlers.find((h) => h.key.match(H.keyCheck))) {
+            // If no related handler was provided, use the default.
+            this.handlers.push(new H(this));
+         }
+      });
 
       // scan our [ /models, /models/shared ] directories and load our model
       // definitions into this.models

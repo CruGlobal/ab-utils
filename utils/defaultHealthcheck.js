@@ -11,10 +11,12 @@ class DefaultHealthcheck {
     *  @param {string} serviceName
     *     The name/key of the service.
     */
-   constructor(serviceName) {
-      this.key = `${serviceName}.healthcheck`;
+   constructor(controller) {
+      this.key = `${controller.key}.healthcheck`;
       this.inputValidation = {};
    }
+
+   static keyCheck = /\.healthcheck$/;
 
    /**
     * the Request handler.
