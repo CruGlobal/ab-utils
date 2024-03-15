@@ -29,7 +29,7 @@ describe("ABResponseAPI", () => {
          assert(sailsRes.send.calledOnce);
          assert.equal(
             sailsRes.send.firstCall.firstArg,
-            `{"status":"error","data":"${strErr}","message":"test"}`
+            `{"status":"error","jobID":"??","data":"${strErr}","message":"test"}`
          );
       });
 
