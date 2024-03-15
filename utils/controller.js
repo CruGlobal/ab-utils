@@ -176,16 +176,19 @@ class ABServiceController extends EventEmitter {
       // Setup default error handling for common process errors:
       this.reqError = this.requestObj({ jobID: `${this.key}.error_handling` });
       ["unhandledRejection", "uncaughtException", "multipleResolves"].forEach(
-         (type) => {
-            process.on(type, (reason /*, promise */) => {
-               this.reqError.log(`Error: ${type}:`);
-               this.reqError.log(reason.stack);
-               this.reqError.log(reason);
+         (handle) => {
+            process.on(handle, (type, promise, reason) => {
+               this.reqError.log(`Error: ${handle}:`);
+               if (type) this.reqError.log(type);
+
+               if (promise) this.reqError.log(promise);
+
+               if (reason) this.reqError.log(reason);
 
                // Do we exit()?
                // this.exit();
             });
-         },
+         }
       );
 
       this._pool = workerpool.pool();
