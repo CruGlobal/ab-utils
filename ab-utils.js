@@ -1,5 +1,5 @@
 /**
- * a set of common utilities shared by each of our microsservices
+ * a set of common utilities shared by each of our micro-services
  * @module ab-utils
  * @borrows module:config as config
  * @borrows module:Controller as controller

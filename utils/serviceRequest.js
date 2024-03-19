@@ -170,7 +170,10 @@ class ABServiceRequest extends ServiceCote {
                      !options.stringResult
                   ) {
                      try {
-                        results = JSON.parse(results);
+                        // prevent special case: OK from healthcheck
+                        if (results != "OK") {
+                           results = JSON.parse(results);
+                        }
                      } catch (e) {
                         console.log("+++++++++++++++++++++++++++++++");
                         console.error(e);

@@ -25,6 +25,8 @@ class ABResponseAPI {
 
       var packet = {
          status: "error",
+         // include jobID on error messages to provide better debugging
+         jobID: this.req.jobID || "??",
          data: err.toString?.() ?? {},
       };
 
