@@ -250,7 +250,7 @@ class ABServiceRequest extends ServiceCote {
                });
             }
             // Close the socket and remove the requester
-            domainRequesters[domain].sock.close();
+            domainRequesters[domain]?.sock?.close();
             delete domainRequesters[domain];
          });
       }
