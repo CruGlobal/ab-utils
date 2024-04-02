@@ -47,6 +47,7 @@ class ABServiceResponder {
             abReq.jobID = packet.jobID;
             abReq.tenantID = packet.tenantID;
             abReq._user = packet.user;
+            abReq._userReal = packet.userReal;
 
             abReq._data = packet.data || packet.param;
 
