@@ -214,13 +214,19 @@ class ABRequestAPI {
    log(...allArgs) {
       var args = [];
       allArgs.forEach((a) => {
-         // FIX: use replacer fn to allow stringify() to handle bigint values:
-         // https://stackoverflow.com/questions/65152373/typescript-serialize-bigint-in-json
-         args.push(
-            JSON.stringify(a, (k, v) =>
+         let b = a;
+         try {
+            // FIX: use replacer fn to allow stringify() to handle bigint values:
+            // https://stackoverflow.com/questions/65152373/typescript-serialize-bigint-in-json
+            b = JSON.stringify(a, (k, v) =>
                typeof v === "bigint" ? v.toString() : v
-            )
-         );
+            );
+         } catch (e) {
+            if (a.toObj) {
+               b = JSON.stringify(a.toObj());
+            }
+         }
+         args.push(b);
       });
       this.__console.log(`${this.jobID}::${args.join(" ")}`);
    }
@@ -324,6 +330,20 @@ class ABRequestAPI {
     */
    spanEnd(key) {
       telemetry.endSpan(key);
+   }
+
+   /**
+    * provides a non circular object representation of this reqApi
+    * @return {obj}
+    */
+   toObj() {
+      let obj = {};
+      ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
+         (k) => {
+            obj[k] = this[k];
+         }
+      );
+      return obj;
    }
 
    /**
