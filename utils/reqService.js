@@ -746,21 +746,56 @@ class ABRequestService extends EventEmitter {
     * The provided fn() needs to return a {Promise} that resolves() with
     * the expected return data, and rejects() with the Network errors.
     *
-    * @param {function} fn The promise based network operation
+    * @param {function} fn
+    *        The promise based network operation
+    * @param {integer} count
+    *        The number of times we have retried this operation.
     * @return {Promise}
     */
-   retry(fn) {
+   retry(fn, count = 0) {
       return fn().catch((error) => {
          // retry on a connection reset
 
-         if (this.shouldRetry(error)) {
-            this.log(`... received ${error._retryMsg}, retrying`);
-            return this.retry(fn);
+         // we set a limit of 10 attempts.  If it isn't working after 10
+         // attempts, there is a bigger problem here.
+         if (count <= 10) {
+            if (this.shouldRetry(error)) {
+               this.log(`... received ${error._retryMsg}, retrying`);
+               return this.retryDelay(fn, count + 1);
+            }
          }
 
          // propogate the error
          throw error;
       });
+   }
+
+   /**
+    * @method retryDelay()
+    * Introduce a delay in our retry() so we don't consume too many resources
+    * retry()ing an operation.
+    * @param {function} fn
+    * @param {integer} count
+    * @return {Promise}
+    */
+   retryDelay(fn, count) {
+      // after the 3rd attempt
+      if (count >= 3) {
+         // 1) Introduce a delay so we don't peg the CPU retrying constantly
+         // 2) making the delay scale with count
+         // 3) also making a bit of randomness so incase there are >1 parallel
+         //    operations causing issues, we get different delays for each of
+         //    them and spread them out a bit.
+         let delay = Math.floor(Math.random() * 3 + 1) * count * 100;
+         return new Promise((resolve, reject) => {
+            setTimeout(() => {
+               this.retry(fn, count).then(resolve).catch(reject);
+            }, delay);
+         });
+      }
+
+      // ok, the first couple of attempts will happen right away.
+      return this.retry(fn, count);
    }
 
    /** @param {Error} error */
