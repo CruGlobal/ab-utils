@@ -150,7 +150,7 @@ class ABServiceRequest extends ServiceCote {
                         paramStack: strParamStack,
                         finalTime,
                         err,
-                        results, // <--- Do we send this?  might be too large
+                        // results, // <--- Do we send this?  might be too large
                      };
                      if (key !== "log_manager.notification") {
                         this.req.notify.developer(err, meta);
