@@ -160,7 +160,7 @@ class ABServiceController extends EventEmitter {
          }
       };
       includeModels(path.join(process.cwd(), "models"));
-      includeModels(path.join(__dirname, "..", "shared", "models"));
+      // includeModels(path.join(__dirname, "..", "shared", "models"));
 
       // setup our process listeners:
       process.on("SIGINT", () => {
