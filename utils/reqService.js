@@ -980,6 +980,10 @@ class ABRequestService extends EventEmitter {
    async worker(fn, params = []) {
       return await this.controller.worker(fn, params);
    }
+
+   async workerExec(fn, params = []) {
+      return await this.controller.workerExec(fn, params);
+   }
 }
 
 /**
