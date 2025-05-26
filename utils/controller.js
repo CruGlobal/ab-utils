@@ -82,33 +82,6 @@ const { version } = require(path.join(process.cwd(), "package.json"));
 // CRU Global now requires responding to
 // GET /monitors/lb
 const express = require("express");
-const app = express();
-
-// Define the GET /monitors/lb route
-app.get("/monitors/lb", (req, res) => {
-   res.status(200).send(`v${version}`);
-});
-
-// Start the server on port 80
-const server = app.listen(80, () => {
-   console.log("listening for health checks on port 80");
-});
-
-// Handle server errors
-server.on("error", (err) => {
-   if (err.code === "EACCES") {
-      console.error(
-         `Permission denied. Port ${PORT} requires elevated privileges.`,
-      );
-      process.exit(1);
-   } else if (err.code === "EADDRINUSE") {
-      console.error(`Port ${PORT} is already in use.`);
-      process.exit(1);
-   } else {
-      console.error("An unexpected error occurred:", err);
-      process.exit(1);
-   }
-});
 
 /**
  * @alias ABServiceController
@@ -351,6 +324,35 @@ class ABServiceController extends EventEmitter {
                      resolve();
                   }
                });
+            });
+         })
+         .then(() => {
+            const app = express();
+
+            // Define the GET /monitors/lb route
+            app.get("/monitors/lb", (req, res) => {
+               res.status(200).send(`v${version}`);
+            });
+
+            // Start the server on port 80
+            const server = app.listen(80, () => {
+               console.log("listening for health checks on port 80");
+            });
+
+            // Handle server errors
+            server.on("error", (err) => {
+               if (err.code === "EACCES") {
+                  console.error(
+                     `Permission denied. Port ${PORT} requires elevated privileges.`,
+                  );
+                  process.exit(1);
+               } else if (err.code === "EADDRINUSE") {
+                  console.error(`Port ${PORT} is already in use.`);
+                  process.exit(1);
+               } else {
+                  console.error("An unexpected error occurred:", err);
+                  process.exit(1);
+               }
             });
          })
          .then(() => {
