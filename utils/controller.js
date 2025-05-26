@@ -52,7 +52,7 @@ setInterval(() => {
             entries.push(
                `[${e.jobID}]: [${
                   e.label || e.handler
-               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`
+               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`,
             );
          }
       });
@@ -182,7 +182,7 @@ class ABServiceController extends EventEmitter {
                      this.haveModels = true;
                   } catch (e) {
                      console.log(
-                        `Error loading model[${pathModels}][${fileName}]:`
+                        `Error loading model[${pathModels}][${fileName}]:`,
                      );
                      console.log("::", e);
                   }
@@ -219,7 +219,7 @@ class ABServiceController extends EventEmitter {
                // Do we exit()?
                // this.exit();
             });
-         }
+         },
       );
 
       this._pool = workerpool.pool();
@@ -235,7 +235,7 @@ class ABServiceController extends EventEmitter {
             return new Promise((resolve, reject) => {
                var reqShutdown = ABRequest(
                   { jobID: `${this.key}.before_shutdown` },
-                  this
+                  this,
                );
                var allFNs = [];
                this._beforeShutdown.forEach((f) => {
@@ -336,7 +336,7 @@ class ABServiceController extends EventEmitter {
             return new Promise((resolve, reject) => {
                var reqStartup = ABRequest(
                   { jobID: `${this.key}.after_startup` },
-                  this
+                  this,
                );
                var allStartups = [];
                this._afterStartup.forEach((f) => {
@@ -360,7 +360,7 @@ class ABServiceController extends EventEmitter {
          .catch((err) => {
             var reqErrorStartup = ABRequest(
                { jobID: `${this.key}.error_startup` },
-               this
+               this,
             );
             reqErrorStartup.notify.developer(err, { initState });
          });
@@ -543,7 +543,7 @@ class ABServiceController extends EventEmitter {
 
                // update the stored cb()
                _JobStatus[abReq.requestID].duplicates.push(
-                  _PendingRequests[abReq.requestID]
+                  _PendingRequests[abReq.requestID],
                );
                _PendingRequests[abReq.requestID] = cb;
                return;
@@ -610,7 +610,7 @@ class ABServiceController extends EventEmitter {
                   try {
                      const strResponse = await this.worker(
                         (json) => JSON.stringify(json),
-                        [data]
+                        [data],
                      );
 
                      abReq.performance.measure("worker.JSON.stringify");
