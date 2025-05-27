@@ -328,6 +328,7 @@ class ABServiceController extends EventEmitter {
          })
          .then(() => {
             const app = express();
+            let PORT = 80;
 
             // Define the GET /monitors/lb route
             app.get("/monitors/lb", (req, res) => {
@@ -335,8 +336,8 @@ class ABServiceController extends EventEmitter {
             });
 
             // Start the server on port 80
-            const server = app.listen(80, () => {
-               console.log("listening for health checks on port 80");
+            const server = app.listen(PORT, () => {
+               console.log(`listening for health checks on port ${PORT}`);
             });
 
             // Handle server errors
