@@ -6,6 +6,8 @@ on:
 jobs:
   check_pr:
     runs-on: ubuntu-latest
+    permissions: 
+       pull-requests: write
     steps:
       - name: Check Label
         id: check_label
@@ -22,5 +24,3 @@ jobs:
         if: failure()
         with:
           message: "**Please add a release label:**<br>**`major`** (for breaking changes), **`minor`** (for new features), **`patch`** (for bug fixes) or **`no_release`** (to skip the auto release process)."
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
