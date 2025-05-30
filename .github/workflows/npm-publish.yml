@@ -11,12 +11,19 @@ jobs:
     if: github.event.pull_request.merged
     runs-on: ubuntu-latest
     steps:
-      # Use a PAT here instead of the default token to ignore branch protection rules.
+      # We need a App Token here to commit, ignoring the branch protection rules
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.GS_DEV_APP_ID }}
+          private-key: ${{ secrets.GS_DEV_APP_PK }}
+
       - name: Checkout Master
         uses: actions/checkout@v4
         with:
           ref: master
-          token: ${{ secrets.PAT }}
+          token: ${{ steps.generate-token.outputs.token }}
 
       - name: Bump package.json Version
         id: bump_version
