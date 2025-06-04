@@ -1,6 +1,6 @@
 {
   "name": "@digiserve/ab-utils",
-  "version": "1.8.4",
+  "version": "1.9.0",
   "description": "A common set of utility functions shared by our AppBuilder services",
   "main": "ab-utils.js",
   "author": "Johnny Hausman",
