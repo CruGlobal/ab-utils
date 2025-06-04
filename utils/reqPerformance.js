@@ -85,8 +85,10 @@ class ABRequestPerformance {
       if (key) {
          if (this.marks[key]) {
             this.req.log(
-               `performance.mark() is overwriting existing key [${key}]`
+               `PREVENTING performance.mark() from overwriting existing key [${key}]`
             );
+            // in practice, we usually are wanting the existing key, so let's not overwrite it
+            return;
          }
          this.marks[key] = process.hrtime.bigint();
          // Start a telemetry span

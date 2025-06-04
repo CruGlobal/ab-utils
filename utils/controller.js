@@ -52,7 +52,7 @@ setInterval(() => {
             entries.push(
                `[${e.jobID}]: [${
                   e.label || e.handler
-               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`
+               }] [${timeInProcess}]ms D[${e.duplicates.length}] ${e.status}`,
             );
          }
       });
@@ -78,6 +78,10 @@ function endRequest(rID, cbErr, strResponse) {
 }
 
 const { version } = require(path.join(process.cwd(), "package.json"));
+
+// CRU Global now requires responding to
+// GET /monitors/lb
+const express = require("express");
 
 /**
  * @alias ABServiceController
@@ -151,7 +155,7 @@ class ABServiceController extends EventEmitter {
                      this.haveModels = true;
                   } catch (e) {
                      console.log(
-                        `Error loading model[${pathModels}][${fileName}]:`
+                        `Error loading model[${pathModels}][${fileName}]:`,
                      );
                      console.log("::", e);
                   }
@@ -188,7 +192,7 @@ class ABServiceController extends EventEmitter {
                // Do we exit()?
                // this.exit();
             });
-         }
+         },
       );
 
       this._pool = workerpool.pool();
@@ -204,7 +208,7 @@ class ABServiceController extends EventEmitter {
             return new Promise((resolve, reject) => {
                var reqShutdown = ABRequest(
                   { jobID: `${this.key}.before_shutdown` },
-                  this
+                  this,
                );
                var allFNs = [];
                this._beforeShutdown.forEach((f) => {
@@ -305,7 +309,7 @@ class ABServiceController extends EventEmitter {
             return new Promise((resolve, reject) => {
                var reqStartup = ABRequest(
                   { jobID: `${this.key}.after_startup` },
-                  this
+                  this,
                );
                var allStartups = [];
                this._afterStartup.forEach((f) => {
@@ -323,13 +327,43 @@ class ABServiceController extends EventEmitter {
             });
          })
          .then(() => {
+            const app = express();
+            let PORT = 80;
+
+            // Define the GET /monitors/lb route
+            app.get("/monitors/lb", (req, res) => {
+               res.status(200).send(`v${version}`);
+            });
+
+            // Start the server on port 80
+            const server = app.listen(PORT, () => {
+               console.log(`listening for health checks on port ${PORT}`);
+            });
+
+            // Handle server errors
+            server.on("error", (err) => {
+               if (err.code === "EACCES") {
+                  console.error(
+                     `Permission denied. Port ${PORT} requires elevated privileges.`,
+                  );
+                  process.exit(1);
+               } else if (err.code === "EADDRINUSE") {
+                  console.error(`Port ${PORT} is already in use.`);
+                  process.exit(1);
+               } else {
+                  console.error("An unexpected error occurred:", err);
+                  process.exit(1);
+               }
+            });
+         })
+         .then(() => {
             initState = "6.controller.ready";
             this.ready();
          })
          .catch((err) => {
             var reqErrorStartup = ABRequest(
                { jobID: `${this.key}.error_startup` },
-               this
+               this,
             );
             reqErrorStartup.notify.developer(err, { initState });
          });
@@ -512,7 +546,7 @@ class ABServiceController extends EventEmitter {
 
                // update the stored cb()
                _JobStatus[abReq.requestID].duplicates.push(
-                  _PendingRequests[abReq.requestID]
+                  _PendingRequests[abReq.requestID],
                );
                _PendingRequests[abReq.requestID] = cb;
                return;
@@ -579,7 +613,7 @@ class ABServiceController extends EventEmitter {
                   try {
                      const strResponse = await this.worker(
                         (json) => JSON.stringify(json),
-                        [data]
+                        [data],
                      );
 
                      abReq.performance.measure("worker.JSON.stringify");
