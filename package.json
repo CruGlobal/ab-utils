@@ -5,11 +5,11 @@
   "main": "ab-utils.js",
   "author": "Johnny Hausman",
   "license": "MIT",
-  "homepage": "https://github.com/digi-serve/ab-utils#readme",
+  "homepage": "https://github.com/CruGlobal/ab-utils#readme",
   "bugs": {
-    "url": "https://github.com/digi-serve/ab-utils/issues"
+    "url": "https://github.com/CruGlobal/ab-utils/issues"
   },
-  "repository": "github:digi-serve/ab-utils",
+  "repository": "github:CruGlobal/ab-utils",
   "dependencies": {
     "@opentelemetry/api": "^1.4.1",
     "@opentelemetry/auto-instrumentations-node": "^0.39.2",
