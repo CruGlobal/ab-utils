@@ -9,6 +9,16 @@
  * @borrows module:resApi as resApi
  */
 
+// Map Environment Variables for redis. Needed to work with the ecs/app module.
+// Keep this before any requires of cote
+if (
+   Object.keys(process.env).every((k) => !k.startsWith("COTE_DISOCOVERY_REDIS"))
+) {
+   process.env.COTE_DISCOVERY_REDIS_HOST = process.env.SESSION_REDIS_HOST;
+   process.env.COTE_DISCOVERY_REDIS_PORT = process.env.SESSION_REDIS_PORT;
+   process.env.COTE_DISCOVERY_REDIS_DB = process.env.SESSION_REDIS_DB_INDEX;
+}
+
 const config = require("./utils/config.js");
 const controller = require("./utils/controller.js");
 const defaults = require("./utils/defaults.js");
