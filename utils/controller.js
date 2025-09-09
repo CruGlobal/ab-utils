@@ -14,7 +14,7 @@ const Mysql = require("mysql");
 const path = require("path");
 // const prettyTime = require("pretty-time");
 
-const redis = require("redis");
+// const redis = require("redis");
 
 // var _ = require("lodash");
 const EventEmitter = require("events").EventEmitter;
