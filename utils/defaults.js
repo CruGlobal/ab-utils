@@ -15,6 +15,7 @@ function env(envKey, defaultValue) {
    if (typeof process.env[envKey] == "undefined" || process.env[envKey] == "") {
       return defaultValue;
    }
+   if (envKey.startsWith("MYSQL_")) return process.env[envKey];
    try {
       return JSON.parse(process.env[envKey]);
    } catch (e) {
@@ -24,14 +25,15 @@ function env(envKey, defaultValue) {
       let expectedValues = ["http"];
       let isExpected = false;
       expectedValues.forEach((v) => {
-         if (process.env[envKey].indexOf("http") != -1) {
+         if (process.env[envKey].indexOf(v) != -1) {
             isExpected = true;
          }
       });
       if (!isExpected) {
          // let's report this just in case:
-         console.log(e);
-         console.log(`process.env[${envKey}]=[${process.env[envKey]}]`);
+         console.log(
+            `Failed to parse process.env[${envKey}]=[${process.env[envKey]}] as JSON, is this expected?`,
+         );
       }
 
       return process.env[envKey];
