@@ -720,17 +720,93 @@ class ABRequestService extends EventEmitter {
       if (cond) {
          var params = [];
          Object.keys(cond).forEach((key) => {
-            values.push(cond[key]);
-            if (Array.isArray(cond[key])) {
-               if (cond[key].length > 0) {
-                  params.push(`${key} IN ( ? )`);
+            const val = cond[key];
+            const keyLower = String(key).toLowerCase();
+            // Support logical OR: { or: [ {condA}, {condB} ] }
+            if (keyLower === "or" && Array.isArray(val)) {
+               const subParams = [];
+               val.forEach((sub) => {
+                  const { condition: subCond, values: subVals } =
+                     this.queryWhereCondition(sub);
+                  if (subCond) {
+                     subParams.push(subCond);
+                     values = values.concat(subVals);
+                  }
+               });
+               if (subParams.length > 0) {
+                  params.push(`( ${subParams.join(" OR ")} )`);
                } else {
-                  // if an empty array then we falsify this condition:
-                  values.pop(); // remove pushed value above
+                  // empty OR list evaluates to false
                   params.push(` 1 = 0 `);
                }
+               return; // handled this key
+            }
+            if (Array.isArray(val)) {
+               if (val.length > 0) {
+                  params.push(`${key} IN ( ? )`);
+                  values.push(val);
+               } else {
+                  // if an empty array then we falsify this condition:
+                  params.push(` 1 = 0 `);
+               }
+            } else if (val && typeof val === "object") {
+               // Support operator objects like { "<": 50 }, { "!=": "blue" },
+               // as well as Waterline-style: in, nin, contains, startsWith, endsWith
+               Object.keys(val).forEach((op) => {
+                  const rawValue = val[op];
+                  const opLower = String(op).toLowerCase();
+
+                  if (opLower === "in") {
+                     params.push(`${key} IN ( ? )`);
+                     values.push(rawValue);
+                     return;
+                  }
+                  if (opLower === "nin") {
+                     params.push(`${key} NOT IN ( ? )`);
+                     values.push(rawValue);
+                     return;
+                  }
+                  if (opLower === "contains") {
+                     params.push(`${key} LIKE ?`);
+                     values.push(`%${rawValue}%`);
+                     return;
+                  }
+                  if (opLower === "startswith") {
+                     params.push(`${key} LIKE ?`);
+                     values.push(`${rawValue}%`);
+                     return;
+                  }
+                  if (opLower === "endswith") {
+                     params.push(`${key} LIKE ?`);
+                     values.push(`%${rawValue}`);
+                     return;
+                  }
+
+                  // default comparison operators
+                  if (op === "!=" && Array.isArray(rawValue)) {
+                     // NOT IN array form: { field: { '!=': [a,b] } }
+                     params.push(`${key} NOT IN ( ? )`);
+                     values.push(rawValue);
+                     return;
+                  }
+
+                  const opMap = {
+                     "=": "=",
+                     "!=": "!=",
+                     "<": "<",
+                     "<=": "<=",
+                     ">": ">",
+                     ">=": ">=",
+                     like: "LIKE",
+                     LIKE: "LIKE",
+                  };
+                  const sqlOp = opMap[op] || op;
+                  params.push(`${key} ${sqlOp} ?`);
+                  values.push(rawValue);
+               });
             } else {
                params.push(`${key} = ?`);
+               values.push(val);
             }
          });
          condition = `${params.join(" AND ")}`;
