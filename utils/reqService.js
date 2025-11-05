@@ -45,7 +45,7 @@ function deCircular(args, o, context, level = 1) {
             args.push(
                `${context ? context : ""}${
                   context ? "." : ""
-               }${k}: ${JSON.stringify(o[k].toObj())}`
+               }${k}: ${JSON.stringify(o[k].toObj())}`,
             );
          } else {
             if (!o[k].____deCircular) {
@@ -54,14 +54,14 @@ function deCircular(args, o, context, level = 1) {
                   args,
                   o[k],
                   (context ? context + "->" : "") + k,
-                  level + 1
+                  level + 1,
                );
             }
          }
       } else {
          if (typeof o[k] != "function") {
             args.push(
-               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
+               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`,
             );
          }
       }
@@ -328,7 +328,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -373,7 +373,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -420,7 +420,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -530,8 +530,8 @@ class ABRequestService extends EventEmitter {
             args.push(
                // FIX: TypeError: Do not know how to serialize a BigInt
                JSON.stringify(a, (key, value) =>
-                  typeof value === "bigint" ? value.toString() + "n" : value
-               )
+                  typeof value === "bigint" ? value.toString() + "n" : value,
+               ),
             );
          } catch (e) {
             if (e.toString().indexOf("circular") > -1) {
@@ -646,7 +646,6 @@ class ABRequestService extends EventEmitter {
                   return reject(error);
                }
                resolve({ results, fields });
-               // cb(error, results, fields);
             });
          });
       })
@@ -732,20 +731,25 @@ class ABRequestService extends EventEmitter {
     * return the tenantDB value for this req object.
     * this is a helper function that simplifies the error handling if no
     * tenantDB is found.
-    * @param {Promise.reject} reject a reject() handler to be called if a
-    * tenantDB is not found.
-    * @return {false|string} false if tenantDB not found, otherwise the tenantDB
-    * name (string).
+    * @param {Promise.reject} [reject] a reject() handler to be called if a
+    * tenantDB is not found. If not provided, an error will be thrown.
+    * @return {false|string} false if tenantDB not found and reject is provided,
+    * otherwise the tenantDB name (string).
+    * @throws {Error} if tenantDB not found and reject is not provided.
     */
    queryTenantDB(reject) {
       let tenantDB = this.tenantDB();
       if (tenantDB == "") {
          let errorNoTenant = new Error(
-            `Unable to find tenant information for tenantID[${this.tenantID()}]`
+            `Unable to find tenant information for tenantID[${this.tenantID()}]`,
          );
          errorNoTenant.code = "ENOTENANT";
-         reject(errorNoTenant);
-         return false;
+         if (reject) {
+            reject(errorNoTenant);
+            return false;
+         } else {
+            throw errorNoTenant;
+         }
       }
       return tenantDB;
    }
@@ -1029,7 +1033,7 @@ class ABRequestService extends EventEmitter {
             jobID: `ABFactory(${this._tenantID})`,
             tenantID: this._tenantID,
          },
-         this.controller
+         this.controller,
       );
       ABReq._DBConn = this._DBConn;
       ABReq._Model = this._Model;
@@ -1045,7 +1049,7 @@ class ABRequestService extends EventEmitter {
       ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
          (f) => {
             obj[f] = this[f];
-         }
+         },
       );
       return obj;
    }
