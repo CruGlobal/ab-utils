@@ -659,6 +659,31 @@ class ABRequestService extends EventEmitter {
    }
 
    /**
+    * perform an sql query directly on our dbConn, returning a Promise.
+    * @param {string} query the sql query to perform.  Use "?" for placeholders.
+    * @param {array} values the array of values that correspond to the
+    * placeholders in the sql
+    * @param {MySQL} [dbConn] the DB Connection to use for this request. If not
+    * provided the common dbConnection() will be used.
+    * @returns {Promise<{results, fields}>}
+    */
+   queryAsync(query, values, dbConn) {
+      return new Promise((resolve, reject) => {
+         this.query(
+            query,
+            values,
+            (err, results, fields) => {
+               if (err) {
+                  return reject(err);
+               }
+               resolve({ results, fields });
+            },
+            dbConn,
+         );
+      });
+   }
+
+   /**
     * Perform a query on it's own DB Connection. Not shared with other requests.
     * @param {string} query the sql query to perform. Use "?" for placeholders.
     * @param {array} values the array of values that correspond to the
@@ -671,6 +696,25 @@ class ABRequestService extends EventEmitter {
          this.___isoDB = this.dbConnection(false, true);
       }
       this.query(query, values, cb, this.___isoDB);
+   }
+
+   /**
+    * Perform a query on it's own DB Connection, returning a Promise. Not shared
+    * with other requests.
+    * @param {string} query the sql query to perform. Use "?" for placeholders.
+    * @param {array} values the array of values that correspond to the
+    * placeholders in the sql
+    * @returns {Promise<{results, fields}>}
+    */
+   queryIsolateAsync(query, values) {
+      return new Promise((resolve, reject) => {
+         this.queryIsolate(query, values, (err, results, fields) => {
+            if (err) {
+               return reject(err);
+            }
+            resolve({ results, fields });
+         });
+      });
    }
 
    /**
