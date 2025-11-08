@@ -304,4 +304,268 @@ describe("ABRequestAPI", () => {
          assert.equal(await result, 3);
       });
    });
+
+   describe(".queryAsync()", () => {
+      let mockDbConn;
+      let queryStub;
+
+      beforeEach(() => {
+         queryStub = sinon.stub();
+         mockDbConn = {
+            query: queryStub,
+         };
+         sinon.replace(req, "dbConnection", sinon.fake.returns(mockDbConn));
+      });
+
+      it("returns a Promise that resolves with results and fields on success", async () => {
+         const mockResults = [{ id: 1, name: "test" }];
+         const mockFields = [{ name: "id" }, { name: "name" }];
+         const query = "SELECT * FROM test WHERE id = ?";
+         const values = [1];
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            // Call callback asynchronously to simulate real behavior
+            setImmediate(() => {
+               callback(null, mockResults, mockFields);
+            });
+            return queryObj;
+         });
+
+         const result = await req.queryAsync(query, values);
+
+         assert(queryStub.calledOnce);
+         assert.equal(queryStub.firstCall.args[0], query);
+         assert.deepEqual(queryStub.firstCall.args[1], values);
+         assert.isFunction(queryStub.firstCall.args[2]);
+         assert.deepEqual(result.results, mockResults);
+         assert.deepEqual(result.fields, mockFields);
+      });
+
+      it("uses default dbConnection when not provided", async () => {
+         const mockResults = [{ id: 1 }];
+         const mockFields = [];
+         const query = "SELECT * FROM test";
+         const values = [];
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            setImmediate(() => {
+               callback(null, mockResults, mockFields);
+            });
+            return queryObj;
+         });
+
+         await req.queryAsync(query, values);
+
+         assert(queryStub.calledOnce);
+      });
+
+      it("uses provided dbConnection when specified", async () => {
+         const query = "SELECT * FROM test";
+         const values = [];
+         const queryObj = { sql: query };
+         const customDbConn = {
+            query: sinon.stub().callsFake((sql, vals, callback) => {
+               setImmediate(() => {
+                  callback(null, [{ id: 2 }], []);
+               });
+               return queryObj;
+            }),
+         };
+
+         await req.queryAsync(query, values, customDbConn);
+
+         assert(customDbConn.query.calledOnce);
+         assert(queryStub.notCalled);
+      });
+
+      it("rejects Promise when query returns an error", async () => {
+         const query = "SELECT * FROM test";
+         const values = [];
+         const mockError = new Error("Database error");
+         mockError.code = "ER_SYNTAX_ERROR";
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            // Call callback asynchronously to simulate real behavior
+            setImmediate(() => {
+               callback(mockError, null, null);
+            });
+            return queryObj;
+         });
+
+         try {
+            await req.queryAsync(query, values);
+            assert.fail("Should have thrown an error");
+         } catch (error) {
+            assert.equal(error.message, mockError.message);
+            assert.equal(error.code, mockError.code);
+            assert.equal(error.sql, query);
+         }
+      });
+
+      it("propagates errors from the underlying query method", async () => {
+         const query = "SELECT * FROM test";
+         const values = [];
+         const mockError = new Error("Invalid query syntax");
+         mockError.code = "ER_PARSE_ERROR"; // Non-retryable error
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            // Call callback asynchronously to simulate real behavior
+            setImmediate(() => {
+               callback(mockError, null, null);
+            });
+            return queryObj;
+         });
+
+         try {
+            await req.queryAsync(query, values);
+            assert.fail("Should have thrown an error");
+         } catch (error) {
+            assert.equal(error.message, mockError.message);
+            assert.equal(error.code, mockError.code);
+         }
+      });
+   });
+
+   describe(".queryIsolateAsync()", () => {
+      let mockDbConn;
+      let queryStub;
+      let dbConnectionStub;
+
+      beforeEach(() => {
+         // Clean up any existing isolated connection
+         req.___isoDB = undefined;
+         queryStub = sinon.stub();
+         mockDbConn = {
+            query: queryStub,
+         };
+         dbConnectionStub = sinon.stub(req, "dbConnection").returns(mockDbConn);
+      });
+
+      afterEach(() => {
+         // Clean up isolated connection after each test
+         req.___isoDB = undefined;
+      });
+
+      it("creates an isolated DB connection on first call", async () => {
+         const mockResults = [{ id: 1, name: "test" }];
+         const mockFields = [{ name: "id" }, { name: "name" }];
+         const query = "SELECT * FROM test WHERE id = ?";
+         const values = [1];
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            setImmediate(() => {
+               callback(null, mockResults, mockFields);
+            });
+            return queryObj;
+         });
+
+         await req.queryIsolateAsync(query, values);
+
+         assert(dbConnectionStub.calledOnce);
+         assert.equal(dbConnectionStub.firstCall.args[0], false);
+         assert.equal(dbConnectionStub.firstCall.args[1], true);
+      });
+
+      it("reuses the same isolated DB connection on subsequent calls", async () => {
+         const mockResults = [{ id: 1 }];
+         const mockFields = [];
+         const query = "SELECT * FROM test";
+         const values = [];
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            setImmediate(() => {
+               callback(null, mockResults, mockFields);
+            });
+            return queryObj;
+         });
+
+         await req.queryIsolateAsync(query, values);
+         await req.queryIsolateAsync(query, values);
+
+         assert(dbConnectionStub.calledOnce);
+         assert.isDefined(req.___isoDB);
+         assert.equal(req.___isoDB, mockDbConn);
+      });
+
+      it("returns a Promise that resolves with results and fields on success", async () => {
+         const mockResults = [{ id: 1, name: "test" }];
+         const mockFields = [{ name: "id" }, { name: "name" }];
+         const query = "SELECT * FROM test WHERE id = ?";
+         const values = [1];
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            setImmediate(() => {
+               callback(null, mockResults, mockFields);
+            });
+            return queryObj;
+         });
+
+         const result = await req.queryIsolateAsync(query, values);
+
+         assert(queryStub.calledOnce);
+         assert.equal(queryStub.firstCall.args[0], query);
+         assert.deepEqual(queryStub.firstCall.args[1], values);
+         assert.isFunction(queryStub.firstCall.args[2]);
+         assert.deepEqual(result.results, mockResults);
+         assert.deepEqual(result.fields, mockFields);
+      });
+
+      it("rejects Promise when query returns an error", async () => {
+         const query = "SELECT * FROM test";
+         const values = [];
+         const mockError = new Error("Database error");
+         mockError.code = "ER_SYNTAX_ERROR";
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            // Call callback asynchronously to simulate real behavior
+            setImmediate(() => {
+               callback(mockError, null, null);
+            });
+            return queryObj;
+         });
+
+         try {
+            await req.queryIsolateAsync(query, values);
+            assert.fail("Should have thrown an error");
+         } catch (error) {
+            assert.equal(error.message, mockError.message);
+            assert.equal(error.code, mockError.code);
+            assert.equal(error.sql, query);
+         }
+      });
+
+      it("calls queryIsolate internally which uses the isolated connection", async () => {
+         const mockResults = [{ id: 1 }];
+         const mockFields = [];
+         const query = "SELECT * FROM test";
+         const values = [];
+
+         const queryObj = { sql: query };
+         queryStub.callsFake((sql, vals, callback) => {
+            setImmediate(() => {
+               callback(null, mockResults, mockFields);
+            });
+            return queryObj;
+         });
+
+         const queryIsolateStub = sinon.spy(req, "queryIsolate");
+
+         await req.queryIsolateAsync(query, values);
+
+         assert(queryIsolateStub.calledOnce);
+         assert.equal(queryIsolateStub.firstCall.args[0], query);
+         assert.deepEqual(queryIsolateStub.firstCall.args[1], values);
+         assert.isFunction(queryIsolateStub.firstCall.args[2]);
+
+         queryIsolateStub.restore();
+      });
+   });
 });
