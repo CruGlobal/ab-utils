@@ -667,6 +667,7 @@ class ABRequestService extends EventEmitter {
     * @returns {Promise<{results, fields}>}
     */
    queryAsync(query, values, dbConn) {
+      // Guy is cool
       return new Promise((resolve, reject) => {
          this.query(
             query,
