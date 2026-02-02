@@ -45,7 +45,7 @@ function deCircular(args, o, context, level = 1) {
             args.push(
                `${context ? context : ""}${
                   context ? "." : ""
-               }${k}: ${JSON.stringify(o[k].toObj())}`
+               }${k}: ${JSON.stringify(o[k].toObj())}`,
             );
          } else {
             if (!o[k].____deCircular) {
@@ -54,14 +54,14 @@ function deCircular(args, o, context, level = 1) {
                   args,
                   o[k],
                   (context ? context + "->" : "") + k,
-                  level + 1
+                  level + 1,
                );
             }
          }
       } else {
          if (typeof o[k] != "function") {
             args.push(
-               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`
+               `${context ? context : ""}${context ? "." : ""}${k}: ${o[k]}`,
             );
          }
       }
@@ -328,7 +328,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -373,7 +373,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -420,7 +420,7 @@ class ABRequestService extends EventEmitter {
                      return;
                   }
                   resolve();
-               }
+               },
             );
          });
       };
@@ -530,8 +530,8 @@ class ABRequestService extends EventEmitter {
             args.push(
                // FIX: TypeError: Do not know how to serialize a BigInt
                JSON.stringify(a, (key, value) =>
-                  typeof value === "bigint" ? value.toString() + "n" : value
-               )
+                  typeof value === "bigint" ? value.toString() + "n" : value,
+               ),
             );
          } catch (e) {
             if (e.toString().indexOf("circular") > -1) {
@@ -646,7 +646,6 @@ class ABRequestService extends EventEmitter {
                   return reject(error);
                }
                resolve({ results, fields });
-               // cb(error, results, fields);
             });
          });
       })
@@ -656,6 +655,32 @@ class ABRequestService extends EventEmitter {
          .catch((err) => {
             cb(err, null, null);
          });
+   }
+
+   /**
+    * perform an sql query directly on our dbConn, returning a Promise.
+    * @param {string} query the sql query to perform.  Use "?" for placeholders.
+    * @param {array} values the array of values that correspond to the
+    * placeholders in the sql
+    * @param {MySQL} [dbConn] the DB Connection to use for this request. If not
+    * provided the common dbConnection() will be used.
+    * @returns {Promise<{results, fields}>}
+    */
+   queryAsync(query, values, dbConn) {
+      // Guy is cool
+      return new Promise((resolve, reject) => {
+         this.query(
+            query,
+            values,
+            (err, results, fields) => {
+               if (err) {
+                  return reject(err);
+               }
+               resolve({ results, fields });
+            },
+            dbConn,
+         );
+      });
    }
 
    /**
@@ -674,6 +699,25 @@ class ABRequestService extends EventEmitter {
    }
 
    /**
+    * Perform a query on it's own DB Connection, returning a Promise. Not shared
+    * with other requests.
+    * @param {string} query the sql query to perform. Use "?" for placeholders.
+    * @param {array} values the array of values that correspond to the
+    * placeholders in the sql
+    * @returns {Promise<{results, fields}>}
+    */
+   queryIsolateAsync(query, values) {
+      return new Promise((resolve, reject) => {
+         this.queryIsolate(query, values, (err, results, fields) => {
+            if (err) {
+               return reject(err);
+            }
+            resolve({ results, fields });
+         });
+      });
+   }
+
+   /**
     * Ensure the temporary isolated db connection is closed out properly.
     * This method is intended to be used after all your desired queryIsolate()
     * actions are performed.
@@ -688,20 +732,25 @@ class ABRequestService extends EventEmitter {
     * return the tenantDB value for this req object.
     * this is a helper function that simplifies the error handling if no
     * tenantDB is found.
-    * @param {Promise.reject} reject a reject() handler to be called if a
-    * tenantDB is not found.
-    * @return {false|string} false if tenantDB not found, otherwise the tenantDB
-    * name (string).
+    * @param {Promise.reject} [reject] a reject() handler to be called if a
+    * tenantDB is not found. If not provided, an error will be thrown.
+    * @return {false|string} false if tenantDB not found and reject is provided,
+    * otherwise the tenantDB name (string).
+    * @throws {Error} if tenantDB not found and reject is not provided.
     */
    queryTenantDB(reject) {
       let tenantDB = this.tenantDB();
       if (tenantDB == "") {
          let errorNoTenant = new Error(
-            `Unable to find tenant information for tenantID[${this.tenantID()}]`
+            `Unable to find tenant information for tenantID[${this.tenantID()}]`,
          );
          errorNoTenant.code = "ENOTENANT";
-         reject(errorNoTenant);
-         return false;
+         if (reject) {
+            reject(errorNoTenant);
+            return false;
+         } else {
+            throw errorNoTenant;
+         }
       }
       return tenantDB;
    }
@@ -720,17 +769,93 @@ class ABRequestService extends EventEmitter {
       if (cond) {
          var params = [];
          Object.keys(cond).forEach((key) => {
-            values.push(cond[key]);
-            if (Array.isArray(cond[key])) {
-               if (cond[key].length > 0) {
-                  params.push(`${key} IN ( ? )`);
+            const val = cond[key];
+            const keyLower = String(key).toLowerCase();
+            // Support logical OR: { or: [ {condA}, {condB} ] }
+            if (keyLower === "or" && Array.isArray(val)) {
+               const subParams = [];
+               val.forEach((sub) => {
+                  const { condition: subCond, values: subVals } =
+                     this.queryWhereCondition(sub);
+                  if (subCond) {
+                     subParams.push(subCond);
+                     values = values.concat(subVals);
+                  }
+               });
+               if (subParams.length > 0) {
+                  params.push(`( ${subParams.join(" OR ")} )`);
                } else {
-                  // if an empty array then we falsify this condition:
-                  values.pop(); // remove pushed value above
+                  // empty OR list evaluates to false
                   params.push(` 1 = 0 `);
                }
+               return; // handled this key
+            }
+            if (Array.isArray(val)) {
+               if (val.length > 0) {
+                  params.push(`${key} IN ( ? )`);
+                  values.push(val);
+               } else {
+                  // if an empty array then we falsify this condition:
+                  params.push(` 1 = 0 `);
+               }
+            } else if (val && typeof val === "object") {
+               // Support operator objects like { "<": 50 }, { "!=": "blue" },
+               // as well as Waterline-style: in, nin, contains, startsWith, endsWith
+               Object.keys(val).forEach((op) => {
+                  const rawValue = val[op];
+                  const opLower = String(op).toLowerCase();
+
+                  if (opLower === "in") {
+                     params.push(`${key} IN ( ? )`);
+                     values.push(rawValue);
+                     return;
+                  }
+                  if (opLower === "nin") {
+                     params.push(`${key} NOT IN ( ? )`);
+                     values.push(rawValue);
+                     return;
+                  }
+                  if (opLower === "contains") {
+                     params.push(`${key} LIKE ?`);
+                     values.push(`%${rawValue}%`);
+                     return;
+                  }
+                  if (opLower === "startswith") {
+                     params.push(`${key} LIKE ?`);
+                     values.push(`${rawValue}%`);
+                     return;
+                  }
+                  if (opLower === "endswith") {
+                     params.push(`${key} LIKE ?`);
+                     values.push(`%${rawValue}`);
+                     return;
+                  }
+
+                  // default comparison operators
+                  if (op === "!=" && Array.isArray(rawValue)) {
+                     // NOT IN array form: { field: { '!=': [a,b] } }
+                     params.push(`${key} NOT IN ( ? )`);
+                     values.push(rawValue);
+                     return;
+                  }
+
+                  const opMap = {
+                     "=": "=",
+                     "!=": "!=",
+                     "<": "<",
+                     "<=": "<=",
+                     ">": ">",
+                     ">=": ">=",
+                     like: "LIKE",
+                     LIKE: "LIKE",
+                  };
+                  const sqlOp = opMap[op] || op;
+                  params.push(`${key} ${sqlOp} ?`);
+                  values.push(rawValue);
+               });
             } else {
                params.push(`${key} = ?`);
+               values.push(val);
             }
          });
          condition = `${params.join(" AND ")}`;
@@ -909,7 +1034,7 @@ class ABRequestService extends EventEmitter {
             jobID: `ABFactory(${this._tenantID})`,
             tenantID: this._tenantID,
          },
-         this.controller
+         this.controller,
       );
       ABReq._DBConn = this._DBConn;
       ABReq._Model = this._Model;
@@ -925,7 +1050,7 @@ class ABRequestService extends EventEmitter {
       ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
          (f) => {
             obj[f] = this[f];
-         }
+         },
       );
       return obj;
    }
