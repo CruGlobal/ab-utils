@@ -51,6 +51,7 @@ module.exports = {
             user: env("MYSQL_USER", "root"),
             password: process.env.MYSQL_PASSWORD,
             database: env("MYSQL_DBPREFIX", "appbuilder"),
+            poolMax: env("MYSQL_POOL_MAX"),
          },
          site: {
             adapter: "sails-mysql",
@@ -59,6 +60,7 @@ module.exports = {
             user: env("MYSQL_USER", "root"),
             password: process.env.MYSQL_PASSWORD,
             database: env("MYSQL_DBADMIN", "appbuilder-admin"),
+            poolMax: env("MYSQL_POOL_MAX"),
          },
       };
    },
