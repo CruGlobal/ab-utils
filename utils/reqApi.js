@@ -5,7 +5,11 @@
  * @module reqApi
  * @ignore
  */
-const shortid = require("shortid");
+const crypto = require("crypto");
+
+function nanoid10() {
+   return crypto.randomBytes(10).toString("base64url").slice(0, 10);
+}
 // const cote = require("cote");
 
 const ABNotification = require("./reqNotification.js");
@@ -31,7 +35,7 @@ const telemetry = require("./telemetry.js")();
  */
 class ABRequestAPI {
    constructor(req, res, config = {}) {
-      this.jobID = shortid.generate();
+      this.jobID = nanoid10();
       // {string}
       // the unique id of this job.  It helps track actions for a particular
       // Job across service calls.
@@ -219,7 +223,7 @@ class ABRequestAPI {
             // FIX: use replacer fn to allow stringify() to handle bigint values:
             // https://stackoverflow.com/questions/65152373/typescript-serialize-bigint-in-json
             b = JSON.stringify(a, (k, v) =>
-               typeof v === "bigint" ? v.toString() : v
+               typeof v === "bigint" ? v.toString() : v,
             );
          } catch (e) {
             if (a.toObj) {
@@ -341,7 +345,7 @@ class ABRequestAPI {
       ["jobID", "_tenantID", "_user", "_userReal", "serviceKey"].forEach(
          (k) => {
             obj[k] = this[k];
-         }
+         },
       );
       return obj;
    }
@@ -429,7 +433,7 @@ class ABRequestAPI {
    validRoles(roleIDs) {
       if (this._user && this._user.SITE_ROLE) {
          var found = this._user.SITE_ROLE.filter(
-            (r) => roleIDs.indexOf(r.uuid ?? r) > -1
+            (r) => roleIDs.indexOf(r.uuid ?? r) > -1,
          );
          if (found.length > 0) {
             return true;

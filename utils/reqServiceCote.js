@@ -1,6 +1,10 @@
 /// reqServiceCote.js
 ///
-const shortid = require("shortid");
+const crypto = require("crypto");
+
+function nanoid10() {
+   return crypto.randomBytes(10).toString("base64url").slice(0, 10);
+}
 
 /**
  * @class ABServiceCote
@@ -25,7 +29,7 @@ class ABServiceCote {
          type: key,
          param: {
             jobID: this.req.jobID,
-            requestID: shortid.generate(),
+            requestID: nanoid10(),
             tenantID: this.req._tenantID,
             user: this.req._user,
             userReal: this.req._userReal,
