@@ -754,9 +754,10 @@ class ABServiceController extends EventEmitter {
             },
          });
 
-         // client.on("error", (err) => {
-         //    console.log("... waiting for redis");
-         // });
+         client.on("error", (err) => {
+            console.log("redis error:", err);
+            // console.log("... waiting for redis");
+         });
 
          client.on("connect", () => {
             client.quit();
