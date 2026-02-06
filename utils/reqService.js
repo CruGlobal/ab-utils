@@ -548,7 +548,23 @@ class ABRequestService extends EventEmitter {
             }
          }
       });
-      console.log(`${this.jobID}::${args.join(" ")}`);
+
+      // To enhance debugging log files, provide a common timestamp for each line
+      // make the ts relative to the common Data.now(), so we are more accurate
+      // across different processes.  (other calls like performance.now() are
+      // based on the time the process started, not a common UTC time).
+      // for logging with fractional seconds
+      const now = Date.now();
+      const d = new Date(now);
+      const fracSecs =
+         (now % 1000) / 1000 +
+         (typeof performance !== "undefined" && performance.now
+            ? (performance.now() % 1) / 1000
+            : 0);
+      const ts = d
+         .toISOString()
+         .replace(/\.\d{3}Z$/, "." + fracSecs.toFixed(6).slice(2) + "Z");
+      console.log(`${ts} ${this.jobID}::${args.join(" ")}`);
    }
 
    /**
