@@ -271,13 +271,13 @@ class ABServiceController extends EventEmitter {
             // our cote connection will throw an error if it can't connect to
             // redis, so wait until we can establish a connection before
             // proceeding with our initialization.
-            return this._waitForRedis().then(() => {
-               this.serviceResponder = new cote.Responder({
-                  name: this.key,
-                  key: this.key,
-                  port: 9000,
-               });
+            // return this._waitForRedis().then(() => {
+            this.serviceResponder = new cote.Responder({
+               name: this.key,
+               key: this.key,
+               port: 9000,
             });
+            // });
          })
          .then(() => {
             if (!this.waitForDB) {
@@ -754,9 +754,10 @@ class ABServiceController extends EventEmitter {
             },
          });
 
-         // client.on("error", (err) => {
-         //    console.log("... waiting for redis");
-         // });
+         client.on("error", (err) => {
+            console.log("redis error:", err);
+            // console.log("... waiting for redis");
+         });
 
          client.on("connect", () => {
             client.quit();
