@@ -32,7 +32,7 @@ describe("model: connections", () => {
             expect(
                AllAttributes.find((a) => {
                   return a.attr_name == attr;
-               })
+               }),
             ).to.exist;
          });
       });
@@ -48,7 +48,7 @@ describe("model: connections", () => {
             expect(
                AllAttributes.find((a) => {
                   return a.attr_name == attr;
-               })
+               }),
             ).to.exist;
          });
       });
@@ -67,7 +67,7 @@ describe("model: connections", () => {
             "dominant",
             "attribute",
             "otherModel",
-            "otherAttribute"
+            "otherAttribute",
          );
          expect(info.type).to.be.a("string");
          expect(info.dominant).to.be.a("boolean");

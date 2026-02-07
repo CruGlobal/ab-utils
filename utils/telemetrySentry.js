@@ -64,8 +64,8 @@ class TelemetrySentry extends TelemetryOpenTelemetry {
          err instanceof Error
             ? err
             : typeof err == "string"
-            ? new Error(err)
-            : error;
+              ? new Error(err)
+              : error;
       /**
        * @const sentryError {Error|string} error to send to sentry
        * If we recieved an Error use that, if we recieved a string

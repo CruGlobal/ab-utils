@@ -23,7 +23,7 @@ describe("ABServicePublish", () => {
          const toParam = sinon.replace(
             abPublisher,
             "toParam",
-            sinon.fake.returns({ paramStack: "fake" })
+            sinon.fake.returns({ paramStack: "fake" }),
          );
          abPublisher.publish("domain.key", {});
          // 2nd call should reuse the existing Cote Publisher

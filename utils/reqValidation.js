@@ -38,7 +38,7 @@ class ABRequestValidation {
                this.req.log(
                   `... validation error [${this.req.jobID}]: ${d.message} (${
                      d.context.label
-                  } : ${JSON.stringify(d.context.value)})`
+                  } : ${JSON.stringify(d.context.value)})`,
                );
             });
          });
@@ -175,8 +175,10 @@ class ABRequestValidation {
                      //       "string":true
                      //    }
                      // }
+
                      case "with":
                      // .with : "other_field"
+                     // eslint-disable-next-line no-fallthrough -- intentional
                      case "xor":
                         // .xor: "other_field"
                         setConstraints.push({
@@ -202,7 +204,7 @@ class ABRequestValidation {
 
                      case "type":
                         console.error(
-                           "reqAB.validateParameters(): .type param is depreciated."
+                           "reqAB.validateParameters(): .type param is depreciated.",
                         );
 
                         // include "string" in email types:
@@ -290,6 +292,7 @@ class ABRequestValidation {
                               let iValText = iVal;
                               try {
                                  iValText = JSON.stringify(iVal);
+                                 // eslint-disable-next-line no-unused-vars
                               } catch (eJson) {
                                  /* just ignore */
                               }
@@ -358,7 +361,7 @@ class ABRequestValidation {
                if (description[p] && description[p].validate) {
                   if (typeof description[p].validate != "function") {
                      var err = new Error(
-                        `req.ab.validateParameters(): ${p}.validate() is not a function.  Not sure what your attempting here.`
+                        `req.ab.validateParameters(): ${p}.validate() is not a function.  Not sure what your attempting here.`,
                      );
                      console.error(err);
                      return;
@@ -367,7 +370,7 @@ class ABRequestValidation {
                   // Run the provided .validation()
                   var r = description[p].validate(
                      results.value[p],
-                     results.value
+                     results.value,
                   );
 
                   // if this resulted in an error, record it

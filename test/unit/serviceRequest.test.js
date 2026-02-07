@@ -74,7 +74,8 @@ describe("ServiceRequest tests", () => {
          const callback = sinon.fake();
          try {
             await serviceRequest.request("service.test", {}, callback);
-         } catch (err) {
+            // eslint-disable-next-line no-unused-vars
+         } catch (e) {
             //expected
          }
          assert.isFalse(
@@ -123,7 +124,8 @@ describe("ServiceRequest tests", () => {
          sendStub.yields(new Error("Request timed out."));
          try {
             await serviceRequest.request("service.test", {});
-         } catch (err) {
+            // eslint-disable-next-line no-unused-vars
+         } catch (e) {
             // We expect this
          }
          // 5 Regular attempts + 50 timeouts
@@ -138,7 +140,8 @@ describe("ServiceRequest tests", () => {
                {},
                { maxAttempts: 1 },
             );
-         } catch (err) {
+            // eslint-disable-next-line no-unused-vars
+         } catch (e) {
             // We expect this
          }
          // 1 Regular attempt + 50 timeouts
@@ -215,6 +218,7 @@ describe("ServiceRequest tests", () => {
             await serviceRequest.request("log_manager.notification", {
                value: 1,
             });
+            // eslint-disable-next-line no-unused-vars
          } catch (e) {
             //expected
          }

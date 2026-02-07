@@ -11,7 +11,7 @@ module.exports = {
     *
     * @return string
     */
-   generateSalt: function() {
+   generateSalt: function () {
       return crypto.randomBytes(32).toString("hex");
    },
 
@@ -25,29 +25,33 @@ module.exports = {
     * @return {Promise}
     *      Resolves with the hashed password string, 1024 characters in length
     */
-   hash: function(password, salt) {
+   hash: function (password, salt) {
       return new Promise((resolve, reject) => {
          if (salt == null) {
             var err = new Error(
-               "user can not have a null salt. Perhaps this is an old account needing updating?"
+               "user can not have a null salt. Perhaps this is an old account needing updating?",
             );
             reject(err);
          } else {
-            crypto.pbkdf2(password, salt, 100000, 512, "sha1", function(
-               err,
-               key
-            ) {
-               if (err) {
-                  reject(err);
-               } else {
-                  resolve(key.toString("hex"));
-               }
-            });
+            crypto.pbkdf2(
+               password,
+               salt,
+               100000,
+               512,
+               "sha1",
+               function (err, key) {
+                  if (err) {
+                     reject(err);
+                  } else {
+                     resolve(key.toString("hex"));
+                  }
+               },
+            );
          }
       });
    },
 
-   safeUser: function(user) {
+   safeUser: function (user) {
       var safeUser = {};
       var ignoreFields = ["password", "salt"];
       for (var prop in user) {
@@ -60,5 +64,5 @@ module.exports = {
          }
       }
       return safeUser;
-   }
+   },
 };

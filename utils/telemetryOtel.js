@@ -62,7 +62,9 @@ class TelemetryOpenTelemetry extends TelemetryDefault {
     */
    startChildSpan(key, attributes, parent) {
       const activeContext = otelApi.context.active();
-      const context = parent ? otelApi.trace.setSpan(activeContext, parent) : activeContext;
+      const context = parent
+         ? otelApi.trace.setSpan(activeContext, parent)
+         : activeContext;
       this.spans[key] = this._tracer.startSpan(key, { attributes }, context);
       return this.spans[key];
    }

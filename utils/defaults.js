@@ -23,7 +23,7 @@ function env(envKey, defaultValue) {
       // no need to report them:
       let expectedValues = ["http"];
       let isExpected = false;
-      expectedValues.forEach((v) => {
+      expectedValues.forEach((/*v*/) => {
          if (process.env[envKey].indexOf("http") != -1) {
             isExpected = true;
          }

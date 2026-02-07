@@ -22,6 +22,7 @@ class TelemetryDefault {
       // We need to remove circular data from info, because it get's stringified later
       try {
          JSON.stringify(jobData.info);
+         // eslint-disable-next-line no-unused-vars
       } catch (err) {
          // Source: https://stackoverflow.com/questions/11616630/how-can-i-print-a-circular-structure-in-a-json-like-format
          const cache = [];

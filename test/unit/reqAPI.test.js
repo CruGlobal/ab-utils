@@ -63,7 +63,7 @@ describe("ABRequestAPI", () => {
          const request = sinon.replace(
             req.__Requester,
             "request",
-            sinon.fake()
+            sinon.fake(),
          );
          const params = ["key", { test: "data" }, { config: "1" }, () => {}];
          req.serviceRequest(...params);
@@ -129,7 +129,7 @@ describe("ABRequestAPI", () => {
       it("true when user has the role", () => {
          assert.isTrue(
             req.validRoles(["d15ed70b-432f-4978-8145-682328559317"]),
-            "match 1/1"
+            "match 1/1",
          );
          // Only one of the roles needs to match
          assert.isTrue(
@@ -138,14 +138,14 @@ describe("ABRequestAPI", () => {
                   "c3472f93-3da6-4679-bed0-cfda429ce490",
                   "6a08a4f8-d73a-41ab-8037-9426599631e7",
                ],
-               "match 1/2"
-            )
+               "match 1/2",
+            ),
          );
       });
 
       it("false when user does not have role", () => {
          assert.isFalse(
-            req.validRoles(["c3472f93-3da6-4679-bed0-cfda429ce490"])
+            req.validRoles(["c3472f93-3da6-4679-bed0-cfda429ce490"]),
          );
       });
    });

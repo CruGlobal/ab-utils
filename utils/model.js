@@ -160,7 +160,7 @@ module.exports = class Model {
          var connSettings = this.AB.configDB();
          if (connSettings && connSettings.database) {
             var tDB = this.dbConn.escapeId(
-               `${connSettings.database}-${tenantID}`
+               `${connSettings.database}-${tenantID}`,
             );
             tableName = `${tDB}.${tableName}`;
          } else {
@@ -419,17 +419,17 @@ module.exports = class Model {
       }
       // if we get to here, there is a problem with the settings of the Models:
       this.AB.log(
-         `Error with Model[${this._key}] settings. Can't determine connection type of field [${field}]`
+         `Error with Model[${this._key}] settings. Can't determine connection type of field [${field}]`,
       );
       this.AB.log(`field : ${field}`);
       this.AB.log(
-         `attribute : ${attribute ? JSON.stringify(attribute) : "null"}`
+         `attribute : ${attribute ? JSON.stringify(attribute) : "null"}`,
       );
       this.AB.log(`otherModelKey : ${otherModelKey}`);
       this.AB.log(
          `otherAttribute : ${
             info.otherAttribute ? JSON.stringify(info.otherAttribute) : "null"
-         }`
+         }`,
       );
 
       throw new Error("Improper Model Definition!");
@@ -459,7 +459,7 @@ module.exports = class Model {
                   });
                   condConnections = _.intersection(
                      condFields,
-                     connectionFields
+                     connectionFields,
                   );
                   done();
                },
@@ -507,7 +507,7 @@ module.exports = class Model {
                      },
                      (err) => {
                         done(err);
-                     }
+                     },
                   );
                },
             ],
@@ -517,7 +517,7 @@ module.exports = class Model {
                   return;
                }
                resolve(cond);
-            }
+            },
          );
       });
    }
@@ -676,7 +676,7 @@ module.exports = class Model {
                      var queryIt = (retries = 0) => {
                         if (retries >= 3) {
                            var error = new Error(
-                              "Too many timeouts when querying the DB."
+                              "Too many timeouts when querying the DB.",
                            );
                            error.code = "ETIMEDOUT";
                            error.numRetries = retries;
@@ -698,7 +698,7 @@ module.exports = class Model {
                                     error.toString().indexOf("ETIMEDOUT") != -1
                                  ) {
                                     console.log(
-                                       `[${retries}] db timeout error: retrying`
+                                       `[${retries}] db timeout error: retrying`,
                                     );
                                     queryIt(retries++);
                                     return;
@@ -713,7 +713,7 @@ module.exports = class Model {
                                     ? results.insertId
                                     : null;
                               done();
-                           }
+                           },
                         );
                      };
                      queryIt();
@@ -761,7 +761,7 @@ module.exports = class Model {
                      return;
                   }
                   resolve(returnValue);
-               }
+               },
             );
          } catch (e) {
             reject(e);
@@ -840,7 +840,7 @@ module.exports = class Model {
                               this._linkManyMany(
                                  connInfo,
                                  returnValue[this.pk],
-                                 value
+                                 value,
                               )
                                  .then(() => {
                                     linkCB();
@@ -852,7 +852,7 @@ module.exports = class Model {
                               returnValue[field.attr_name] =
                                  values[field.attr_name];
                               cb(linkErr);
-                           }
+                           },
                         );
                      }
                      break;
@@ -868,7 +868,7 @@ module.exports = class Model {
                   return;
                }
                resolve();
-            }
+            },
          );
       });
    }
@@ -883,7 +883,7 @@ module.exports = class Model {
    destroy(cond) {
       if (!cond) {
          return Promise.reject(
-            new Error("condition is required for .destroy()")
+            new Error("condition is required for .destroy()"),
          );
       }
       return new Promise((resolve, reject) => {
@@ -911,7 +911,7 @@ module.exports = class Model {
                   }
                   // TODO: should return the updated entry
                   resolve();
-               }
+               },
             );
          } catch (e) {
             reject(e);
@@ -1004,7 +1004,7 @@ module.exports = class Model {
                         queryOptions.values
                            ? JSON.stringify(queryOptions.values)
                            : null
-                     }]`
+                     }]`,
                   );
 
                   this._queryIt(
@@ -1029,7 +1029,7 @@ module.exports = class Model {
                            .catch((err) => {
                               reject(err);
                            });
-                     }
+                     },
                   );
                })
                .catch((err) => {
@@ -1053,7 +1053,7 @@ module.exports = class Model {
    update(cond, values) {
       if (!cond) {
          return Promise.reject(
-            new Error("condition is required for .update()")
+            new Error("condition is required for .update()"),
          );
       }
       return new Promise((resolve, reject) => {
@@ -1097,7 +1097,7 @@ module.exports = class Model {
                            }
                            // TODO: should return the updated entry
                            done();
-                        }
+                        },
                      );
                   },
 
@@ -1133,7 +1133,7 @@ module.exports = class Model {
                         },
                         (err) => {
                            done(err);
-                        }
+                        },
                      );
                   },
 
@@ -1145,7 +1145,7 @@ module.exports = class Model {
                         },
                         (err) => {
                            done(err);
-                        }
+                        },
                      );
                   },
                ],
@@ -1156,7 +1156,7 @@ module.exports = class Model {
                      return;
                   }
                   resolve(returnValue);
-               }
+               },
             );
          } catch (e) {
             reject(e);
