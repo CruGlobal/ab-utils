@@ -29,7 +29,7 @@ describe("ABResponseAPI", () => {
          assert(sailsRes.send.calledOnce);
          assert.equal(
             sailsRes.send.firstCall.firstArg,
-            `{"status":"error","jobID":"??","data":"${strErr}","message":"test"}`
+            `{"status":"error","jobID":"??","data":"${strErr}","message":"test"}`,
          );
       });
 
@@ -69,7 +69,7 @@ describe("ABResponseAPI", () => {
          assert(sailsRes.send.calledOnce);
          assert.equal(
             sailsRes.send.firstCall.firstArg,
-            '{"status":"success","data":{"test":"data"}}'
+            '{"status":"success","data":{"test":"data"}}',
          );
       });
 
@@ -86,7 +86,7 @@ describe("ABResponseAPI", () => {
          assert(sailsRes.send.calledOnce);
          assert.include(
             sailsRes.send.firstCall.firstArg,
-            '{"status":"custom"}'
+            '{"status":"custom"}',
          );
       });
    });

@@ -170,7 +170,7 @@ describe("Model", () => {
          var values = Test._usefulValues(
             { string: "keep", striiing: "dontkeep" },
             true,
-            false
+            false,
          );
          expect(values).to.exist;
          expect(values).to.be.an("object");
@@ -180,7 +180,7 @@ describe("Model", () => {
          var values2 = Test._usefulValues(
             { string: "keep", striiing: "dontkeep" },
             false,
-            true
+            true,
          );
          expect(values2).to.exist;
          expect(values2).to.be.an("object");
@@ -290,7 +290,7 @@ describe("Model", () => {
                json: "{converted:true}",
             },
             [],
-            done
+            done,
          );
       });
 
@@ -307,7 +307,7 @@ describe("Model", () => {
                json: "{converted:true}",
             },
             [],
-            done
+            done,
          );
       });
 
@@ -322,7 +322,7 @@ describe("Model", () => {
                striiing: "doneKeep",
                json: "{converted:true}",
             },
-            done
+            done,
          );
       });
 
@@ -340,7 +340,7 @@ describe("Model", () => {
                "string",
                "json",
                "created_at",
-               "updated_at"
+               "updated_at",
             );
             expect(values).to.not.have.all.keys("striiing");
             cb(null, { insertId: 1 });
@@ -451,7 +451,7 @@ describe("Model", () => {
                {},
             ],
             [],
-            done
+            done,
          );
       });
 
@@ -470,7 +470,7 @@ describe("Model", () => {
                {},
             ],
             [],
-            done
+            done,
          );
       });
 
@@ -488,7 +488,7 @@ describe("Model", () => {
                },
                {},
             ],
-            done
+            done,
          );
       });
 
@@ -526,7 +526,7 @@ describe("Model", () => {
                string: "string",
                striiing: "doneKeep",
                json: "{converted:true}",
-            }
+            },
          )
             .then(done)
             .catch(done);

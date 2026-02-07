@@ -70,7 +70,7 @@ describe("reqAB: toParam", function () {
          "requestID",
          "tenantID",
          "user",
-         "data"
+         "data",
       );
       expect(param.param.data.value).to.equal("here");
    });
@@ -91,7 +91,7 @@ describe("reqAB: validateParameters", function () {
                   expect(err.key).to.equal("E_VALIDATION");
                },
             },
-         }
+         },
       );
       // don't display output
       ab.__console = {
@@ -117,7 +117,7 @@ describe("reqAB: validateParameters", function () {
                   expect(true).to.be.false;
                },
             },
-         }
+         },
       );
       // don't display output
       ab.__console = {
@@ -146,7 +146,7 @@ describe("reqAB: serviceRequest", function () {
       ab.serviceRequest(
          "service.action",
          { neo: "the one" },
-         (/* err, data */) => {}
+         (/* err, data */) => {},
       );
 
       // 2nd time => No call
@@ -154,7 +154,7 @@ describe("reqAB: serviceRequest", function () {
       ab.serviceRequest(
          "service.action",
          { neo: "the one" },
-         (/* err, data */) => {}
+         (/* err, data */) => {},
       );
    });
 });

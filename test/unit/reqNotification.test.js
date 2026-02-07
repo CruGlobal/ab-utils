@@ -3,13 +3,12 @@ const proxyquire = require("proxyquire").noCallThru();
 const sinon = require("sinon");
 
 const stubNotify = sinon.stub();
-const reqNotification = proxyquire("../../utils/reqNotification.js",
-{
+const reqNotification = proxyquire("../../utils/reqNotification.js", {
    "./telemetry": () => {
       return {
          notify: stubNotify,
-      }
-   }
+      };
+   },
 });
 
 const req = {
@@ -34,15 +33,19 @@ describe("ABNotification", () => {
          const fakeStringifyErrors = sinon.replace(
             notification,
             "stringifyErrors",
-            sinon.fake.returns("stringified error")
-         )
+            sinon.fake.returns("stringified error"),
+         );
          const error = new Error("test error");
          await notification.notify("developer", error, {});
-         assert.equal(fakeStringifyErrors.callCount, 1, "stringifyErrors not called?");
+         assert.equal(
+            fakeStringifyErrors.callCount,
+            1,
+            "stringifyErrors not called?",
+         );
          assert(stubNotify.calledOnce);
-         assert.deepEqual(stubNotify.firstCall.firstArg, req)
+         assert.deepEqual(stubNotify.firstCall.firstArg, req);
          const jobData = stubNotify.firstCall.args[1];
-         assert.deepOwnInclude(jobData, {
+         (assert.deepOwnInclude(jobData, {
             domain: "developer",
             error: "stringified error",
             info: {
@@ -51,10 +54,9 @@ describe("ABNotification", () => {
                serviceKey: "key",
                tenantID: "tenant",
                user: {},
-            }
+            },
          }),
-         assert.equal(stubNotify.firstCall.args[2], error);
+            assert.equal(stubNotify.firstCall.args[2], error));
       });
    });
 });
-

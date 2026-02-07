@@ -35,7 +35,7 @@ for (const className of classNames) {
    const output = jsdoc2md.renderSync({ data: unique, template });
    fs.writeFileSync(
       `${__dirname}/${className}.md`,
-      fixLinks(className, output)
+      fixLinks(className, output),
    );
 }
 
@@ -47,7 +47,7 @@ const abutils = jsdoc2md.renderSync({
 fs.writeFileSync(`${__dirname}/ab-utils.md`, abutils);
 const readmeBase = fs.readFileSync(
    path.resolve(__dirname, "README.hbs"),
-   "utf8"
+   "utf8",
 );
 
 const readme = jsdoc2md.renderSync({
@@ -59,5 +59,5 @@ const readme = jsdoc2md.renderSync({
 
 fs.writeFileSync(
    path.resolve(__dirname, "../README.md"),
-   fixLinks("module_ab-utils", readme, "docs")
+   fixLinks("module_ab-utils", readme, "docs"),
 );

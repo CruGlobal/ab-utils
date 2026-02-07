@@ -199,8 +199,8 @@ class ABRequestAPI {
     */
    userDefaults() {
       return {
-         languageCode: this._user ? this._user.languageCode : false || "en",
-         username: this._user ? this._user.username : false || "_system_",
+         languageCode: this._user ? this._user.languageCode : "en",
+         username: this._user ? this._user.username : "_system_",
       };
    }
 
@@ -225,6 +225,7 @@ class ABRequestAPI {
             b = JSON.stringify(a, (k, v) =>
                typeof v === "bigint" ? v.toString() : v,
             );
+            // eslint-disable-next-line no-unused-vars
          } catch (e) {
             if (a.toObj) {
                b = JSON.stringify(a.toObj());
@@ -396,6 +397,7 @@ class ABRequestAPI {
             if ("string" === typeof allParams[k]) {
                try {
                   allParams[k] = JSON.parse(allParams[k]);
+                  // eslint-disable-next-line no-unused-vars
                } catch (e) {
                   /* do nothing */
                }
