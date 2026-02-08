@@ -5,18 +5,6 @@
 
 a set of common utilities shared by each of our microsservices
 
-### ERR_PACKAGE_PATH_NOT_EXPORTED (uuid/v4)
-
-If you see `Package subpath './v4' is not defined by "exports"` from `uuid` when using this package (e.g. from `dashersw/node-discover` via `cote`), the dependency tree is resolving `uuid` v9, which removed the `/v4` subpath. In the **app** that depends on `@digiserve/ab-utils`, add to your root `package.json`:
-
-```json
-"overrides": {
-   "uuid": "^8.3.2"
-}
-```
-
-Then run `npm install` again. (With Yarn, use `"resolutions": { "uuid": "^8.3.2" }`.)
-
 - [ab-utils](#module_ab-utils)
    - [.service](#module_ab-utils.service) ⇐ <code>EventEmitter</code>
       - [new service(options)](#new_module_ab-utils.service_new)

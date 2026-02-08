@@ -14,7 +14,7 @@ const Mysql = require("mysql");
 const path = require("path");
 // const prettyTime = require("pretty-time");
 
-const redis = require("redis");
+// const redis = require("redis");
 
 // var _ = require("lodash");
 const EventEmitter = require("events").EventEmitter;
@@ -725,46 +725,46 @@ class ABServiceController extends EventEmitter {
     * attempts to connect to our redis server and then resolves() once the connection is ready.
     * @return {Promise}
     */
-   _waitForRedis() {
-      return new Promise((resolve /* , reject */) => {
-         var client = redis.createClient({
-            host: "redis",
-            // port: <port>,
-            // password: '<password>'
+   // _waitForRedis() {
+   //    return new Promise((resolve /* , reject */) => {
+   //       var client = redis.createClient({
+   //          host: "redis",
+   //          // port: <port>,
+   //          // password: '<password>'
 
-            retry_strategy: function (options) {
-               // if (options.error && options.error.code === "ECONNREFUSED") {
-               //    // End reconnecting on a specific error and flush all commands with
-               //    // a individual error
-               //    return new Error("The server refused the connection");
-               // }
-               // if (options.total_retry_time > 1000 * 60 * 60) {
-               //    // End reconnecting after a specific timeout and flush all commands
-               //    // with a individual error
-               //    return new Error("Retry time exhausted");
-               // }
-               // if (options.attempt > 10) {
-               //    // End reconnecting with built in error
-               //    return undefined;
-               // }
+   //          retry_strategy: function (options) {
+   //             // if (options.error && options.error.code === "ECONNREFUSED") {
+   //             //    // End reconnecting on a specific error and flush all commands with
+   //             //    // a individual error
+   //             //    return new Error("The server refused the connection");
+   //             // }
+   //             // if (options.total_retry_time > 1000 * 60 * 60) {
+   //             //    // End reconnecting after a specific timeout and flush all commands
+   //             //    // with a individual error
+   //             //    return new Error("Retry time exhausted");
+   //             // }
+   //             // if (options.attempt > 10) {
+   //             //    // End reconnecting with built in error
+   //             //    return undefined;
+   //             // }
 
-               // console.log("... waiting for redis attempt:" + options.attempt);
-               // reconnect after
-               return Math.min(options.attempt * 200, 3000);
-            },
-         });
+   //             // console.log("... waiting for redis attempt:" + options.attempt);
+   //             // reconnect after
+   //             return Math.min(options.attempt * 200, 3000);
+   //          },
+   //       });
 
-         client.on("error", (err) => {
-            console.log("redis error:", err);
-            // console.log("... waiting for redis");
-         });
+   //       client.on("error", (err) => {
+   //          console.log("redis error:", err);
+   //          // console.log("... waiting for redis");
+   //       });
 
-         client.on("connect", () => {
-            client.quit();
-            resolve();
-         });
-      });
-   }
+   //       client.on("connect", () => {
+   //          client.quit();
+   //          resolve();
+   //       });
+   //    });
+   // }
 }
 
 /**
