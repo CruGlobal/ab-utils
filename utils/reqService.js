@@ -561,9 +561,14 @@ class ABRequestService extends EventEmitter {
          (typeof performance !== "undefined" && performance.now
             ? (performance.now() % 1) / 1000
             : 0);
-      const ts = d
+      var ts = d
          .toISOString()
          .replace(/\.\d{3}Z$/, "." + fracSecs.toFixed(6).slice(2) + "Z");
+
+      // remove the first portion to keep the time shorter
+      ts = ts.split(":");
+      ts.shift();
+      ts = ts.join(":");
       console.log(`${ts} ${this.jobID}::${args.join(" ")}`);
    }
 
