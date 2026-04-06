@@ -6,8 +6,13 @@ on:
       branches: [master]
 
 jobs:
+   run-cypress-e2e-tests:
+      name: Run cypress E2E tests
+      uses: ./.github/workflows/call-e2e-test.yml
    bump-package-version:
       # Only run if the PR closed by merging
+      name: Bump a package version
+      needs: run-cypress-e2e-tests
       if: github.event.pull_request.merged
       runs-on: ubuntu-latest
       steps:
