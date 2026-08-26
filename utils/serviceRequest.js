@@ -15,9 +15,7 @@ const LONG_REQUEST_TIMEOUT = 90000; // 90 Seconds
 const ATTEMPT_REQUEST_MAXIMUM = 5;
 const ATTEMPT_REQUEST_OVERTIME = ATTEMPT_REQUEST_MAXIMUM * 10;
 
-const domainRequesters = {
-   /* domainKey : coteRequester */
-};
+const domainRequesters = {/* domainKey : coteRequester */};
 
 /** @extends ABServiceCote */
 class ABServiceRequest extends ServiceCote {

@@ -26,17 +26,30 @@ class TelemetryOpenTelemetry extends TelemetryDefault {
    /**
     * @init
     * @param {object} config
-    * @param {opentelemetry.node.SpanProcessor} config.spanProcessor
-    * @param { opentelemetry.api.TextMapPropagator} config.textMapPropagator
+    * @param {opentelemetry.node.SpanProcessor} [config.spanProcessor]
+    * @param {opentelemetry.node.SpanProcessor[]} [config.spanProcessors]
+    * @param {opentelemetry.api.TextMapPropagator} [config.textMapPropagator]
+    * @param {opentelemetry.node.Sampler} [config.sampler]
+    * @param {opentelemetry.api.ContextManager} [config.contextManager]
     * @param {string} config.name name to use for the Tracer
     * @param {string} config.version version to use for the Tracer
     */
    init(config) {
-      const sdk = new opentelemetry.NodeSDK({
-         traceExporter: new OTLPTraceExporter(),
-         spanProcessor: config.spanProcessor,
+      const sdkConfig = {
          textMapPropagator: config.textMapPropagator,
-      });
+         sampler: config.sampler,
+         contextManager: config.contextManager,
+      };
+
+      if (config.spanProcessors?.length) {
+         sdkConfig.spanProcessors = config.spanProcessors;
+      } else if (config.spanProcessor) {
+         sdkConfig.spanProcessors = [config.spanProcessor];
+      } else {
+         sdkConfig.traceExporter = new OTLPTraceExporter();
+      }
+
+      const sdk = new opentelemetry.NodeSDK(sdkConfig);
       sdk.start();
       this._tracer = otelApi.trace.getTracer(config.name, config.version);
    }

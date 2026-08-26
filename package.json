@@ -11,13 +11,11 @@
   },
   "repository": "github:CruGlobal/ab-utils",
   "dependencies": {
-    "@opentelemetry/api": "^1.7.0",
-    "@opentelemetry/auto-instrumentations-node": "^0.47.0",
-    "@opentelemetry/exporter-trace-otlp-grpc": "^0.52.0",
-    "@opentelemetry/instrumentation-knex": "^0.32.1",
-    "@opentelemetry/sdk-node": "^0.52.0",
-    "@sentry/node": "^7.69.0",
-    "@sentry/opentelemetry-node": "^7.72.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.221.0",
+    "@opentelemetry/sdk-node": "^0.221.0",
+    "@sentry/node": "^10.71.0",
+    "@sentry/opentelemetry": "^10.71.0",
     "async": "^3.2.2",
     "bfj": "^7.0.2",
     "cote": "^1.2.0",
@@ -27,7 +25,7 @@
     "mysql": "^2.18.1",
     "pretty-time": "^1.1.0",
     "serialize-error": "^8.0.1",
-    "uuid": "^8.3.2",
+    "uuid": "file:./shims/uuid",
     "workerpool": "^8.0.0"
   },
   "devDependencies": {
@@ -50,10 +48,14 @@
     "custom-tests": "make test"
   },
   "overrides": {
-    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/core": "^2.8.0",
+    "@opentelemetry/resources": "^2.8.0",
+    "@opentelemetry/sdk-trace-base": "^2.8.0",
     "glob": "^13.0.0",
     "acorn-import-assertions": "npm:acorn-import-attributes@^1.9.5",
     "serialize-javascript": "^7.0.3",
-    "underscore": "^1.13.8"
+    "underscore": "^1.13.8",
+    "uuid": "file:./shims/uuid"
   }
 }
