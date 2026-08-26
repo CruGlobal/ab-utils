@@ -5,9 +5,7 @@
 const cote = require("cote");
 const ServiceCote = require("./reqServiceCote.js");
 
-var domainPublisher = {
-   /* domainKey : cotePublisher */
-};
+var domainPublisher = {/* domainKey : cotePublisher */};
 /** @extends ABServiceCote */
 class ABServicePublish extends ServiceCote {
    /**

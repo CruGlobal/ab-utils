@@ -6,9 +6,7 @@ const cote = require("cote");
 
 const { serializeError /*, deserializeError */ } = require("serialize-error");
 
-var domainResponder = {
-   /* domainKey : coteResponder */
-};
+var domainResponder = {/* domainKey : coteResponder */};
 
 /**
  * manage the responses to a ServiceRequest.

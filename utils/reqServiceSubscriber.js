@@ -4,9 +4,7 @@
 
 const cote = require("cote");
 
-var domainSubscriber = {
-   /* domainKey : coteSubscriber */
-};
+var domainSubscriber = {/* domainKey : coteSubscriber */};
 
 /**
  * Subscribe to a Publisher's message stream.

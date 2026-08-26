@@ -8,9 +8,7 @@ if (NODE_MAJOR_VERSION >= 12) {
 
 const _ = require("lodash");
 
-var validators = {
-   /* key : Joi.object() */
-};
+var validators = {/* key : Joi.object() */};
 
 class ABRequestValidation {
    constructor(req) {

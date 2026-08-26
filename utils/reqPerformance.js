@@ -9,15 +9,11 @@ class ABRequestPerformance {
       // {reqAPI || reqService}
       // the calling request object that is trying to validate it's values.
 
-      this.marks = {
-         /* key : BigInt(timestamp) */
-      };
+      this.marks = {/* key : BigInt(timestamp) */};
       // {hash}
       // a collection of all our relevant timestamps.
 
-      this.measures = {
-         /* key : BigInt(timestamp) */
-      };
+      this.measures = {/* key : BigInt(timestamp) */};
       // {hash}
       // a collection of all our desired measured time spans. These are
       // the time differences between our .marks
