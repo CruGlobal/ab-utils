@@ -7,7 +7,8 @@ const Sentry = require("@sentry/node");
 const {
    SentrySpanProcessor,
    SentryPropagator,
-} = require("@sentry/opentelemetry-node");
+   SentrySampler,
+} = require("@sentry/opentelemetry");
 
 const TelemetryOpenTelemetry = require("./telemetryOtel");
 
@@ -26,6 +27,7 @@ class TelemetrySentry extends TelemetryOpenTelemetry {
          tracesSampleRate: 0.1,
          profilesSampleRate: 0.1,
          normalizeDepth: 5,
+         skipOpenTelemetrySetup: true,
          beforeSendTransaction: (transaction) => {
             // convert open telemetry attribute ("op") to the location sentry expects it
             transaction.contexts.trace.op =
@@ -38,15 +40,17 @@ class TelemetrySentry extends TelemetryOpenTelemetry {
          },
       };
       const config = Object.assign({}, defaults, options);
-      config.instrumenter = "otel";
-      Sentry.init(config);
-      // Now Intialize Open Telemetry
+      const sentryClient = Sentry.init(config);
+      // Now Initialize Open Telemetry
       super.init({
          name: options.name,
          version: options.release,
-         spanProcessor: new SentrySpanProcessor(),
+         spanProcessors: [new SentrySpanProcessor()],
          textMapPropagator: new SentryPropagator(),
+         sampler: sentryClient ? new SentrySampler(sentryClient) : undefined,
+         contextManager: new Sentry.SentryContextManager(),
       });
+      Sentry.validateOpenTelemetrySetup();
    }
 
    /**
