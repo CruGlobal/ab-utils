@@ -1,21 +1,24 @@
 const assert = require("assert");
-const proxyquire = require("proxyquire").noCallThru();
-const sinon = require("sinon");
+const path = require("path");
 
-const pathJoinFake = sinon.fake.returns("fakePath");
-const config = proxyquire("../../utils/config.js", {
-   path: { join: pathJoinFake },
-   fakePath: { one: { example: "config" } },
-});
+const config = require("../../utils/config.js");
 
 describe("config", () => {
-   it("returns a config", () => {
-      const one = config("one");
-      const two = config();
+   let originalCwd;
+
+   before(() => {
+      originalCwd = process.cwd();
+      process.chdir(path.join(__dirname, "..", "fixtures"));
+   });
+
+   after(() => {
+      process.chdir(originalCwd);
+   });
+
+   it("returns a config", async () => {
+      const one = await config("one");
+      const two = await config();
       assert.deepEqual(one, { example: "config" });
       assert.deepEqual(two, { one: { example: "config" } });
-      assert.equal(pathJoinFake.callCount, 2);
-      assert.equal(pathJoinFake.firstCall.args[2], "local.js");
-      assert.equal(pathJoinFake.secondCall.args[2], "local.js");
    });
 });

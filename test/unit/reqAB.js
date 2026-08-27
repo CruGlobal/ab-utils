@@ -143,19 +143,15 @@ describe("reqAB: serviceRequest", function () {
 
       // 1st time we expect this to be called:
       ab.__Requester = RequestCalled;
-      ab.serviceRequest(
-         "service.action",
-         { neo: "the one" },
-         (/* err, data */) => {},
-      );
+      ab.serviceRequest("service.action", { neo: "the one" }, (
+         /* err, data */
+      ) => {});
 
       // 2nd time => No call
       ab.__Requester = RequestNotCalled;
-      ab.serviceRequest(
-         "service.action",
-         { neo: "the one" },
-         (/* err, data */) => {},
-      );
+      ab.serviceRequest("service.action", { neo: "the one" }, (
+         /* err, data */
+      ) => {});
    });
 });
 
