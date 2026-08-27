@@ -12,6 +12,7 @@ const cote = require("cote");
 const fs = require("fs");
 const Mysql = require("mysql");
 const path = require("path");
+const { pathToFileURL } = require("url");
 // const prettyTime = require("pretty-time");
 
 // const redis = require("redis");
@@ -24,18 +25,14 @@ const DefaultHandlers = [
    require("./handlerVersion.js"),
 ];
 
-const _PendingRequests = {
-   /* requestID: cb() */
-};
+const _PendingRequests = {/* requestID: cb() */};
 // the incoming requests by their requestID.
 // It is possible timeouts will happen, and the calling request will be repeated.
 // Instead of passing it to the handler to be run again, we update our stored cb
 // with the new one, so that the latest cb() is called when the handler is
 // resolved.
 
-const _JobStatus = {
-   /* requestID: { jobID, currentStatus:"status string" } */
-};
+const _JobStatus = {/* requestID: { jobID, currentStatus:"status string" } */};
 // Keep track of the current Jobs being run, and any current status
 
 // Setup a Monitor for reporting the Job Statuses
@@ -111,59 +108,15 @@ class ABServiceController extends EventEmitter {
 
       var ignoreFiles = [".DS_Store", ".gitkeep"];
 
-      // scan our /handlers directory and load the handlers
-      // into this.handlers
+      // Handlers and models are loaded asynchronously in init() so ESM
+      // modules can be loaded via dynamic import().
       this.handlers = [];
-      var pathHandlers = path.join(process.cwd(), "handlers");
-      if (fs.existsSync(pathHandlers)) {
-         var files = fs.readdirSync(pathHandlers);
-         files.forEach((fileName) => {
-            if (ignoreFiles.indexOf(fileName) == -1) {
-               try {
-                  var handler = require(path.join(pathHandlers, fileName));
-                  if (handler.key && handler.fn) {
-                     // this looks like a handler:
-                     this.handlers.push(handler);
-                  }
-               } catch (e) {
-                  console.log("::", e);
-               }
-            }
-         });
-      }
+      this._pathHandlers = path.join(process.cwd(), "handlers");
 
-      DefaultHandlers.forEach((H) => {
-         if (!this.handlers.find((h) => h.key.match(H.keyCheck))) {
-            // If no related handler was provided, use the default.
-            this.handlers.push(new H(this));
-         }
-      });
-
-      // scan our [ /models, /models/shared ] directories and load our model
-      // definitions into this.models
       this.models = {};
       this.haveModels = false;
-      var includeModels = (pathModels) => {
-         if (fs.existsSync(pathModels)) {
-            var modelDefinitions = fs.readdirSync(pathModels);
-            modelDefinitions.forEach((fileName) => {
-               if (ignoreFiles.indexOf(fileName) == -1) {
-                  try {
-                     var model = require(path.join(pathModels, fileName));
-                     var parsed = path.parse(fileName);
-                     this.models[parsed.name] = model;
-                     this.haveModels = true;
-                  } catch (e) {
-                     console.log(
-                        `Error loading model[${pathModels}][${fileName}]:`,
-                     );
-                     console.log("::", e);
-                  }
-               }
-            });
-         }
-      };
-      includeModels(path.join(process.cwd(), "models"));
+      this._pathModels = path.join(process.cwd(), "models");
+      this._ignoreFiles = ignoreFiles;
       // includeModels(path.join(__dirname, "..", "shared", "models"));
 
       // setup our process listeners:
@@ -247,6 +200,73 @@ class ABServiceController extends EventEmitter {
    }
 
    /**
+    * Load handlers and models from disk using dynamic import() for ESM support.
+    * @private
+    * @returns {Promise<void>}
+    */
+   _loadHandlersAndModels() {
+      const ignoreFiles = this._ignoreFiles;
+
+      const loadHandlers = () => {
+         if (!fs.existsSync(this._pathHandlers)) return Promise.resolve();
+         const files = fs.readdirSync(this._pathHandlers);
+         return Promise.all(
+            files
+               .filter((fileName) => ignoreFiles.indexOf(fileName) === -1)
+               .map((fileName) => {
+                  const filePath = path.join(this._pathHandlers, fileName);
+                  const fileUrl = pathToFileURL(filePath).href;
+                  return import(fileUrl)
+                     .then((mod) => {
+                        const handler = mod.default ?? mod;
+                        if (handler.key && handler.fn) {
+                           this.handlers.push(handler);
+                        }
+                     })
+                     .catch((e) => {
+                        console.log("::", e);
+                     });
+               }),
+         );
+      };
+
+      const loadModels = (pathModels) => {
+         if (!fs.existsSync(pathModels)) return Promise.resolve();
+         const modelDefinitions = fs.readdirSync(pathModels);
+         return Promise.all(
+            modelDefinitions
+               .filter((fileName) => ignoreFiles.indexOf(fileName) === -1)
+               .map((fileName) => {
+                  const filePath = path.join(pathModels, fileName);
+                  const fileUrl = pathToFileURL(filePath).href;
+                  return import(fileUrl)
+                     .then((mod) => {
+                        const model = mod.default ?? mod;
+                        const parsed = path.parse(fileName);
+                        this.models[parsed.name] = model;
+                        this.haveModels = true;
+                     })
+                     .catch((e) => {
+                        console.log(
+                           `Error loading model[${pathModels}][${fileName}]:`,
+                        );
+                        console.log("::", e);
+                     });
+               }),
+         );
+      };
+
+      return loadHandlers().then(() => {
+         DefaultHandlers.forEach((H) => {
+            if (!this.handlers.find((h) => h.key.match(H.keyCheck))) {
+               this.handlers.push(new H(this));
+            }
+         });
+         return loadModels(this._pathModels);
+      });
+   }
+
+   /**
     * begin this service.
     * @returns {Promise}
     */
@@ -258,13 +278,16 @@ class ABServiceController extends EventEmitter {
 
       return Promise.resolve()
          .then(() => {
+            initState = "0.load_handlers_and_models";
+            return this._loadHandlersAndModels();
+         })
+         .then(() => {
             initState = "1.wait_config_complete";
-            // make sure the config service has completed:
-            // return this._waitForConfig().then(() => {
-            let configData = config();
+            return config();
+         })
+         .then((configData) => {
             this.config = configData[this.key];
             this.connections = configData["datastores"];
-            // });
          })
          .then(() => {
             initState = "2.wait_redis_ready";

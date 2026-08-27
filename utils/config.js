@@ -5,23 +5,30 @@
  * @ignore
  */
 var path = require("path");
+var { pathToFileURL } = require("url");
+
 /**
  * @param {string} key [optional] a subportion of the configs specified
- * @returns {object} baseConfig
+ * @returns {Promise<object>} baseConfig
  */
 module.exports = (key) => {
-   try {
-      var config = require(path.join(process.cwd(), "config", "local.js"));
-      if (key) {
-         return config[key];
-      }
-      return config;
-   } catch (e) {
-      console.error(e);
-      return {};
-   }
+   var configPath = path.join(process.cwd(), "config", "local.js");
+   var fileUrl = pathToFileURL(configPath).href;
+   return import(fileUrl)
+      .then((mod) => {
+         var config = mod.default ?? mod;
+         if (key) {
+            return config[key];
+         }
+         return config;
+      })
+      .catch((e) => {
+         console.error(e);
+         return {};
+      });
+};
 
-   /*
+/*
 
    // baseConfig should be included as part of the project
    var baseConfig = {};
@@ -60,4 +67,3 @@ module.exports = (key) => {
 
    return baseConfig;
    */
-};
