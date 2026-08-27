@@ -1,0 +1,57 @@
+# Template workflow for dependent repositories
+# Copy this to your dependent repository's .github/workflows/ directory
+# This workflow listens for repository_dispatch events from ab-utils and creates a PR with the update
+
+name: Update Package on Notification
+
+on:
+   repository_dispatch:
+      types: [dependabot-update]
+
+jobs:
+   update-package:
+      runs-on: ubuntu-latest
+      steps:
+         - name: Check received event
+           run: |
+              echo "📦 Package: ${{ github.event.client_payload.package }}"
+              echo "🔖 Version: ${{ github.event.client_payload.version }}"
+              echo "📂 Source repo: ${{ github.event.client_payload.source_repo }}"
+         
+         - name: Checkout repository
+           uses: actions/checkout@v5
+           with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+         
+         - name: Set up Node.js
+           uses: actions/setup-node@v4
+           with:
+              node-version: '18'
+              registry-url: 'https://registry.npmjs.org'
+         
+         - name: Configure Git
+           run: |
+              git config --local user.email "action@github.com"
+              git config --local user.name "GitHub Action"
+         
+         - name: Update package
+           run: |
+              PACKAGE="${{ github.event.client_payload.package }}"
+              VERSION="${{ github.event.client_payload.version }}"
+              echo "Updating $PACKAGE to version $VERSION..."
+              npm install "$PACKAGE@$VERSION" --save
+         
+         - name: Create Pull Request
+           uses: peter-evans/create-pull-request@v5
+           with:
+              token: ${{ secrets.GITHUB_TOKEN }}
+              commit-message: "chore: update ${{ github.event.client_payload.package }} to ${{ github.event.client_payload.version }}"
+              title: "chore: update ${{ github.event.client_payload.package }} to ${{ github.event.client_payload.version }}"
+              body: |
+                 Automated update triggered by ${{ github.event.client_payload.source_repo }}
+                 
+                 - Package: ${{ github.event.client_payload.package }}
+                 - New version: ${{ github.event.client_payload.version }}
+              branch: "chore/update-${{ github.event.client_payload.package }}"
+              delete-branch: true
+
