@@ -1,14 +1,14 @@
 <a name="module_ab-utils"></a>
 
 ## ab-utils
-a set of common utilities shared by each of our microsservices
+a set of common utilities shared by each of our micro-services
 
 
 * [ab-utils](#module_ab-utils)
     * [.service](#module_ab-utils.service) ⇐ <code>EventEmitter</code>
         * [new service(options)](#new_module_ab-utils.service_new)
     * [.uuid()](#module_ab-utils.uuid) ⇒ <code>string</code>
-    * [.config(key)](#module_ab-utils.config) ⇒ <code>object</code>
+    * [.config(key)](#module_ab-utils.config) ⇒ <code>Promise.&lt;object&gt;</code>
     * [.controller([key])](#module_ab-utils.controller) ⇒ [<code>ABServiceController</code>](#ABServiceController)
     * [.telemetry()](#module_ab-utils.telemetry) ⇒ [<code>Telemetry</code>](#Telemetry)
     * [.reqApi(req, res, [config])](#module_ab-utils.reqApi) ⇒ [<code>ABRequestAPI</code>](#ABRequestAPI)
@@ -48,9 +48,9 @@ This is an alias for uuid.v4()
 **See**: [uuid - npm](https://www.npmjs.com/package/uuid)  
 <a name="module_ab-utils.config"></a>
 
-### ab-utils.config(key) ⇒ <code>object</code>
+### ab-utils.config(key) ⇒ <code>Promise.&lt;object&gt;</code>
 **Kind**: static method of [<code>ab-utils</code>](#module_ab-utils)  
-**Returns**: <code>object</code> - baseConfig  
+**Returns**: <code>Promise.&lt;object&gt;</code> - baseConfig  
 
 | Param | Type | Description |
 | --- | --- | --- |

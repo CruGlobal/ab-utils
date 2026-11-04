@@ -18,7 +18,6 @@
     * [.startup()](#ABServiceController+startup)
     * [._waitForConfig()](#ABServiceController+_waitForConfig) ⇒ <code>Promise</code>
     * [._waitForDB()](#ABServiceController+_waitForDB) ⇒ <code>Promise</code>
-    * [._waitForRedis()](#ABServiceController+_waitForRedis) ⇒ <code>Promise</code>
 
 <a name="new_ABServiceController_new"></a>
 
@@ -116,11 +115,5 @@ waits until the config service has posted a '.config_ready' file
 
 ### controller.\_waitForDB() ⇒ <code>Promise</code>
 attempts to connect to our maria DB service before continuing.
-
-**Kind**: instance method of [<code>ABServiceController</code>](#ABServiceController)  
-<a name="ABServiceController+_waitForRedis"></a>
-
-### controller.\_waitForRedis() ⇒ <code>Promise</code>
-attempts to connect to our redis server and then resolves() once the connection is ready.
 
 **Kind**: instance method of [<code>ABServiceController</code>](#ABServiceController)  
