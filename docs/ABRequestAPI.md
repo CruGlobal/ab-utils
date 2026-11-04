@@ -24,6 +24,7 @@ jobs to various micro services.
     * [.spanCreateChild(key, attributes)](#ABRequestAPI+spanCreateChild) ⇒ <code>object</code>
     * [.spanRequest(key, attributes)](#ABRequestAPI+spanRequest) ⇒ <code>object</code>
     * [.spanEnd(key)](#ABRequestAPI+spanEnd)
+    * [.toObj()](#ABRequestAPI+toObj) ⇒ <code>obj</code>
     * [.validateParameters(description, [autoRespond], [params])](#ABRequestAPI+validateParameters) ⇒ <code>bool</code>
     * [.validationReset()](#ABRequestAPI+validationReset)
     * [.validRoles(roleIDs)](#ABRequestAPI+validRoles) ⇒ <code>bool</code>
@@ -193,6 +194,12 @@ Ends the given telemetry span
 | --- | --- | --- |
 | key | <code>string</code> | identifier for the span |
 
+<a name="ABRequestAPI+toObj"></a>
+
+### req.toObj() ⇒ <code>obj</code>
+provides a non circular object representation of this reqApi
+
+**Kind**: instance method of [<code>ABRequestAPI</code>](#ABRequestAPI)  
 <a name="ABRequestAPI+validateParameters"></a>
 
 ### req.validateParameters(description, [autoRespond], [params]) ⇒ <code>bool</code>

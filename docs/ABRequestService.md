@@ -24,11 +24,13 @@
     * [.allParams(...params)](#ABRequestService+allParams) ⇒ <code>object</code>
     * [.params([ignoreList])](#ABRequestService+params) ⇒ <code>object</code>
     * [.query(query, values, cb, [dbConn])](#ABRequestService+query)
+    * [.queryAsync(query, values, [dbConn])](#ABRequestService+queryAsync) ⇒ <code>Promise.&lt;{results, fields}&gt;</code>
     * [.queryIsolate(query, values, cb)](#ABRequestService+queryIsolate)
+    * [.queryIsolateAsync(query, values)](#ABRequestService+queryIsolateAsync) ⇒ <code>Promise.&lt;{results, fields}&gt;</code>
     * [.queryIsolateClose()](#ABRequestService+queryIsolateClose)
-    * [.queryTenantDB(reject)](#ABRequestService+queryTenantDB) ⇒ <code>false</code> \| <code>string</code>
+    * [.queryTenantDB([reject])](#ABRequestService+queryTenantDB) ⇒ <code>false</code> \| <code>string</code>
     * [.queryWhereCondition(cond)](#ABRequestService+queryWhereCondition) ⇒ <code>obj</code>
-    * [.retry(fn)](#ABRequestService+retry) ⇒ <code>Promise</code>
+    * [.retry(fn, count)](#ABRequestService+retry) ⇒ <code>Promise</code>
     * [.shouldRetry(error)](#ABRequestService+shouldRetry)
     * [.spanCreateChild(key, attributes)](#ABRequestService+spanCreateChild) ⇒ <code>object</code>
     * [.spanRequest(key, attributes)](#ABRequestService+spanRequest) ⇒ <code>object</code>
@@ -285,6 +287,19 @@ perform an sql query directly on our dbConn.
 | cb | <code>fn</code> | a node style callback with 3 paramaters (error, results, fields) these are the same values as returned by the mysql library .query() |
 | [dbConn] | <code>MySQL</code> | the DB Connection to use for this request. If not provided the common dbConnection() will be used. |
 
+<a name="ABRequestService+queryAsync"></a>
+
+### req.queryAsync(query, values, [dbConn]) ⇒ <code>Promise.&lt;{results, fields}&gt;</code>
+perform an sql query directly on our dbConn, returning a Promise.
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| query | <code>string</code> | the sql query to perform.  Use "?" for placeholders. |
+| values | <code>array</code> | the array of values that correspond to the placeholders in the sql |
+| [dbConn] | <code>MySQL</code> | the DB Connection to use for this request. If not provided the common dbConnection() will be used. |
+
 <a name="ABRequestService+queryIsolate"></a>
 
 ### req.queryIsolate(query, values, cb)
@@ -298,6 +313,19 @@ Perform a query on it's own DB Connection. Not shared with other requests.
 | values | <code>array</code> | the array of values that correspond to the placeholders in the sql |
 | cb | <code>fn</code> | a node style callback with 3 paramaters (error, results, fields) these are the same values as returned by the mysql library .query() |
 
+<a name="ABRequestService+queryIsolateAsync"></a>
+
+### req.queryIsolateAsync(query, values) ⇒ <code>Promise.&lt;{results, fields}&gt;</code>
+Perform a query on it's own DB Connection, returning a Promise. Not shared
+with other requests.
+
+**Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
+
+| Param | Type | Description |
+| --- | --- | --- |
+| query | <code>string</code> | the sql query to perform. Use "?" for placeholders. |
+| values | <code>array</code> | the array of values that correspond to the placeholders in the sql |
+
 <a name="ABRequestService+queryIsolateClose"></a>
 
 ### req.queryIsolateClose()
@@ -308,18 +336,22 @@ actions are performed.
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 <a name="ABRequestService+queryTenantDB"></a>
 
-### req.queryTenantDB(reject) ⇒ <code>false</code> \| <code>string</code>
+### req.queryTenantDB([reject]) ⇒ <code>false</code> \| <code>string</code>
 return the tenantDB value for this req object.
 this is a helper function that simplifies the error handling if no
 tenantDB is found.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
-**Returns**: <code>false</code> \| <code>string</code> - false if tenantDB not found, otherwise the tenantDB
-name (string).  
+**Returns**: <code>false</code> \| <code>string</code> - false if tenantDB not found and reject is provided,
+otherwise the tenantDB name (string).  
+**Throws**:
+
+- <code>Error</code> if tenantDB not found and reject is not provided.
+
 
 | Param | Type | Description |
 | --- | --- | --- |
-| reject | <code>Promise.reject</code> | a reject() handler to be called if a tenantDB is not found. |
+| [reject] | <code>Promise.reject</code> | a reject() handler to be called if a tenantDB is not found. If not provided, an error will be thrown. |
 
 <a name="ABRequestService+queryWhereCondition"></a>
 
@@ -338,7 +370,7 @@ values that correspond to the proper ordering of the condition
 
 <a name="ABRequestService+retry"></a>
 
-### req.retry(fn) ⇒ <code>Promise</code>
+### req.retry(fn, count) ⇒ <code>Promise</code>
 Attempt to retry the provided fn() if it results in an interrupted
 Network operation error.
 
@@ -347,9 +379,10 @@ the expected return data, and rejects() with the Network errors.
 
 **Kind**: instance method of [<code>ABRequestService</code>](#ABRequestService)  
 
-| Param | Type | Description |
-| --- | --- | --- |
-| fn | <code>function</code> | The promise based network operation |
+| Param | Type | Default | Description |
+| --- | --- | --- | --- |
+| fn | <code>function</code> |  | The promise based network operation |
+| count | <code>integer</code> | <code>0</code> | The number of times we have retried this operation. |
 
 <a name="ABRequestService+shouldRetry"></a>
 

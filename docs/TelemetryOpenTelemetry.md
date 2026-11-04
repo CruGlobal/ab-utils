@@ -18,8 +18,11 @@
 | Param | Type | Description |
 | --- | --- | --- |
 | config | <code>object</code> |  |
-| config.spanProcessor | <code>opentelemetry.node.SpanProcessor</code> |  |
-| config.textMapPropagator | <code>opentelemetry.api.TextMapPropagator</code> |  |
+| [config.spanProcessor] | <code>opentelemetry.node.SpanProcessor</code> |  |
+| [config.spanProcessors] | <code>Array.&lt;opentelemetry.node.SpanProcessor&gt;</code> |  |
+| [config.textMapPropagator] | <code>opentelemetry.api.TextMapPropagator</code> |  |
+| [config.sampler] | <code>opentelemetry.node.Sampler</code> |  |
+| [config.contextManager] | <code>opentelemetry.api.ContextManager</code> |  |
 | config.name | <code>string</code> | name to use for the Tracer |
 | config.version | <code>string</code> | version to use for the Tracer |
 
